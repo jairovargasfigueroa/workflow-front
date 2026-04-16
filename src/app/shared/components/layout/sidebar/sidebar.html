@@ -1,0 +1,15 @@
+<div class="sidebar-header">
+  <mat-icon class="logo">account_balance</mat-icon>
+  <span class="logo-text">WT</span>
+</div>
+
+<mat-nav-list>
+  @for (item of menuItems; track item.route) {
+    <a mat-list-item
+       [routerLink]="item.route"
+       routerLinkActive="active">
+      <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+      <span matListItemTitle>{{ item.label }}</span>
+    </a>
+  }
+</mat-nav-list>

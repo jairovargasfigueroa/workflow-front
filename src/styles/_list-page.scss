@@ -1,0 +1,147 @@
+// =============================================================================
+// List Page — estilos compartidos por todas las páginas de lista con tabla.
+// Reemplaza los bloques idénticos que antes existían en 6 archivos distintos.
+// =============================================================================
+
+// Cabecera de página: título + subtítulo + botón de acción
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+
+  .header-content {
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--color-text-secondary);
+      font-size: 14px;
+    }
+  }
+
+  // En móvil: apila verticalmente y el botón ocupa el ancho completo
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+// Spinner de carga centrado
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+// Card blanca que envuelve la tabla
+.table-container {
+  background: var(--surface-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow-x: auto; // scroll horizontal en pantallas pequeñas
+  -webkit-overflow-scrolling: touch;
+}
+
+// Estilos base de todas las tablas Material
+.mat-mdc-table {
+  width: 100%;
+
+  th.mat-header-cell {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  td.mat-cell {
+    font-size: 14px;
+  }
+
+  tr.mat-mdc-row:hover {
+    background-color: var(--color-hover-row);
+    transition: background-color 0.15s ease;
+  }
+
+  .actions-column {
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
+// Chip global: tamaño base
+mat-chip {
+  font-size: 12px !important;
+  min-height: 24px !important;
+}
+
+// =============================================================================
+// Chips de estado de trámite
+// =============================================================================
+
+.estado-pendiente {
+  --mdc-chip-elevated-container-color: var(--chip-pending-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-pending-text) !important;
+}
+
+.estado-proceso {
+  --mdc-chip-elevated-container-color: var(--chip-process-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-process-text) !important;
+}
+
+.estado-observado {
+  --mdc-chip-elevated-container-color: var(--chip-observed-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-observed-text) !important;
+}
+
+.estado-aprobado {
+  --mdc-chip-elevated-container-color: var(--chip-approved-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-approved-text) !important;
+}
+
+.estado-rechazado {
+  --mdc-chip-elevated-container-color: var(--chip-rejected-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-rejected-text) !important;
+}
+
+// =============================================================================
+// Chips de estado activo / inactivo (compartido por departamentos, tramites, etc.)
+// =============================================================================
+
+.status-activo,
+.estado-activo {
+  --mdc-chip-elevated-container-color: var(--chip-active-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-active-text) !important;
+}
+
+.status-inactivo,
+.estado-inactivo {
+  --mdc-chip-elevated-container-color: var(--chip-inactive-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-inactive-text) !important;
+}
+
+// =============================================================================
+// Chips de rol de usuario
+// =============================================================================
+
+.rol-admin {
+  --mdc-chip-elevated-container-color: var(--chip-admin-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-admin-text) !important;
+}
+
+.rol-funcionario {
+  --mdc-chip-elevated-container-color: var(--chip-funcionario-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-funcionario-text) !important;
+}
+
+.rol-solicitante {
+  --mdc-chip-elevated-container-color: var(--chip-solicitante-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-solicitante-text) !important;
+}

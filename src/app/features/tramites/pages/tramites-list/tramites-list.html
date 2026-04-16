@@ -1,0 +1,78 @@
+<div class="tramites-container">
+  <app-page-header
+    title="Catálogo de Trámites"
+    subtitle="Gestiona las plantillas de trámites disponibles"
+    buttonLabel="Nuevo Trámite"
+    buttonIcon="add_task"
+    (buttonClick)="openCreateDialog()">
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (tramites().length === 0) {
+    <app-empty-state
+      icon="description"
+      title="No hay trámites"
+      message="Aún no se han creado trámites. Crea el primero para comenzar."
+      actionText="Crear Trámite"
+      (action)="openCreateDialog()">
+    </app-empty-state>
+  } @else {
+    <div class="table-container">
+      <table mat-table [dataSource]="tramites()" class="tramites-table">
+        <!-- Nombre Column -->
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let tramite">
+            <div class="tramite-info">
+              <mat-icon class="tramite-icon">description</mat-icon>
+              <span>{{ tramite.nombre }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Descripción Column -->
+        <ng-container matColumnDef="descripcion">
+          <th mat-header-cell *matHeaderCellDef>Descripción</th>
+          <td mat-cell *matCellDef="let tramite">{{ tramite.descripcion || '-' }}</td>
+        </ng-container>
+
+        <!-- Requisitos Column -->
+        <ng-container matColumnDef="requisitos">
+          <th mat-header-cell *matHeaderCellDef>Requisitos</th>
+          <td mat-cell *matCellDef="let tramite">
+            <mat-chip>{{ tramite.requisitos?.length || 0 }} requisitos</mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Activo Column -->
+        <ng-container matColumnDef="activo">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let tramite">
+            <mat-chip [class]="tramite.activo ? 'status-activo' : 'status-inactivo'">
+              {{ tramite.activo ? 'Activo' : 'Inactivo' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Acciones Column -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+          <td mat-cell *matCellDef="let tramite" class="actions-column">
+            <button mat-icon-button color="primary" matTooltip="Editar" (click)="openEditDialog(tramite)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDelete(tramite)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+  }
+</div>

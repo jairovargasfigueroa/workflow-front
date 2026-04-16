@@ -1,0 +1,174 @@
+@if (loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+  </div>
+} @else if (solicitud(); as sol) {
+  <div class="detail-container">
+    <div class="detail-header">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="header-info">
+        <h1>Solicitud #{{ sol.id | slice:0:8 }}</h1>
+        <mat-chip [class]="getEstadoClass(sol.estado)">
+          {{ estadoLabels[sol.estado] }}
+        </mat-chip>
+      </div>
+      @if (sol.departamentoActualId && sol.estado !== 'APROBADO' && sol.estado !== 'RECHAZADO') {
+        <button mat-fab extended color="primary" (click)="openResponderDialog()">
+          <mat-icon>rate_review</mat-icon>
+          Responder
+        </button>
+      }
+    </div>
+
+    <!-- Info General -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>info</mat-icon>
+        <mat-card-title>Información General</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Trámite</span>
+            <span class="value">{{ tramite()?.nombre || sol.tramiteId }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Solicitante</span>
+            <span class="value">{{ sol.solicitanteId }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Departamento actual</span>
+            <span class="value">{{ getDepartamentoNombre(sol.departamentoActualId) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Fecha creación</span>
+            <span class="value">{{ formatDate(sol.fechaCreacion) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Última actualización</span>
+            <span class="value">{{ formatDate(sol.fechaActualizacion) }}</span>
+          </div>
+          @if (sol.fechaFinalizacion) {
+            <div class="info-item info-item--destacado">
+              <span class="label">Fecha de finalización</span>
+              <span class="value">{{ formatDate(sol.fechaFinalizacion) }}</span>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Respuestas del Solicitante -->
+    @if (sol.respuestasSolicitante && sol.respuestasSolicitante.length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>assignment</mat-icon>
+          <mat-card-title>Respuestas del Solicitante</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="respuestas-grid">
+            @for (resp of sol.respuestasSolicitante; track resp.nombreCampo) {
+              <div class="respuesta-item">
+                <span class="label">{{ resp.nombreCampo }}</span>
+                <span class="value">{{ resp.valor || '-' }}</span>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Adjuntos -->
+    @if (sol.adjuntos && sol.adjuntos.length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>attach_file</mat-icon>
+          <mat-card-title>Adjuntos</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list>
+            @for (adjunto of sol.adjuntos; track adjunto.nombre) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>insert_drive_file</mat-icon>
+                <div matListItemTitle>{{ adjunto.nombre }}</div>
+                <div matListItemLine>{{ adjunto.tipo }}</div>
+              </mat-list-item>
+            }
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Historial de Estados -->
+    @if (sol.historialEstados && sol.historialEstados.length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>history</mat-icon>
+          <mat-card-title>Historial de Estados</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="timeline">
+            @for (hist of sol.historialEstados; track $index) {
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="timeline-header">
+                    <mat-chip [class]="getEstadoClass($any(hist.estado))" class="timeline-chip">
+                      {{ getEstadoLabel(hist.estado) }}
+                    </mat-chip>
+                    <span class="timeline-date">Respondió: {{ formatDate(hist.fecha) }}</span>
+                  </div>
+                  @if (hist.departamentoId) {
+                    <p class="timeline-meta">Departamento: {{ getDepartamentoNombre(hist.departamentoId) }}</p>
+                  }
+                  @if (hist.fechaEntrada) {
+                    <p class="timeline-meta timeline-duracion">
+                      <span>Entró: {{ formatDate(hist.fechaEntrada) }}</span>
+                      @if (getDuracion(hist.fechaEntrada, hist.fecha)) {
+                        <span class="duracion-badge">{{ getDuracion(hist.fechaEntrada, hist.fecha) }}</span>
+                      }
+                    </p>
+                  }
+                  @if (hist.comentario) {
+                    <p class="timeline-comment">{{ hist.comentario }}</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <!-- Respuestas por Departamento -->
+    @if (sol.respuestasPorDepartamento && sol.respuestasPorDepartamento.length > 0) {
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>business</mat-icon>
+          <mat-card-title>Respuestas por Departamento</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @for (respDepto of sol.respuestasPorDepartamento; track $index) {
+            <div class="depto-respuesta">
+              <h4>{{ getDepartamentoNombre(respDepto.departamentoId) }}</h4>
+              <p class="depto-fecha">{{ formatDate(respDepto.fecha) }}</p>
+              <div class="respuestas-grid">
+                @for (resp of respDepto.respuestas; track resp.nombreCampo) {
+                  <div class="respuesta-item">
+                    <span class="label">{{ resp.nombreCampo }}</span>
+                    <span class="value">{{ resp.valor || '-' }}</span>
+                  </div>
+                }
+              </div>
+              @if (!$last) {
+                <mat-divider></mat-divider>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

@@ -1,0 +1,78 @@
+<div class="flujos-container">
+  <app-page-header
+    title="Flujos de Trabajo"
+    subtitle="Gestiona y edita los diagramas BPMN de tus procesos"
+    buttonLabel="Nuevo Flujo"
+    buttonIcon="add"
+    (buttonClick)="openCreateDialog()">
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (flujos().length === 0) {
+    <app-empty-state
+      icon="account_tree"
+      title="No hay flujos de trabajo"
+      message="Crea tu primer flujo de trabajo para comenzar a modelar procesos de negocio."
+      actionText="Crear Flujo"
+      (action)="openCreateDialog()">
+    </app-empty-state>
+  } @else {
+    <div class="table-container">
+      <table mat-table [dataSource]="flujos()" class="flujos-table">
+        <!-- Nombre Column -->
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let flujo">
+            <div class="flujo-info">
+              <mat-icon class="flujo-icon">account_tree</mat-icon>
+              <div>
+                <div class="flujo-nombre">{{ flujo.nombre }}</div>
+                <div class="flujo-descripcion">{{ flujo.descripcion || 'Sin descripción' }}</div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Proceso Key Column -->
+        <ng-container matColumnDef="procesoKey">
+          <th mat-header-cell *matHeaderCellDef>Key del Proceso</th>
+          <td mat-cell *matCellDef="let flujo">
+            <code class="proceso-key">{{ flujo.procesoKey }}</code>
+          </td>
+        </ng-container>
+
+        <!-- Activo Column -->
+        <ng-container matColumnDef="activo">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let flujo">
+            <mat-chip [class]="flujo.activo ? 'status-activo' : 'status-inactivo'">
+              {{ flujo.activo ? 'Activo' : 'Inactivo' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Acciones Column -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+          <td mat-cell *matCellDef="let flujo" class="actions-column">
+            <button mat-icon-button color="accent" matTooltip="Abrir Editor" (click)="openEditor(flujo)">
+              <mat-icon>edit_note</mat-icon>
+            </button>
+            <button mat-icon-button color="primary" matTooltip="Editar Info" (click)="openEditDialog(flujo)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDelete(flujo)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+  }
+</div>

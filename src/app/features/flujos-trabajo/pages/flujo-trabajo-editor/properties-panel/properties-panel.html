@@ -1,0 +1,104 @@
+<div class="properties-panel">
+  <div class="panel-header">
+    <mat-icon>settings</mat-icon>
+    <span>Propiedades</span>
+  </div>
+
+  <mat-divider />
+
+  @if (!selectedElement()) {
+    <div class="no-selection">
+      <mat-icon>touch_app</mat-icon>
+      <p>Selecciona un elemento del diagrama para ver sus propiedades</p>
+    </div>
+  } @else {
+    <div class="element-header">
+      <mat-icon>{{ getElementIcon() }}</mat-icon>
+      <span class="element-type">{{ getElementTypeLabel() }}</span>
+    </div>
+
+    <div class="properties-form">
+      <!-- Nombre (para todos los elementos excepto SequenceFlow) -->
+      @if (elementType() !== 'bpmn:SequenceFlow' && elementType() !== 'bpmn:Process') {
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre</mat-label>
+          <input
+            matInput
+            [value]="elementName()"
+            (input)="onNameChange($event)"
+            placeholder="Nombre del elemento">
+        </mat-form-field>
+      }
+
+      <!-- User Task: Departamento asignado -->
+      @if (elementType() === 'bpmn:UserTask') {
+        <mat-form-field appearance="outline">
+          <mat-label>Departamento asignado</mat-label>
+          <mat-select
+            [value]="candidateGroups()"
+            (selectionChange)="onCandidateGroupsChange($event.value)">
+            <mat-option value="">— Sin asignar —</mat-option>
+            @for (dep of departamentos(); track dep.id) {
+              <mat-option [value]="dep.id">{{ dep.nombre }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>camunda:candidateGroups</mat-hint>
+        </mat-form-field>
+
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <span>El departamento determina qué funcionarios pueden completar esta tarea.</span>
+        </div>
+      }
+
+      <!-- Sequence Flow desde Exclusive Gateway: Condición -->
+      @if (elementType() === 'bpmn:SequenceFlow' && isFromExclusiveGateway()) {
+        <mat-form-field appearance="outline">
+          <mat-label>Condición</mat-label>
+          <mat-select
+            [value]="conditionExpression()"
+            (selectionChange)="onConditionChange($event.value)">
+            <mat-option value="">— Sin condición —</mat-option>
+            @for (option of conditionOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>conditionExpression</mat-hint>
+        </mat-form-field>
+
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <span>La condición evalúa la variable <strong>aprobado</strong> que setea el funcionario al completar la tarea.</span>
+        </div>
+      }
+
+      <!-- Sequence Flow que NO es de gateway exclusivo -->
+      @if (elementType() === 'bpmn:SequenceFlow' && !isFromExclusiveGateway()) {
+        <div class="info-box neutral">
+          <mat-icon>arrow_forward</mat-icon>
+          <span>Este flujo conecta dos elementos.
+            @if (elementType() === 'bpmn:SequenceFlow') {
+              Las condiciones solo aplican a flujos salientes de compuertas exclusivas.
+            }
+          </span>
+        </div>
+      }
+
+      <!-- Proceso (root element) -->
+      @if (elementType() === 'bpmn:Process') {
+        <div class="info-box neutral">
+          <mat-icon>account_tree</mat-icon>
+          <span>Proceso principal. El ID y isExecutable se configuran automáticamente.</span>
+        </div>
+      }
+
+      <!-- Variables del flujo -->
+      @if (elementType() === 'bpmn:ExclusiveGateway') {
+        <div class="info-box">
+          <mat-icon>info</mat-icon>
+          <span>Las compuertas exclusivas evalúan condiciones en los flujos salientes basándose en las variables: <strong>aprobado</strong> (boolean) y <strong>comentario</strong> (string).</span>
+        </div>
+      }
+    </div>
+  }
+</div>

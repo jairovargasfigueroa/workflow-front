@@ -1,0 +1,53 @@
+<div class="notification-panel">
+  <div class="panel-header">
+    <span class="panel-title">Notificaciones</span>
+    @if (hasUnread()) {
+      <button mat-button color="primary" (click)="markAllAsRead()">
+        Marcar todas como leídas
+      </button>
+    }
+  </div>
+
+  <mat-divider />
+
+  @if (notifications().length === 0) {
+    <div class="empty-notifications">
+      <mat-icon>notifications_none</mat-icon>
+      <p>No hay notificaciones</p>
+    </div>
+  } @else {
+    <mat-nav-list class="notification-list">
+      @for (notification of notifications(); track notification.id) {
+        <mat-list-item
+          [class.unread]="!notification.read"
+          (click)="markAsRead(notification.id)">
+          <mat-icon
+            matListItemIcon
+            [style.color]="getColor(notification.type)">
+            {{ getIcon(notification.type) }}
+          </mat-icon>
+          <span matListItemTitle>{{ notification.title }}</span>
+          <span matListItemLine>{{ notification.message }}</span>
+          <span matListItemMeta class="notification-time">
+            {{ notification.createdAt | date:'shortTime' }}
+          </span>
+          <button
+            mat-icon-button
+            matListItemMeta
+            (click)="remove(notification.id, $event)"
+            class="remove-btn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-list-item>
+      }
+    </mat-nav-list>
+
+    <mat-divider />
+
+    <div class="panel-footer">
+      <button mat-button color="warn" (click)="clearAll()">
+        Limpiar todas
+      </button>
+    </div>
+  }
+</div>

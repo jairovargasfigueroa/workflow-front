@@ -1,0 +1,30 @@
+.usuarios-container {
+  padding: 24px;
+}
+
+.usuarios-table {
+  .actions-column {
+    width: 120px;
+  }
+
+  // Avatar con inicial del usuario
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+}

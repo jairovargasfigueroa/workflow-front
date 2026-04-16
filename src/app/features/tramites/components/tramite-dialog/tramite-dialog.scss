@@ -1,0 +1,39 @@
+// Estilos base en src/styles/_dialogs.scss
+// Solo se definen estilos únicos del gestor de requisitos:
+
+.empty-requisitos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--color-text-hint);
+  text-align: center;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.requisitos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.requisito-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .requisito-field {
+    flex: 1;
+  }
+}

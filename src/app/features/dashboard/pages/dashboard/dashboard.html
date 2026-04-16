@@ -1,0 +1,61 @@
+<div class="dashboard">
+  <h1>Dashboard</h1>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    @for (stat of stats; track stat.label) {
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-info">
+              <span class="stat-value">{{ stat.value }}</span>
+              <span class="stat-label">{{ stat.label }}</span>
+            </div>
+            <mat-icon [style.color]="stat.color" class="stat-icon">
+              {{ stat.icon }}
+            </mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  <div class="dashboard-content">
+    <!-- Recent Activity -->
+    <mat-card class="activity-card">
+      <mat-card-header>
+        <mat-card-title>Actividad Reciente</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          @for (item of recentActivity; track item.title) {
+            <mat-list-item>
+              <mat-icon matListItemIcon [style.color]="item.color">
+                {{ item.icon }}
+              </mat-icon>
+              <span matListItemTitle>{{ item.title }}</span>
+              <span matListItemLine class="activity-time">{{ item.time }}</span>
+            </mat-list-item>
+          }
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Quick Actions -->
+    <mat-card class="actions-card">
+      <mat-card-header>
+        <mat-card-title>Acciones Rápidas</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="quick-actions">
+          @for (action of quickActions; track action.label) {
+            <button mat-raised-button [color]="action.color">
+              <mat-icon>{{ action.icon }}</mat-icon>
+              {{ action.label }}
+            </button>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

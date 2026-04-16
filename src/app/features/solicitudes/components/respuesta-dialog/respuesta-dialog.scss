@@ -1,0 +1,47 @@
+// Estilos base en src/styles/_dialogs.scss
+
+// Banner informativo del departamento actual
+.dept-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  padding: 12px;
+  background: var(--surface-page);
+  border-radius: var(--radius-card);
+
+  mat-icon {
+    color: var(--color-primary);
+  }
+}
+
+.dynamic-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+}
+
+.file-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  input[type='text'] {
+    padding: 8px;
+    border: 1px dashed #bdbdbd;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+  }
+}

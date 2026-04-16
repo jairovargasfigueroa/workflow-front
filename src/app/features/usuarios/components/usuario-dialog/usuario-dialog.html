@@ -1,0 +1,96 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="usuarioForm" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre</mat-label>
+        <input matInput formControlName="nombre" placeholder="Nombre completo">
+        @if (form.controls.nombre.hasError('required')) {
+          <mat-error>El nombre es requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com">
+        @if (form.controls.email.hasError('required')) {
+          <mat-error>El email es requerido</mat-error>
+        }
+        @if (form.controls.email.hasError('email')) {
+          <mat-error>Ingrese un email válido</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ isEditMode ? 'Nueva Contraseña (opcional)' : 'Contraseña' }}</mat-label>
+        <input matInput formControlName="password" type="password" placeholder="••••••">
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>La contraseña es requerida</mat-error>
+        }
+        @if (form.controls.password.hasError('minlength')) {
+          <mat-error>Mínimo 6 caracteres</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Rol</mat-label>
+        <mat-select formControlName="rol">
+          @for (rol of roles; track rol.value) {
+            <mat-option [value]="rol.value">{{ rol.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (showDepartamento) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Departamento</mat-label>
+        <mat-select formControlName="departamentoId">
+          <mat-option value="">Sin departamento</mat-option>
+          @for (dep of departamentos; track dep.id) {
+            <mat-option [value]="dep.id">{{ dep.nombre }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Cargo</mat-label>
+        <input matInput formControlName="cargo" placeholder="Cargo o puesto">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Teléfono</mat-label>
+        <input matInput formControlName="telefono" placeholder="+591 12345678">
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Cédula</mat-label>
+        <input matInput formControlName="cedula" placeholder="12345678">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Dirección</mat-label>
+        <input matInput formControlName="direccion" placeholder="Dirección completa">
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="saving">Cancelar</button>
+  <button mat-flat-button color="primary" type="submit" form="usuarioForm"
+          [disabled]="form.invalid || saving">
+    @if (saving) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ isEditMode ? 'Guardar' : 'Crear' }}
+    }
+  </button>
+</mat-dialog-actions>

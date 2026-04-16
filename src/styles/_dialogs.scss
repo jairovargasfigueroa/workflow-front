@@ -1,0 +1,93 @@
+// =============================================================================
+// Dialogs — estilos base compartidos por todos los diálogos/formularios.
+// Cada diálogo solo define sus estilos únicos en su propio archivo SCSS.
+// =============================================================================
+
+// Responsive: en móvil los diálogos ocupan casi todo el ancho
+@media (max-width: 600px) {
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-shape: 12px;
+  }
+
+  .mat-mdc-dialog-surface {
+    min-width: unset !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
+  }
+}
+
+// Contenido del diálogo
+mat-dialog-content {
+  padding-top: 16px !important;
+  overflow-y: auto;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+// Barra de acciones del diálogo (botones cancelar / guardar)
+mat-dialog-actions {
+  padding: 16px 24px !important;
+  gap: 8px;
+
+  button {
+    min-width: 100px;
+
+    mat-spinner {
+      display: inline-block;
+    }
+  }
+}
+
+// Campo que ocupa el 100% del ancho
+.full-width {
+  width: 100%;
+}
+
+// Grid de 2 columnas para formularios con muchos campos
+// Se colapsa a 1 columna en móvil
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Sección interna de un diálogo con título y contenido
+.form-section {
+  padding: 16px 0;
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .section-desc {
+    margin: 0 0 16px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+}
+
+// Fila con título de sección + botón "Agregar"
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+}

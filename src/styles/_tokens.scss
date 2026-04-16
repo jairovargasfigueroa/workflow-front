@@ -1,0 +1,57 @@
+// =============================================================================
+// Design Tokens — un único lugar para cambiar colores, sombras y espaciado.
+// Para cambiar la paleta completa, edita solo este archivo.
+// =============================================================================
+
+:root {
+  // --- Colores de acción (se mapean a Angular Material M3 donde sea posible) ---
+  --color-primary: #1976d2;
+
+  // --- Superficies ---
+  --surface-card: #ffffff;
+  --surface-subtle: #fafafa;
+  --surface-page: #f5f5f5;
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --radius-card: 8px;
+  --color-border: rgba(0, 0, 0, 0.12);
+
+  // --- Texto ---
+  --color-text-primary: rgba(0, 0, 0, 0.87);
+  --color-text-secondary: rgba(0, 0, 0, 0.6);
+  --color-text-hint: rgba(0, 0, 0, 0.38);
+  --color-hover-row: rgba(0, 0, 0, 0.02);
+
+  // --- Chips: Estado de trámite ---
+  --chip-pending-bg: #fff3e0;
+  --chip-pending-text: #e65100;
+
+  --chip-process-bg: #e3f2fd;
+  --chip-process-text: #1565c0;
+
+  --chip-observed-bg: #fce4ec;
+  --chip-observed-text: #c2185b;
+
+  --chip-approved-bg: #e8f5e9;
+  --chip-approved-text: #2e7d32;
+
+  --chip-rejected-bg: #fbe9e7;
+  --chip-rejected-text: #bf360c;
+
+  // --- Chips: Estado activo/inactivo ---
+  --chip-active-bg: #e8f5e9;
+  --chip-active-text: #2e7d32;
+
+  --chip-inactive-bg: #f5f5f5;
+  --chip-inactive-text: rgba(0, 0, 0, 0.38);
+
+  // --- Chips: Rol de usuario ---
+  --chip-admin-bg: #e3f2fd;
+  --chip-admin-text: #1565c0;
+
+  --chip-funcionario-bg: #fff3e0;
+  --chip-funcionario-text: #e65100;
+
+  --chip-solicitante-bg: #f3e5f5;
+  --chip-solicitante-text: #7b1fa2;
+}

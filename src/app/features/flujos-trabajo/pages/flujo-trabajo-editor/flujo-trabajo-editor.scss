@@ -1,0 +1,145 @@
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  background: #f5f5f5;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+
+  p {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.editor-header {
+  background: white;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .flujo-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .flujo-icon {
+        color: #1976d2;
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .proceso-key {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.6);
+        font-family: 'Courier New', monospace;
+      }
+    }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .zoom-controls {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    button[mat-raised-button] {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      mat-spinner {
+        display: inline-block;
+      }
+    }
+  }
+}
+
+.editor-content {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.canvas-container {
+  flex: 1;
+  position: relative;
+  background: white;
+  overflow: hidden;
+}
+
+.collaboration-indicator {
+  position: absolute;
+  bottom: 24px;
+  right: 344px;
+  background: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// Estilos para el snackbar de éxito
+::ng-deep .success-snackbar {
+  background: #4caf50 !important;
+  color: white !important;
+}

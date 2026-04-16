@@ -1,0 +1,30 @@
+.solicitudes-container {
+  padding: 24px;
+}
+
+.solicitudes-table .actions-column {
+  width: 140px;
+}
+
+// Barra de filtros (único de esta página)
+.filters-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    min-width: 180px;
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+
+    mat-form-field {
+      min-width: unset;
+      width: 100%;
+    }
+  }
+}

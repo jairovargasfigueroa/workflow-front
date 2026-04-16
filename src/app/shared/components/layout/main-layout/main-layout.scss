@@ -1,0 +1,21 @@
+.layout-container {
+  height: 100vh;
+}
+
+.sidenav {
+  width: 250px;
+  background: #fafafa;
+  border-right: 1px solid #e0e0e0;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--surface-page);
+}
