@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
@@ -24,7 +24,6 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
@@ -47,7 +46,7 @@ export class FormulariosListComponent implements OnInit {
     this.loadFormularios();
   }
 
-  loadFormularios(): void {
+  private loadFormularios(): void {
     this.loading.set(true);
     this.formulariosService.getAll().subscribe({
       next: (data) => {
@@ -60,25 +59,11 @@ export class FormulariosListComponent implements OnInit {
     });
   }
 
-  openCreateDialog(): void {
+  openDialog(formulario?: FormularioTemplate): void {
     const dialogRef = this.dialog.open(FormularioDialogComponent, {
       width: '800px',
       maxHeight: '90vh',
-      data: { mode: 'create' }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadFormularios();
-      }
-    });
-  }
-
-  openEditDialog(formulario: FormularioTemplate): void {
-    const dialogRef = this.dialog.open(FormularioDialogComponent, {
-      width: '800px',
-      maxHeight: '90vh',
-      data: { mode: 'edit', formulario }
+      data: formulario ? { mode: 'edit', formulario } : { mode: 'create' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -114,6 +99,9 @@ export class FormulariosListComponent implements OnInit {
           message: 'Formulario eliminado correctamente',
           type: 'success'
         });
+        this.loadFormularios();
+      },
+      error: () => {
         this.loadFormularios();
       }
     });

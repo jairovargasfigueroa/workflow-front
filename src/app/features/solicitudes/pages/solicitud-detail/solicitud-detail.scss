@@ -55,14 +55,14 @@
   .label {
     font-size: 12px;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--color-text-hint);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
 
   .value {
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.87);
+    color: var(--color-text-primary);
   }
 }
 
@@ -71,7 +71,7 @@
 
   .value {
     font-weight: 500;
-    color: #1565c0;
+    color: var(--color-primary);
   }
 }
 
@@ -87,7 +87,7 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: #e0e0e0;
+    background: var(--timeline-line);
   }
 }
 
@@ -107,9 +107,9 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #1976d2;
-  border: 2px solid white;
-  box-shadow: 0 0 0 2px #1976d2;
+  background: var(--color-primary);
+  border: 2px solid var(--surface-card);
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
 
 .timeline-content {
@@ -126,22 +126,22 @@
 
   .timeline-date {
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--color-text-hint);
   }
 
   .timeline-meta {
     margin: 4px 0;
     font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--color-text-secondary);
   }
 
   .timeline-comment {
     margin: 4px 0 0;
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.87);
+    color: var(--color-text-primary);
     padding: 8px 12px;
-    background: #f5f5f5;
-    border-radius: 6px;
+    background: var(--surface-page);
+    border-radius: var(--radius-card);
   }
 
   .timeline-duracion {
@@ -154,12 +154,48 @@
 .duracion-badge {
   display: inline-block;
   padding: 1px 8px;
-  background: #e3f2fd;
-  color: #1565c0;
+  background: var(--bg-primary-light);
+  color: var(--chip-process-text);
   border-radius: 12px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.3px;
+}
+
+// Claim info
+.claim-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+
+  &--libre {
+    color: var(--color-text-hint);
+    font-style: italic;
+  }
+}
+
+.claim-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.claim-tiempo {
+  color: var(--color-text-hint);
+}
+
+.claim-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.timeline-dot--pending {
+  background: var(--color-text-hint);
+  box-shadow: 0 0 0 2px var(--color-text-hint);
 }
 
 // Departamento respuestas
@@ -175,36 +211,10 @@
   .depto-fecha {
     margin: 0 0 12px;
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--color-text-hint);
   }
 
   mat-divider {
     margin-top: 16px;
   }
-}
-
-// Estado chips
-.estado-pendiente {
-  --mdc-chip-elevated-container-color: #fff3e0;
-  --mdc-chip-label-text-color: #e65100;
-}
-
-.estado-proceso {
-  --mdc-chip-elevated-container-color: #e3f2fd;
-  --mdc-chip-label-text-color: #1565c0;
-}
-
-.estado-observado {
-  --mdc-chip-elevated-container-color: #fce4ec;
-  --mdc-chip-label-text-color: #c2185b;
-}
-
-.estado-aprobado {
-  --mdc-chip-elevated-container-color: #e8f5e9;
-  --mdc-chip-label-text-color: #2e7d32;
-}
-
-.estado-rechazado {
-  --mdc-chip-elevated-container-color: #fbe9e7;
-  --mdc-chip-label-text-color: #bf360c;
 }

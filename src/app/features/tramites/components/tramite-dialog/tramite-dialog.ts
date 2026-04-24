@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -67,9 +68,7 @@ export class TramiteDialogComponent implements OnInit {
     return this.form.controls.requisitos;
   }
 
-  get title(): string {
-    return this.isEditMode ? 'Editar Trámite' : 'Nuevo Trámite';
-  }
+  readonly title = this.isEditMode ? 'Editar Trámite' : 'Nuevo Trámite';
 
   ngOnInit(): void {
     this.formulariosService.getAll().subscribe({
@@ -77,7 +76,7 @@ export class TramiteDialogComponent implements OnInit {
     });
 
     this.flujosTrabajoService.getAll().subscribe({
-      next: (data) => this.flujos = data.filter(f => f.activo)
+      next: (data) => this.flujos = data.filter(f => f.estadoFlujo === 'ACTIVO')
     });
 
     if (this.isEditMode && this.data.tramite?.requisitos) {
@@ -99,7 +98,7 @@ export class TramiteDialogComponent implements OnInit {
     this.dialogRef.close(false);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.form.invalid || this.saving) return;
 
     this.saving = true;
@@ -117,18 +116,16 @@ export class TramiteDialogComponent implements OnInit {
       ? this.tramitesService.update(this.data.tramite!.id, requestData)
       : this.tramitesService.create(requestData);
 
-    request$.subscribe({
-      next: () => {
-        this.notificationService.add({
-          title: this.isEditMode ? 'Actualizado' : 'Creado',
-          message: `Trámite ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
-          type: 'success'
-        });
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.saving = false;
-      }
-    });
+    try {
+      await firstValueFrom(request$);
+      this.notificationService.add({
+        title: this.isEditMode ? 'Actualizado' : 'Creado',
+        message: `Trámite ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
+        type: 'success'
+      });
+      this.dialogRef.close(true);
+    } catch {
+      this.saving = false;
+    }
   }
 }

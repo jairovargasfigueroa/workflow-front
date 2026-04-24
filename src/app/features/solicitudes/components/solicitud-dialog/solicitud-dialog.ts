@@ -13,13 +13,11 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
-import { RespuestaCampo, Adjunto } from '../../models/solicitud.model';
+import { RespuestaCampo } from '../../models/solicitud.model';
 import { TramitesService } from '../../../tramites/services/tramites.service';
 import { FormulariosService } from '../../../formularios/services/formularios.service';
-import { UsuariosService } from '../../../usuarios/services/usuarios.service';
 import { Tramite } from '../../../tramites/models/tramite.model';
 import { FormularioTemplate, CampoFormulario } from '../../../formularios/models/formulario.model';
-import { Usuario } from '../../../usuarios/models/usuario.model';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
@@ -48,28 +46,22 @@ export class SolicitudDialogComponent implements OnInit {
   private readonly solicitudesService = inject(SolicitudesService);
   private readonly tramitesService = inject(TramitesService);
   private readonly formulariosService = inject(FormulariosService);
-  private readonly usuariosService = inject(UsuariosService);
   private readonly notificationService = inject(NotificationService);
 
   saving = false;
   tramites: Tramite[] = [];
-  solicitantes: Usuario[] = [];
   formulario: FormularioTemplate | null = null;
   campos: CampoFormulario[] = [];
 
   form = this.fb.nonNullable.group({
-    tramiteId: ['', Validators.required],
-    solicitanteId: ['', Validators.required]
+    tramiteId: ['', Validators.required]
   });
 
   dynamicForm: FormGroup = this.fb.group({});
 
   ngOnInit(): void {
     this.tramitesService.getAll().subscribe({
-      next: (data) => this.tramites = data.filter(t => t.activo)
-    });
-    this.usuariosService.getAll().subscribe({
-      next: (data) => this.solicitantes = data.filter(u => u.rol === 'SOLICITANTE' && u.activo)
+      next: data => this.tramites = data.filter(t => t.activo)
     });
   }
 
@@ -118,7 +110,6 @@ export class SolicitudDialogComponent implements OnInit {
 
     this.solicitudesService.create({
       tramiteId: formValue.tramiteId,
-      solicitanteId: formValue.solicitanteId,
       respuestas,
       adjuntos: []
     }).subscribe({
@@ -130,8 +121,16 @@ export class SolicitudDialogComponent implements OnInit {
         });
         this.dialogRef.close(true);
       },
-      error: () => {
+      error: (error) => {
         this.saving = false;
+        const msg = error?.error?.message ?? '';
+        if (error.status === 400 && msg.toLowerCase().includes('activo')) {
+          this.notificationService.add({
+            title: 'Trámite no disponible',
+            message: 'El flujo de trabajo de este trámite no está activo. Contacta al administrador.',
+            type: 'error'
+          });
+        }
       }
     });
   }

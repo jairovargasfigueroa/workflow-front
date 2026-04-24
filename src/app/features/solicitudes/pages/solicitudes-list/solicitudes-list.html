@@ -1,122 +1,187 @@
 <div class="solicitudes-container">
   <app-page-header
-    title="Solicitudes de Trámites"
-    subtitle="Gestiona las solicitudes realizadas"
+    title="Solicitudes"
+    subtitle="Gestiona las solicitudes del departamento"
     buttonLabel="Nueva Solicitud"
     buttonIcon="add"
     (buttonClick)="openCreateDialog()">
   </app-page-header>
 
-  <!-- Filtros -->
-  <div class="filters-bar">
-    <mat-form-field appearance="outline">
-      <mat-label>Estado</mat-label>
-      <mat-select [value]="filtroEstado()" (selectionChange)="filtroEstado.set($event.value)">
-        <mat-option value="">Todos</mat-option>
-        @for (estado of estados; track estado) {
-          <mat-option [value]="estado">{{ getEstadoLabel(estado) }}</mat-option>
+  <mat-tab-group animationDuration="200ms" (selectedIndexChange)="onTabChange($event)">
+
+    <!-- TAB 1: BANDEJA DEL DEPARTAMENTO -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Bandeja
+        @if (bandejaDepto().length > 0) {
+          <span class="tab-badge">{{ bandejaDepto().length }}</span>
         }
-      </mat-select>
-    </mat-form-field>
+      </ng-template>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Trámite</mat-label>
-      <mat-select [value]="filtroTramite()" (selectionChange)="filtroTramite.set($event.value)">
-        <mat-option value="">Todos</mat-option>
-        @for (tramite of tramites(); track tramite.id) {
-          <mat-option [value]="tramite.id">{{ tramite.nombre }}</mat-option>
+      @if (loadingBandeja()) {
+        <div class="tab-loading">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (bandejaDepto().length === 0) {
+        <app-empty-state
+          icon="inbox"
+          title="Bandeja vacía"
+          message="No hay solicitudes pendientes de tomar en tu departamento.">
+        </app-empty-state>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="bandejaDepto()" class="solicitudes-table">
+
+            <ng-container matColumnDef="tramite">
+              <th mat-header-cell *matHeaderCellDef>Trámite</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.tramiteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="solicitante">
+              <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Recibida</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+              <td mat-cell *matCellDef="let sol" class="actions-column">
+                <button mat-icon-button color="primary" matTooltip="Tomar tarea" (click)="tomar(sol)">
+                  <mat-icon>assignment_ind</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(sol)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasBandeja"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasBandeja;"></tr>
+          </table>
+        </div>
+      }
+    </mat-tab>
+
+    <!-- TAB 2: MIS TAREAS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Mis tareas
+        @if (misTareas().length > 0) {
+          <span class="tab-badge tab-badge--accent">{{ misTareas().length }}</span>
         }
-      </mat-select>
-    </mat-form-field>
+      </ng-template>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Departamento</mat-label>
-      <mat-select [value]="filtroDepartamento()" (selectionChange)="filtroDepartamento.set($event.value)">
-        <mat-option value="">Todos</mat-option>
-        @for (depto of departamentos(); track depto.id) {
-          <mat-option [value]="depto.id">{{ depto.nombre }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+      @if (loadingMisTareas()) {
+        <div class="tab-loading">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (misTareas().length === 0) {
+        <app-empty-state
+          icon="assignment_turned_in"
+          title="Sin tareas asignadas"
+          message="No tienes tareas tomadas en este momento.">
+        </app-empty-state>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="misTareas()" class="solicitudes-table">
 
-    @if (filtroEstado() || filtroTramite() || filtroDepartamento()) {
-      <button mat-stroked-button (click)="limpiarFiltros()">
-        <mat-icon>clear</mat-icon>
-        Limpiar
-      </button>
-    }
-  </div>
+            <ng-container matColumnDef="tramite">
+              <th mat-header-cell *matHeaderCellDef>Trámite</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.tramiteNombre }}</td>
+            </ng-container>
 
-  @if (loading()) {
-    <div class="loading-container">
-      <mat-spinner diameter="48"></mat-spinner>
-    </div>
-  } @else if (solicitudesFiltradas().length === 0) {
-    <app-empty-state
-      icon="assignment"
-      title="No hay solicitudes"
-      message="No se encontraron solicitudes con los filtros seleccionados."
-      actionText="Nueva Solicitud"
-      (action)="openCreateDialog()">
-    </app-empty-state>
-  } @else {
-    <div class="table-container">
-      <table mat-table [dataSource]="solicitudesFiltradas()" class="solicitudes-table">
-        <!-- Trámite Column -->
-        <ng-container matColumnDef="tramite">
-          <th mat-header-cell *matHeaderCellDef>Trámite</th>
-          <td mat-cell *matCellDef="let sol">{{ getTramiteNombre(sol.tramiteId) }}</td>
-        </ng-container>
+            <ng-container matColumnDef="solicitante">
+              <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
 
-        <!-- Solicitante Column -->
-        <ng-container matColumnDef="solicitante">
-          <th mat-header-cell *matHeaderCellDef>Solicitante</th>
-          <td mat-cell *matCellDef="let sol">{{ sol.solicitanteId }}</td>
-        </ng-container>
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Fecha solicitud</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+            </ng-container>
 
-        <!-- Estado Column -->
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let sol">
-            <mat-chip [class]="getEstadoClass(sol.estado)">
-              {{ getEstadoLabel(sol.estado) }}
-            </mat-chip>
-          </td>
-        </ng-container>
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+              <td mat-cell *matCellDef="let sol" class="actions-column">
+                <button mat-icon-button color="primary" matTooltip="Responder" (click)="responderDesdeList(sol)">
+                  <mat-icon>rate_review</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Liberar tarea" (click)="liberarDesdeList(sol)">
+                  <mat-icon>assignment_return</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(sol)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </ng-container>
 
-        <!-- Departamento Column -->
-        <ng-container matColumnDef="departamento">
-          <th mat-header-cell *matHeaderCellDef>Departamento Actual</th>
-          <td mat-cell *matCellDef="let sol">{{ getDepartamentoNombre(sol.departamentoActualId) }}</td>
-        </ng-container>
+            <tr mat-header-row *matHeaderRowDef="columnasMisTareas"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasMisTareas;"></tr>
+          </table>
+        </div>
+      }
+    </mat-tab>
 
-        <!-- Fecha Column -->
-        <ng-container matColumnDef="fecha">
-          <th mat-header-cell *matHeaderCellDef>Fecha</th>
-          <td mat-cell *matCellDef="let sol">{{ sol.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
-        </ng-container>
+    <!-- TAB 3: HISTORIAL -->
+    <mat-tab label="Historial">
 
-        <!-- Acciones Column -->
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
-          <td mat-cell *matCellDef="let sol" class="actions-column">
-            <button mat-icon-button color="primary" matTooltip="Ver detalle" (click)="verDetalle(sol)">
-              <mat-icon>visibility</mat-icon>
-            </button>
-            @if (sol.departamentoActualId && sol.estado !== 'APROBADO' && sol.estado !== 'RECHAZADO') {
-              <button mat-icon-button color="accent" matTooltip="Responder" (click)="openResponderDialog(sol)">
-                <mat-icon>rate_review</mat-icon>
-              </button>
-            }
-            <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDelete(sol)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
+      @if (loadingHistorial()) {
+        <div class="tab-loading">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (historialDepto().length === 0 && historialCargado) {
+        <app-empty-state
+          icon="history"
+          title="Sin historial"
+          message="No hay solicitudes procesadas por tu departamento.">
+        </app-empty-state>
+      } @else if (historialDepto().length > 0) {
+        <div class="table-container">
+          <table mat-table [dataSource]="historialDepto()" class="solicitudes-table">
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    </div>
-  }
+            <ng-container matColumnDef="tramite">
+              <th mat-header-cell *matHeaderCellDef>Trámite</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.tramiteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="solicitante">
+              <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let sol">
+                <mat-chip [class]="getEstadoClass(sol.estado)">
+                  {{ getEstadoLabel(sol.estado) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.fechaCreacion | date:'dd/MM/yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+              <td mat-cell *matCellDef="let sol" class="actions-column">
+                <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(sol)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasHistorial"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasHistorial;"></tr>
+          </table>
+        </div>
+      }
+    </mat-tab>
+
+  </mat-tab-group>
 </div>

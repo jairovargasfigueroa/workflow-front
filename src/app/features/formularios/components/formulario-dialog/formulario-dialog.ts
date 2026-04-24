@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -71,9 +72,7 @@ export class FormularioDialogComponent implements OnInit {
     return this.form.controls.campos;
   }
 
-  get title(): string {
-    return this.isEditMode ? 'Editar Formulario' : 'Nuevo Formulario';
-  }
+  readonly title = this.isEditMode ? 'Editar Formulario' : 'Nuevo Formulario';
 
   ngOnInit(): void {
     if (this.isEditMode && this.data.formulario?.campos) {
@@ -113,7 +112,7 @@ export class FormularioDialogComponent implements OnInit {
     this.dialogRef.close(false);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.form.invalid || this.saving) return;
 
     this.saving = true;
@@ -129,28 +128,20 @@ export class FormularioDialogComponent implements OnInit {
         : undefined
     }));
 
-    const requestData = {
-      titulo: formValue.titulo,
-      descripcion: formValue.descripcion,
-      campos
-    };
-
     const request$ = this.isEditMode
-      ? this.formulariosService.update(this.data.formulario!.id, requestData)
-      : this.formulariosService.create(requestData);
+      ? this.formulariosService.update(this.data.formulario!.id, { titulo: formValue.titulo, descripcion: formValue.descripcion, campos })
+      : this.formulariosService.create({ titulo: formValue.titulo, descripcion: formValue.descripcion, campos });
 
-    request$.subscribe({
-      next: () => {
-        this.notificationService.add({
-          title: this.isEditMode ? 'Actualizado' : 'Creado',
-          message: `Formulario ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
-          type: 'success'
-        });
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.saving = false;
-      }
-    });
+    try {
+      await firstValueFrom(request$);
+      this.notificationService.add({
+        title: this.isEditMode ? 'Actualizado' : 'Creado',
+        message: `Formulario ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
+        type: 'success'
+      });
+      this.dialogRef.close(true);
+    } catch {
+      this.saving = false;
+    }
   }
 }

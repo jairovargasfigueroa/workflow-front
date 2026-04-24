@@ -13,7 +13,7 @@
 
   .subtitle {
     margin: 4px 0 0;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--color-text-secondary);
     font-size: 14px;
   }
 }
@@ -24,13 +24,6 @@
   mat-form-field {
     min-width: 320px;
   }
-}
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
 }
 
 .results-container {
@@ -47,10 +40,10 @@
     font-size: 18px;
     font-weight: 500;
     margin: 0 0 20px;
-    color: rgba(0, 0, 0, 0.87);
+    color: var(--color-text-primary);
 
     mat-icon {
-      color: rgba(0, 0, 0, 0.54);
+      color: var(--color-text-hint);
     }
   }
 }
@@ -86,18 +79,18 @@
       font-size: 18px;
       width: 18px;
       height: 18px;
-      color: rgba(0, 0, 0, 0.54);
+      color: var(--color-text-hint);
     }
 
     .horas-valor {
       font-size: 22px;
       font-weight: 600;
-      color: rgba(0, 0, 0, 0.87);
+      color: var(--color-text-primary);
     }
 
     .horas-label {
       font-size: 13px;
-      color: rgba(0, 0, 0, 0.54);
+      color: var(--color-text-hint);
     }
   }
 
@@ -116,50 +109,21 @@
       font-weight: 500;
       min-width: 32px;
       text-align: right;
-      color: rgba(0, 0, 0, 0.6);
+      color: var(--color-text-secondary);
     }
   }
 }
 
-// Chips de prioridad
-.prioridad-alta {
-  --mdc-chip-elevated-container-color: #fbe9e7;
-  --mdc-chip-label-text-color: #bf360c;
-}
-
-.prioridad-media {
-  --mdc-chip-elevated-container-color: #fff8e1;
-  --mdc-chip-label-text-color: #e65100;
-}
-
-.prioridad-baja {
-  --mdc-chip-elevated-container-color: #e8f5e9;
-  --mdc-chip-label-text-color: #2e7d32;
-}
-
-// Barras de progreso
-.bar-alta {
-  --mdc-linear-progress-active-indicator-color: #f44336;
-}
-
-.bar-media {
-  --mdc-linear-progress-active-indicator-color: #ff9800;
-}
-
-.bar-baja {
-  --mdc-linear-progress-active-indicator-color: #4caf50;
-}
-
 // Recomendaciones
 .recomendaciones-list {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  background: var(--surface-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   padding: 0;
   overflow: hidden;
 
   .recomendacion-item {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--color-border);
     height: auto;
     min-height: 64px;
     padding: 12px 16px;
@@ -169,7 +133,7 @@
     }
 
     .warn-icon {
-      color: #f57c00;
+      color: var(--color-warning);
     }
 
     .rec-depto {
@@ -179,7 +143,7 @@
 
     .rec-mensaje {
       font-size: 13px;
-      color: rgba(0, 0, 0, 0.6);
+      color: var(--color-text-secondary);
       white-space: normal;
       line-height: 1.4;
     }

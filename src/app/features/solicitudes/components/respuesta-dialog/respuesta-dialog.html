@@ -1,128 +1,166 @@
 <h2 mat-dialog-title>Respuesta del Departamento</h2>
 
 <mat-dialog-content>
-  <form [formGroup]="form" id="respuestaForm" (ngSubmit)="onSubmit()">
-    <section class="form-section">
-      @if (departamento) {
+  @if (loadingData) {
+    <div class="loading-dialog">
+      <mat-spinner diameter="36"></mat-spinner>
+      <p>Cargando información del proceso...</p>
+    </div>
+  } @else if (!tarea) {
+    <div class="empty-state">
+      <mat-icon>inbox</mat-icon>
+      <p>No hay tareas activas para este departamento.</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" id="respuestaForm" (ngSubmit)="onSubmit()">
+      <section class="form-section">
         <p class="dept-info">
           <mat-icon>business</mat-icon>
-          Departamento: <strong>{{ departamento.nombre }}</strong>
+          Departamento: <strong>{{ tarea.departamentoNombre }}</strong>
         </p>
-      }
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Funcionario</mat-label>
-        <mat-select formControlName="funcionarioId">
-          @for (func of funcionarios; track func.id) {
-            <mat-option [value]="func.id">{{ func.nombre }}</mat-option>
-          }
-        </mat-select>
-        @if (form.controls.funcionarioId.hasError('required')) {
-          <mat-error>El funcionario es requerido</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Acción</mat-label>
-        <mat-select formControlName="accion">
-          @for (acc of acciones; track acc.value) {
-            <mat-option [value]="acc.value">{{ acc.label }}</mat-option>
-          }
-        </mat-select>
-        @if (form.controls.accion.hasError('required')) {
-          <mat-error>La acción es requerida</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Comentario</mat-label>
-        <textarea matInput formControlName="comentario" rows="3"
-                  placeholder="Comentario opcional sobre la decisión"></textarea>
-      </mat-form-field>
-    </section>
-
-    <!-- Formulario dinámico del departamento -->
-    @if (formulario && campos.length > 0) {
-      <mat-divider></mat-divider>
-
-      <section class="form-section">
-        <h3>{{ formulario.titulo }}</h3>
-        @if (formulario.descripcion) {
-          <p class="section-desc">{{ formulario.descripcion }}</p>
-        }
-
-        <div [formGroup]="dynamicForm" class="dynamic-fields">
-          @for (campo of campos; track campo.nombre) {
-            @switch (campo.tipo) {
-              @case ('TEXT') {
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ campo.etiqueta }}</mat-label>
-                  <input matInput [formControlName]="campo.nombre">
-                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
-                    <mat-error>Este campo es requerido</mat-error>
-                  }
-                </mat-form-field>
-              }
-              @case ('NUMBER') {
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ campo.etiqueta }}</mat-label>
-                  <input matInput type="number" [formControlName]="campo.nombre">
-                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
-                    <mat-error>Este campo es requerido</mat-error>
-                  }
-                </mat-form-field>
-              }
-              @case ('TEXTAREA') {
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ campo.etiqueta }}</mat-label>
-                  <textarea matInput rows="3" [formControlName]="campo.nombre"></textarea>
-                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
-                    <mat-error>Este campo es requerido</mat-error>
-                  }
-                </mat-form-field>
-              }
-              @case ('DATE') {
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ campo.etiqueta }}</mat-label>
-                  <input matInput [matDatepicker]="picker" [formControlName]="campo.nombre">
-                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                  <mat-datepicker #picker></mat-datepicker>
-                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
-                    <mat-error>Este campo es requerido</mat-error>
-                  }
-                </mat-form-field>
-              }
-              @case ('SELECT') {
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>{{ campo.etiqueta }}</mat-label>
-                  <mat-select [formControlName]="campo.nombre">
-                    @for (opt of campo.opciones; track opt) {
-                      <mat-option [value]="opt">{{ opt }}</mat-option>
-                    }
-                  </mat-select>
-                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
-                    <mat-error>Este campo es requerido</mat-error>
-                  }
-                </mat-form-field>
-              }
-              @case ('FILE') {
-                <div class="file-field">
-                  <label>{{ campo.etiqueta }} {{ campo.requerido ? '*' : '' }}</label>
-                  <input type="text" [formControlName]="campo.nombre" placeholder="URL del archivo">
-                </div>
-              }
-            }
-          }
+        <div class="field-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Comentario</mat-label>
+            <textarea matInput formControlName="comentario" rows="3"
+                      placeholder="Comentario opcional sobre la decisión"></textarea>
+          </mat-form-field>
+          <button mat-icon-button type="button"
+                  [color]="escuchando() === '__comentario__' ? 'warn' : ''"
+                  matTooltip="Dictar comentario"
+                  (click)="startListening('__comentario__')">
+            <mat-icon>{{ escuchando() === '__comentario__' ? 'mic_off' : 'mic' }}</mat-icon>
+          </button>
         </div>
       </section>
-    }
-  </form>
+
+      @if (campos.length > 0) {
+        <mat-divider></mat-divider>
+
+        <section class="form-section">
+          <div [formGroup]="dynamicForm" class="dynamic-fields">
+            @for (campo of campos; track campo.nombre) {
+              @switch (campo.tipo) {
+                @case ('TEXT') {
+                  <div class="field-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>{{ campo.etiqueta }}</mat-label>
+                      <input matInput [formControlName]="campo.nombre">
+                      @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                        <mat-error>Este campo es requerido</mat-error>
+                      }
+                    </mat-form-field>
+                    <button mat-icon-button type="button"
+                            [color]="escuchando() === campo.nombre ? 'warn' : ''"
+                            [matTooltip]="'Dictar ' + campo.etiqueta"
+                            (click)="startListening(campo.nombre)">
+                      <mat-icon>{{ escuchando() === campo.nombre ? 'mic_off' : 'mic' }}</mat-icon>
+                    </button>
+                  </div>
+                }
+                @case ('NUMBER') {
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ campo.etiqueta }}</mat-label>
+                    <input matInput type="number" [formControlName]="campo.nombre">
+                    @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                      <mat-error>Este campo es requerido</mat-error>
+                    }
+                  </mat-form-field>
+                }
+                @case ('TEXTAREA') {
+                  <div class="field-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>{{ campo.etiqueta }}</mat-label>
+                      <textarea matInput rows="3" [formControlName]="campo.nombre"></textarea>
+                      @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                        <mat-error>Este campo es requerido</mat-error>
+                      }
+                    </mat-form-field>
+                    <button mat-icon-button type="button"
+                            [color]="escuchando() === campo.nombre ? 'warn' : ''"
+                            [matTooltip]="'Dictar ' + campo.etiqueta"
+                            (click)="startListening(campo.nombre)">
+                      <mat-icon>{{ escuchando() === campo.nombre ? 'mic_off' : 'mic' }}</mat-icon>
+                    </button>
+                  </div>
+                }
+                @case ('DATE') {
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>{{ campo.etiqueta }}</mat-label>
+                    <input matInput [matDatepicker]="picker" [formControlName]="campo.nombre">
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                    @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                      <mat-error>Este campo es requerido</mat-error>
+                    }
+                  </mat-form-field>
+                }
+                @case ('SELECT') {
+                  <div class="field-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>{{ campo.etiqueta }}</mat-label>
+                      <mat-select [formControlName]="campo.nombre">
+                        @for (opt of campo.opciones; track opt) {
+                          <mat-option [value]="opt">{{ opt }}</mat-option>
+                        }
+                      </mat-select>
+                      @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                        <mat-error>Este campo es requerido</mat-error>
+                      }
+                    </mat-form-field>
+                    <button mat-icon-button type="button"
+                            [color]="escuchando() === campo.nombre ? 'warn' : ''"
+                            [matTooltip]="'Dictar ' + campo.etiqueta"
+                            (click)="startListening(campo.nombre, campo.opciones)">
+                      <mat-icon>{{ escuchando() === campo.nombre ? 'mic_off' : 'mic' }}</mat-icon>
+                    </button>
+                  </div>
+                }
+                @case ('FILE') {
+                  <div class="file-field">
+                    <label>{{ campo.etiqueta }} {{ campo.requerido ? '*' : '' }}</label>
+                    <input type="text" [formControlName]="campo.nombre" placeholder="URL del archivo">
+                  </div>
+                }
+              }
+            }
+          </div>
+        </section>
+      }
+
+      @if (tarea.acciones.length > 0) {
+        <mat-divider></mat-divider>
+
+        <section class="form-section">
+          <p class="accion-label">Selecciona la acción a tomar:</p>
+          <div class="accion-row">
+            <mat-button-toggle-group
+              [value]="accionSeleccionada"
+              (change)="accionSeleccionada = $event.value">
+              @for (accion of tarea.acciones; track accion.valor) {
+                <mat-button-toggle [value]="accion.valor">{{ accion.etiqueta }}</mat-button-toggle>
+              }
+            </mat-button-toggle-group>
+            <button mat-icon-button type="button"
+                    [color]="escuchando() === '__accion__' ? 'warn' : ''"
+                    matTooltip="Dictar acción"
+                    (click)="startListening('__accion__')">
+              <mat-icon>{{ escuchando() === '__accion__' ? 'mic_off' : 'mic' }}</mat-icon>
+            </button>
+          </div>
+          @if (accionSeleccionada === null) {
+            <p class="accion-hint">Debes seleccionar una acción para continuar</p>
+          }
+        </section>
+      }
+    </form>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" [disabled]="saving">Cancelar</button>
   <button mat-flat-button color="primary" type="submit" form="respuestaForm"
-          [disabled]="form.invalid || dynamicForm.invalid || saving">
+          [disabled]="!puedeEnviar || loadingData">
     @if (saving) {
       <mat-spinner diameter="20"></mat-spinner>
     } @else {

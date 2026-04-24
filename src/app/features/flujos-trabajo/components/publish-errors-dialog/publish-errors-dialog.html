@@ -1,0 +1,23 @@
+<div class="dialog-container">
+  <div class="dialog-header">
+    <mat-icon class="warning-icon">warning_amber</mat-icon>
+    <h2>No se pudo publicar el flujo</h2>
+  </div>
+
+  <div mat-dialog-content class="dialog-body">
+    <p class="subtitle">Los siguientes problemas deben corregirse en el diagrama:</p>
+    <ul class="error-list">
+      @for (error of data.errores; track error) {
+        <li>
+          <mat-icon>error</mat-icon>
+          <span>{{ error }}</span>
+        </li>
+      }
+    </ul>
+    <p class="hint">Corrígelos en el editor y vuelve a intentarlo.</p>
+  </div>
+
+  <div mat-dialog-actions align="end">
+    <button mat-flat-button color="primary" (click)="dialogRef.close()">Entendido</button>
+  </div>
+</div>

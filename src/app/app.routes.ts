@@ -3,6 +3,15 @@ import { MainLayoutComponent } from './shared/components/layout/main-layout/main
 
 export const routes: Routes = [
   {
+    path: 'login',
+    loadComponent: () => import('./features/auth/pages/login/login').then(m => m.LoginComponent)
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/auth/pages/register/register').then(m => m.RegisterComponent)
+  },
+  {
     path: '',
     component: MainLayoutComponent,
     children: [

@@ -8,11 +8,9 @@ export interface Usuario {
   activo: boolean;
   fechaCreacion: string;
   departamentoId?: string;
-  cargo?: string;
   telefono?: string;
   direccion?: string;
   cedula?: string;
-  foto?: string;
 }
 
 export interface UsuarioRequest {
@@ -21,9 +19,7 @@ export interface UsuarioRequest {
   password: string;
   rol: Rol;
   departamentoId?: string;
-  cargo?: string;
   telefono?: string;
   direccion?: string;
   cedula?: string;
-  foto?: string;
 }

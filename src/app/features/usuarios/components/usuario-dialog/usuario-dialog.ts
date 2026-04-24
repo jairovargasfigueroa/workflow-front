@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -60,15 +61,12 @@ export class UsuarioDialogComponent implements OnInit {
     password: ['', this.isEditMode ? [] : [Validators.required, Validators.minLength(6)]],
     rol: [this.data.usuario?.rol || 'SOLICITANTE' as Rol, [Validators.required]],
     departamentoId: [this.data.usuario?.departamentoId || ''],
-    cargo: [this.data.usuario?.cargo || ''],
     telefono: [this.data.usuario?.telefono || ''],
     direccion: [this.data.usuario?.direccion || ''],
     cedula: [this.data.usuario?.cedula || '']
   });
 
-  get title(): string {
-    return this.isEditMode ? 'Editar Usuario' : 'Nuevo Usuario';
-  }
+  readonly title = this.isEditMode ? 'Editar Usuario' : 'Nuevo Usuario';
 
   get showDepartamento(): boolean {
     return this.form.controls.rol.value === 'FUNCIONARIO';
@@ -77,7 +75,6 @@ export class UsuarioDialogComponent implements OnInit {
   ngOnInit(): void {
     this.loadDepartamentos();
 
-    // Escuchar cambios en el rol
     this.form.controls.rol.valueChanges.subscribe(rol => {
       if (rol !== 'FUNCIONARIO') {
         this.form.controls.departamentoId.setValue('');
@@ -95,7 +92,7 @@ export class UsuarioDialogComponent implements OnInit {
     this.dialogRef.close(false);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.form.invalid || this.saving) return;
 
     this.saving = true;
@@ -111,18 +108,16 @@ export class UsuarioDialogComponent implements OnInit {
       ? this.usuariosService.update(this.data.usuario!.id, requestData)
       : this.usuariosService.create(requestData);
 
-    request$.subscribe({
-      next: () => {
-        this.notificationService.add({
-          title: this.isEditMode ? 'Actualizado' : 'Creado',
-          message: `Usuario ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
-          type: 'success'
-        });
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.saving = false;
-      }
-    });
+    try {
+      await firstValueFrom(request$);
+      this.notificationService.add({
+        title: this.isEditMode ? 'Actualizado' : 'Creado',
+        message: `Usuario ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
+        type: 'success'
+      });
+      this.dialogRef.close(true);
+    } catch {
+      this.saving = false;
+    }
   }
 }

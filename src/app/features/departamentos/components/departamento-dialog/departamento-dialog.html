@@ -1,5 +1,4 @@
 <h2 mat-dialog-title>{{ title }}</h2>
-
 <mat-dialog-content>
   <form [formGroup]="form" id="departamentoForm" (ngSubmit)="onSubmit()">
     <mat-form-field appearance="outline" class="full-width">
@@ -11,25 +10,6 @@
       @if (form.controls.nombre.hasError('maxlength')) {
         <mat-error>Máximo 100 caracteres</mat-error>
       }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Descripción</mat-label>
-      <textarea matInput formControlName="descripcion" rows="3"
-                placeholder="Ingrese una descripción (opcional)"></textarea>
-      @if (form.controls.descripcion.hasError('maxlength')) {
-        <mat-error>Máximo 500 caracteres</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Formulario asignado</mat-label>
-      <mat-select formControlName="formularioId">
-        <mat-option value="">Sin formulario</mat-option>
-        @for (formulario of formularios; track formulario.id) {
-          <mat-option [value]="formulario.id">{{ formulario.titulo }}</mat-option>
-        }
-      </mat-select>
     </mat-form-field>
   </form>
 </mat-dialog-content>

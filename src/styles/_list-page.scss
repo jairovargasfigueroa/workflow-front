@@ -96,9 +96,9 @@ mat-chip {
   --mdc-chip-label-text-color: var(--chip-process-text) !important;
 }
 
-.estado-observado {
-  --mdc-chip-elevated-container-color: var(--chip-observed-bg) !important;
-  --mdc-chip-label-text-color: var(--chip-observed-text) !important;
+.estado-cancelado {
+  --mdc-chip-elevated-container-color: var(--chip-cancelado-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-cancelado-text) !important;
 }
 
 .estado-aprobado {
@@ -128,6 +128,30 @@ mat-chip {
 }
 
 // =============================================================================
+// Chips de estadoFlujo
+// =============================================================================
+
+.flujo-sin-publicar {
+  --mdc-chip-elevated-container-color: var(--chip-flujo-sin-publicar-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-flujo-sin-publicar-text) !important;
+}
+
+.flujo-activo {
+  --mdc-chip-elevated-container-color: var(--chip-flujo-activo-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-flujo-activo-text) !important;
+}
+
+.flujo-desactivado {
+  --mdc-chip-elevated-container-color: var(--chip-flujo-desactivado-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-flujo-desactivado-text) !important;
+}
+
+.flujo-archivado {
+  --mdc-chip-elevated-container-color: var(--chip-flujo-archivado-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-flujo-archivado-text) !important;
+}
+
+// =============================================================================
 // Chips de rol de usuario
 // =============================================================================
 
@@ -144,4 +168,39 @@ mat-chip {
 .rol-solicitante {
   --mdc-chip-elevated-container-color: var(--chip-solicitante-bg) !important;
   --mdc-chip-label-text-color: var(--chip-solicitante-text) !important;
+}
+
+// =============================================================================
+// Chips de prioridad (analytics)
+// =============================================================================
+
+.prioridad-alta {
+  --mdc-chip-elevated-container-color: var(--chip-prioridad-alta-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-prioridad-alta-text) !important;
+}
+
+.prioridad-media {
+  --mdc-chip-elevated-container-color: var(--chip-prioridad-media-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-prioridad-media-text) !important;
+}
+
+.prioridad-baja {
+  --mdc-chip-elevated-container-color: var(--chip-prioridad-baja-bg) !important;
+  --mdc-chip-label-text-color: var(--chip-prioridad-baja-text) !important;
+}
+
+// =============================================================================
+// Progress bars de prioridad (analytics)
+// =============================================================================
+
+.bar-alta {
+  --mdc-linear-progress-active-indicator-color: var(--bar-alta-color);
+}
+
+.bar-media {
+  --mdc-linear-progress-active-indicator-color: var(--bar-media-color);
+}
+
+.bar-baja {
+  --mdc-linear-progress-active-indicator-color: var(--bar-baja-color);
 }

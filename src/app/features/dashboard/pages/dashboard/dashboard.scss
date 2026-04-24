@@ -1,7 +1,7 @@
 .dashboard {
   h1 {
     margin: 0 0 24px;
-    color: #333;
+    color: var(--color-text-primary);
   }
 }
 
@@ -27,12 +27,12 @@
   .stat-value {
     font-size: 32px;
     font-weight: 600;
-    color: #333;
+    color: var(--color-text-primary);
   }
 
   .stat-label {
     font-size: 14px;
-    color: #666;
+    color: var(--color-text-secondary);
   }
 
   .stat-icon {
@@ -54,7 +54,7 @@
 }
 
 .activity-time {
-  color: #999;
+  color: var(--color-text-hint);
   font-size: 12px;
 }
 

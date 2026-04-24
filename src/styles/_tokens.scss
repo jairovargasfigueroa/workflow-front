@@ -29,8 +29,8 @@
   --chip-process-bg: #e3f2fd;
   --chip-process-text: #1565c0;
 
-  --chip-observed-bg: #fce4ec;
-  --chip-observed-text: #c2185b;
+  --chip-cancelado-bg: #eceff1;
+  --chip-cancelado-text: #546e7a;
 
   --chip-approved-bg: #e8f5e9;
   --chip-approved-text: #2e7d32;
@@ -45,6 +45,19 @@
   --chip-inactive-bg: #f5f5f5;
   --chip-inactive-text: rgba(0, 0, 0, 0.38);
 
+  // --- Chips: EstadoFlujo ---
+  --chip-flujo-sin-publicar-bg: #f3e5f5;
+  --chip-flujo-sin-publicar-text: #7b1fa2;
+
+  --chip-flujo-activo-bg: #e8f5e9;
+  --chip-flujo-activo-text: #2e7d32;
+
+  --chip-flujo-desactivado-bg: #fff3e0;
+  --chip-flujo-desactivado-text: #e65100;
+
+  --chip-flujo-archivado-bg: #f5f5f5;
+  --chip-flujo-archivado-text: rgba(0, 0, 0, 0.38);
+
   // --- Chips: Rol de usuario ---
   --chip-admin-bg: #e3f2fd;
   --chip-admin-text: #1565c0;
@@ -54,4 +67,37 @@
 
   --chip-solicitante-bg: #f3e5f5;
   --chip-solicitante-text: #7b1fa2;
+
+  // --- Chips: Prioridad (analytics) ---
+  --chip-prioridad-alta-bg: var(--chip-rejected-bg);
+  --chip-prioridad-alta-text: var(--chip-rejected-text);
+
+  --chip-prioridad-media-bg: #fff8e1;
+  --chip-prioridad-media-text: var(--chip-pending-text);
+
+  --chip-prioridad-baja-bg: var(--chip-approved-bg);
+  --chip-prioridad-baja-text: var(--chip-approved-text);
+
+  // --- Colores semánticos de estado ---
+  --color-error: #c62828;
+  --color-error-light: #fdecea;
+  --color-warning: #f57c00;
+  --color-success: #4caf50;
+
+  // --- Fondo acento primario claro ---
+  --bg-primary-light: #e3f2fd;
+
+  // --- Sombras adicionales ---
+  --shadow-elevated: 0 4px 24px rgba(0, 0, 0, 0.1);
+
+  // --- Radios adicionales ---
+  --radius-card-lg: 12px;
+
+  // --- Progress bars: Prioridad ---
+  --bar-alta-color: #f44336;
+  --bar-media-color: #ff9800;
+  --bar-baja-color: var(--color-success);
+
+  // --- Timeline ---
+  --timeline-line: #e0e0e0;
 }

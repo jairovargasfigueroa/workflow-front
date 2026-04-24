@@ -2,7 +2,7 @@ export type Rol = 'ADMIN' | 'FUNCIONARIO' | 'SOLICITANTE';
 
 export type TipoCampo = 'TEXT' | 'NUMBER' | 'DATE' | 'SELECT' | 'FILE' | 'TEXTAREA';
 
-export type EstadoTramite = 'PENDIENTE' | 'EN_PROCESO' | 'OBSERVADO' | 'APROBADO' | 'RECHAZADO';
+export type EstadoTramite = 'PENDIENTE' | 'EN_PROCESO' | 'CANCELADO' | 'APROBADO' | 'RECHAZADO';
 
 export const ROL_LABELS: Record<Rol, string> = {
   ADMIN: 'Administrador',
@@ -13,7 +13,7 @@ export const ROL_LABELS: Record<Rol, string> = {
 export const ESTADO_TRAMITE_LABELS: Record<EstadoTramite, string> = {
   PENDIENTE: 'Pendiente',
   EN_PROCESO: 'En Proceso',
-  OBSERVADO: 'Observado',
+  CANCELADO: 'Cancelado',
   APROBADO: 'Aprobado',
   RECHAZADO: 'Rechazado'
 };

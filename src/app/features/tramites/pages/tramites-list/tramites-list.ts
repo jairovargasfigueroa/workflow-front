@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
@@ -24,7 +24,6 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
@@ -47,7 +46,7 @@ export class TramitesListComponent implements OnInit {
     this.loadTramites();
   }
 
-  loadTramites(): void {
+  private loadTramites(): void {
     this.loading.set(true);
     this.tramitesService.getAll().subscribe({
       next: (data) => {
@@ -60,25 +59,11 @@ export class TramitesListComponent implements OnInit {
     });
   }
 
-  openCreateDialog(): void {
+  openDialog(tramite?: Tramite): void {
     const dialogRef = this.dialog.open(TramiteDialogComponent, {
       width: '600px',
       maxHeight: '90vh',
-      data: { mode: 'create' }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadTramites();
-      }
-    });
-  }
-
-  openEditDialog(tramite: Tramite): void {
-    const dialogRef = this.dialog.open(TramiteDialogComponent, {
-      width: '600px',
-      maxHeight: '90vh',
-      data: { mode: 'edit', tramite }
+      data: tramite ? { mode: 'edit', tramite } : { mode: 'create' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -114,6 +99,9 @@ export class TramitesListComponent implements OnInit {
           message: 'Trámite eliminado correctamente',
           type: 'success'
         });
+        this.loadTramites();
+      },
+      error: () => {
         this.loadTramites();
       }
     });

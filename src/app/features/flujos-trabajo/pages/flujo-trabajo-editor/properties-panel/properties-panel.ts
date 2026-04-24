@@ -8,7 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { DepartamentosService } from '../../../../departamentos/services/departamentos.service';
+import { FormulariosService } from '../../../../formularios/services/formularios.service';
 import { Departamento } from '../../../../departamentos/models/departamento.model';
+import { FormularioTemplate } from '../../../../formularios/models/formulario.model';
 
 @Component({
   selector: 'app-properties-panel',
@@ -29,19 +31,15 @@ export class PropertiesPanelComponent implements OnDestroy {
   modeler = input<any>(null);
 
   private readonly departamentosService = inject(DepartamentosService);
+  private readonly formulariosService = inject(FormulariosService);
 
   departamentos = signal<Departamento[]>([]);
+  formularios = signal<FormularioTemplate[]>([]);
   selectedElement = signal<any>(null);
   elementType = signal<string>('');
   elementName = signal<string>('');
   candidateGroups = signal<string>('');
-  conditionExpression = signal<string>('');
-  isFromExclusiveGateway = signal(false);
-
-  readonly conditionOptions = [
-    { value: '${aprobado == true}', label: 'Aprobado (sí)' },
-    { value: '${aprobado == false}', label: 'Rechazado (no)' }
-  ];
+  formularioId = signal<string>('');
 
   private eventBus: any;
 
@@ -49,6 +47,11 @@ export class PropertiesPanelComponent implements OnDestroy {
     this.departamentosService.getAll().subscribe({
       next: (deps) => this.departamentos.set(deps),
       error: (err) => console.error('Error cargando departamentos:', err)
+    });
+
+    this.formulariosService.getAll().subscribe({
+      next: (forms) => this.formularios.set(forms.filter(f => f.activo)),
+      error: (err) => console.error('Error cargando formularios:', err)
     });
 
     effect(() => {
@@ -107,21 +110,12 @@ export class PropertiesPanelComponent implements OnDestroy {
 
     if (bo.$type === 'bpmn:UserTask') {
       this.candidateGroups.set(bo.get('camunda:candidateGroups') || '');
+      this.formularioId.set(bo.get('camunda:formKey') || '');
     } else {
       this.candidateGroups.set('');
+      this.formularioId.set('');
     }
 
-    if (bo.$type === 'bpmn:SequenceFlow') {
-      const source = element.source;
-      this.isFromExclusiveGateway.set(
-        source?.businessObject?.$type === 'bpmn:ExclusiveGateway'
-      );
-      const condition = bo.conditionExpression;
-      this.conditionExpression.set(condition?.body || '');
-    } else {
-      this.isFromExclusiveGateway.set(false);
-      this.conditionExpression.set('');
-    }
   }
 
   private clearSelection(): void {
@@ -129,8 +123,7 @@ export class PropertiesPanelComponent implements OnDestroy {
     this.elementType.set('');
     this.elementName.set('');
     this.candidateGroups.set('');
-    this.conditionExpression.set('');
-    this.isFromExclusiveGateway.set(false);
+    this.formularioId.set('');
   }
 
   onNameChange(event: Event): void {
@@ -144,21 +137,9 @@ export class PropertiesPanelComponent implements OnDestroy {
     this.updateProperty('camunda:candidateGroups', value || undefined);
   }
 
-  onConditionChange(value: string): void {
-    this.conditionExpression.set(value);
-    const modeler = this.modeler();
-    const element = this.selectedElement();
-    if (!modeler || !element) return;
-
-    const modeling = modeler.get('modeling');
-    const moddle = modeler.get('moddle');
-
-    if (value) {
-      const conditionExpression = moddle.create('bpmn:FormalExpression', { body: value });
-      modeling.updateProperties(element, { conditionExpression });
-    } else {
-      modeling.updateProperties(element, { conditionExpression: undefined });
-    }
+  onFormularioChange(value: string): void {
+    this.formularioId.set(value);
+    this.updateProperty('camunda:formKey', value || undefined);
   }
 
   private updateProperty(property: string, value: any): void {

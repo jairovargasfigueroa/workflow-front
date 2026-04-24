@@ -7,6 +7,8 @@ import { MatDivider } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { NotificationPanelComponent } from '../../ui/notification-panel/notification-panel';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ROL_LABELS } from '../../../../core/models';
 
 @Component({
   selector: 'app-header',
@@ -24,10 +26,17 @@ import { NotificationPanelComponent } from '../../ui/notification-panel/notifica
   styleUrl: './header.scss'
 })
 export class HeaderComponent {
-  private notificationService = inject(NotificationService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly authService = inject(AuthService);
 
   menuToggle = output<void>();
 
   unreadCount = this.notificationService.unreadCount;
   hasUnread = this.notificationService.hasUnread;
+  currentUser = this.authService.currentUser;
+  readonly rolLabels = ROL_LABELS;
+
+  logout(): void {
+    this.authService.logout();
+  }
 }

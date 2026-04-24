@@ -16,13 +16,40 @@
         <mat-icon class="flujo-icon">account_tree</mat-icon>
         <div>
           <h1>{{ flujo()?.nombre || 'Cargando...' }}</h1>
-          <span class="proceso-key">{{ flujo()?.procesoKey }}</span>
+          <div class="flujo-meta">
+            <span class="proceso-key">{{ flujo()?.procesoKey }}</span>
+            @if (flujo()?.estadoFlujo) {
+              <mat-chip [class]="getEstadoClass(flujo()!.estadoFlujo)" class="estado-chip">
+                {{ estadoLabels[flujo()!.estadoFlujo] }}
+              </mat-chip>
+            }
+            @if (flujo()?.versionActualNumero) {
+              <span class="version-badge">v{{ flujo()?.versionActualNumero }}</span>
+            }
+          </div>
         </div>
       </div>
     </div>
 
     <div class="header-right">
-      <!-- Controles de zoom -->
+      @if (savingBorrador()) {
+        <span class="saving-indicator">
+          <mat-spinner diameter="14"></mat-spinner>
+          Guardando...
+        </span>
+      }
+
+      <!-- Historial de versiones -->
+      @if (versiones().length > 0) {
+        <button
+          mat-icon-button
+          matTooltip="Historial de versiones"
+          [class.active]="showVersiones()"
+          (click)="toggleVersiones()">
+          <mat-icon>history</mat-icon>
+        </button>
+      }
+
       <div class="zoom-controls">
         <button mat-icon-button (click)="onZoomOut()" matTooltip="Alejar">
           <mat-icon>zoom_out</mat-icon>
@@ -35,31 +62,75 @@
         </button>
       </div>
 
-      <!-- Botón desplegar -->
+      @if (hasBorrador()) {
+        <button
+          mat-stroked-button
+          color="warn"
+          (click)="onDescartar()"
+          [disabled]="descartando() || publishing() || loading()">
+          @if (descartando()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>undo</mat-icon>
+          }
+          Descartar
+        </button>
+      }
+
       <button
         mat-raised-button
         color="primary"
-        (click)="onDesplegar()"
-        [disabled]="deploying() || loading()">
-        @if (deploying()) {
+        (click)="onPublicar()"
+        [disabled]="publishing() || loading() || !canPublicar()">
+        @if (publishing()) {
           <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          <mat-icon>publish</mat-icon>
         }
-        <mat-icon>cloud_upload</mat-icon>
-        Desplegar a Camunda
+        Publicar
       </button>
     </div>
   </header>
 
-  <!-- Contenido: Canvas + Panel de propiedades -->
+  <!-- Canvas + paneles flotantes -->
   <div class="editor-content">
-    <!-- Canvas de bpmn-js -->
     <div class="canvas-container" #canvas></div>
 
-    <!-- Panel de propiedades -->
-    <app-properties-panel [modeler]="modelerReady()" />
+    <!-- Panel de propiedades flotante -->
+    <div class="floating-panel properties-panel-wrapper" [class.visible]="hasElementSelected()">
+      <app-properties-panel [modeler]="modelerReady()" />
+    </div>
+
+    <!-- Panel de versiones flotante -->
+    <div class="floating-panel versiones-panel-wrapper" [class.visible]="showVersiones()">
+      <div class="versiones-header">
+        <div class="versiones-title">
+          <mat-icon>history</mat-icon>
+          <span>Versiones publicadas</span>
+        </div>
+        <button mat-icon-button (click)="toggleVersiones()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <ul class="versiones-list">
+        @for (version of versiones(); track version.id) {
+          <li class="version-item">
+            <div class="version-info">
+              <span class="version-numero">v{{ version.numero }}</span>
+              <span class="version-fecha">{{ version.fechaCreacion | date:'dd/MM/yy HH:mm' }}</span>
+            </div>
+            <button
+              mat-icon-button
+              matTooltip="Cargar como borrador"
+              (click)="onCopiarVersionComoBorrador(version)">
+              <mat-icon>restore</mat-icon>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
   </div>
 
-  <!-- Indicador de colaboración -->
   <div class="collaboration-indicator">
     <mat-icon>wifi</mat-icon>
     <span>Edición colaborativa activa</span>

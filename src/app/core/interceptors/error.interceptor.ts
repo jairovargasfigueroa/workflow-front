@@ -1,10 +1,12 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notificationService = inject(NotificationService);
+  const router = inject(Router);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -21,6 +23,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             break;
           case 401:
             errorMessage = 'No autorizado. Por favor, inicie sesión nuevamente';
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            router.navigate(['/login']);
             break;
           case 403:
             errorMessage = 'No tiene permisos para realizar esta acción';

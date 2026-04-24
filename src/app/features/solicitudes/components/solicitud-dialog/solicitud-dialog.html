@@ -15,17 +15,6 @@
         }
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Solicitante</mat-label>
-        <mat-select formControlName="solicitanteId">
-          @for (sol of solicitantes; track sol.id) {
-            <mat-option [value]="sol.id">{{ sol.nombre }} ({{ sol.email }})</mat-option>
-          }
-        </mat-select>
-        @if (form.controls.solicitanteId.hasError('required')) {
-          <mat-error>El solicitante es requerido</mat-error>
-        }
-      </mat-form-field>
     </section>
 
     <!-- Formulario dinámico -->

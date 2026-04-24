@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,21 +9,17 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { firstValueFrom } from 'rxjs';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
-import { SolicitudTramite } from '../../models/solicitud.model';
+import { SolicitudTramiteResumen } from '../../models/solicitud.model';
 import { SolicitudDialogComponent } from '../../components/solicitud-dialog/solicitud-dialog';
 import { RespuestaDialogComponent } from '../../components/respuesta-dialog/respuesta-dialog';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { TramitesService } from '../../../tramites/services/tramites.service';
-import { DepartamentosService } from '../../../departamentos/services/departamentos.service';
-import { Tramite } from '../../../tramites/models/tramite.model';
-import { Departamento } from '../../../departamentos/models/departamento.model';
+import { AuthService } from '../../../../core/services/auth.service';
 import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
 
 @Component({
@@ -31,7 +27,7 @@ import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    MatTabsModule,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
@@ -39,92 +35,155 @@ import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
-    MatSelectModule,
-    MatFormFieldModule,
     EmptyStateComponent,
     PageHeaderComponent
   ],
   templateUrl: './solicitudes-list.html',
   styleUrl: './solicitudes-list.scss'
 })
-export class SolicitudesListComponent implements OnInit {
+export class SolicitudesListComponent implements OnInit, OnDestroy {
   private readonly solicitudesService = inject(SolicitudesService);
-  private readonly tramitesService = inject(TramitesService);
-  private readonly departamentosService = inject(DepartamentosService);
+  private readonly authService = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
 
-  solicitudes = signal<SolicitudTramite[]>([]);
-  tramites = signal<Tramite[]>([]);
-  departamentos = signal<Departamento[]>([]);
-  loading = signal(true);
+  bandejaDepto = signal<SolicitudTramiteResumen[]>([]);
+  misTareas = signal<SolicitudTramiteResumen[]>([]);
+  historialDepto = signal<SolicitudTramiteResumen[]>([]);
 
-  filtroEstado = signal<EstadoTramite | ''>('');
-  filtroTramite = signal<string>('');
-  filtroDepartamento = signal<string>('');
+  loadingBandeja = signal(true);
+  loadingMisTareas = signal(true);
+  loadingHistorial = signal(false);
 
-  displayedColumns = ['tramite', 'solicitante', 'estado', 'departamento', 'fecha', 'acciones'];
+  columnasBandeja = ['tramite', 'solicitante', 'fecha', 'acciones'];
+  columnasMisTareas = ['tramite', 'solicitante', 'fecha', 'acciones'];
+  columnasHistorial = ['tramite', 'solicitante', 'estado', 'fecha', 'acciones'];
+
   estadoLabels = ESTADO_TRAMITE_LABELS;
-  estados: EstadoTramite[] = ['PENDIENTE', 'EN_PROCESO', 'OBSERVADO', 'APROBADO', 'RECHAZADO'];
 
-  getEstadoLabel(estado: EstadoTramite): string {
-    return ESTADO_TRAMITE_LABELS[estado];
-  }
+  private pollInterval?: ReturnType<typeof setInterval>;
+  historialCargado = false;
 
-  solicitudesFiltradas = computed(() => {
-    let result = this.solicitudes();
-    const estado = this.filtroEstado();
-    const tramite = this.filtroTramite();
-    const depto = this.filtroDepartamento();
-
-    if (estado) {
-      result = result.filter(s => s.estado === estado);
-    }
-    if (tramite) {
-      result = result.filter(s => s.tramiteId === tramite);
-    }
-    if (depto) {
-      result = result.filter(s => s.departamentoActualId === depto);
-    }
-    return result;
-  });
+  get currentUser() { return this.authService.currentUser(); }
 
   ngOnInit(): void {
-    this.loadSolicitudes();
-    this.tramitesService.getAll().subscribe(data => this.tramites.set(data));
-    this.departamentosService.getAll().subscribe(data => this.departamentos.set(data));
+    this.loadBandeja();
+    this.loadMisTareas();
+    this.pollInterval = setInterval(() => {
+      this.loadBandeja();
+      this.loadMisTareas();
+    }, 30000);
   }
 
-  loadSolicitudes(): void {
-    this.loading.set(true);
-    this.solicitudesService.getAll().subscribe({
-      next: (data) => {
-        this.solicitudes.set(data);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
+  ngOnDestroy(): void {
+    clearInterval(this.pollInterval);
+  }
+
+  loadBandeja(): void {
+    this.loadingBandeja.set(true);
+    this.solicitudesService.getBandejaDepartamento().subscribe({
+      next: d => { this.bandejaDepto.set(d); this.loadingBandeja.set(false); },
+      error: () => this.loadingBandeja.set(false)
     });
   }
 
-  getTramiteNombre(tramiteId: string): string {
-    return this.tramites().find(t => t.id === tramiteId)?.nombre || tramiteId;
+  loadMisTareas(): void {
+    this.loadingMisTareas.set(true);
+    this.solicitudesService.getMisTareas().subscribe({
+      next: d => { this.misTareas.set(d); this.loadingMisTareas.set(false); },
+      error: () => this.loadingMisTareas.set(false)
+    });
   }
 
-  getDepartamentoNombre(deptoId: string | null): string {
-    if (!deptoId) return '-';
-    return this.departamentos().find(d => d.id === deptoId)?.nombre || deptoId;
+  loadHistorial(): void {
+    this.loadingHistorial.set(true);
+    this.solicitudesService.getHistorialDepartamento().subscribe({
+      next: d => {
+        this.historialDepto.set(d);
+        this.loadingHistorial.set(false);
+        this.historialCargado = true;
+      },
+      error: () => this.loadingHistorial.set(false)
+    });
   }
 
-  getEstadoClass(estado: EstadoTramite): string {
-    const classes: Record<EstadoTramite, string> = {
-      PENDIENTE: 'estado-pendiente',
-      EN_PROCESO: 'estado-proceso',
-      OBSERVADO: 'estado-observado',
-      APROBADO: 'estado-aprobado',
-      RECHAZADO: 'estado-rechazado'
-    };
-    return classes[estado];
+  onTabChange(index: number): void {
+    if (index === 0) this.loadBandeja();
+    else if (index === 1) this.loadMisTareas();
+    else if (index === 2 && !this.historialCargado) this.loadHistorial();
+  }
+
+  tomar(sol: SolicitudTramiteResumen): void {
+    const deptId = this.currentUser?.departamentoId;
+    if (!deptId) return;
+
+    this.solicitudesService.getTareasActivas(sol.id, deptId).subscribe({
+      next: tareas => {
+        const tarea = tareas[0];
+        if (!tarea) return;
+
+        this.bandejaDepto.update(list => list.filter(s => s.id !== sol.id));
+
+        this.solicitudesService.tomar(sol.id, { elementId: tarea.elementId }).subscribe({
+          next: () => {
+            this.loadMisTareas();
+            this.notificationService.add({ title: 'Tarea tomada', message: 'Aparece ahora en "Mis tareas"', type: 'success' });
+          },
+          error: () => {
+            this.bandejaDepto.update(list => [sol, ...list]);
+          }
+        });
+      }
+    });
+  }
+
+  liberarDesdeList(sol: SolicitudTramiteResumen): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Liberar tarea',
+        message: '¿Liberar esta tarea? Otro funcionario podrá tomarla.',
+        confirmText: 'Liberar',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      const deptId = this.currentUser?.departamentoId;
+      if (!deptId) return;
+
+      this.solicitudesService.getTareasActivas(sol.id, deptId).subscribe({
+        next: tareas => {
+          const tarea = tareas[0];
+          if (!tarea) return;
+
+          this.solicitudesService.liberar(sol.id, { elementId: tarea.elementId }).subscribe({
+            next: () => {
+              this.misTareas.update(list => list.filter(s => s.id !== sol.id));
+              this.loadBandeja();
+              this.notificationService.add({ title: 'Tarea liberada', message: 'Volvió a la bandeja del departamento', type: 'success' });
+            }
+          });
+        }
+      });
+    });
+  }
+
+  async responderDesdeList(sol: SolicitudTramiteResumen): Promise<void> {
+    const fullSolicitud = await firstValueFrom(this.solicitudesService.getById(sol.id));
+    const dialogRef = this.dialog.open(RespuestaDialogComponent, {
+      width: '700px',
+      maxHeight: '90vh',
+      data: { solicitud: fullSolicitud }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadMisTareas();
+        this.loadBandeja();
+      }
+    });
   }
 
   openCreateDialog(): void {
@@ -132,58 +191,27 @@ export class SolicitudesListComponent implements OnInit {
       width: '700px',
       maxHeight: '90vh'
     });
-
     dialogRef.afterClosed().subscribe(result => {
-      if (result) this.loadSolicitudes();
+      if (result) this.loadBandeja();
     });
   }
 
-  openResponderDialog(solicitud: SolicitudTramite): void {
-    const dialogRef = this.dialog.open(RespuestaDialogComponent, {
-      width: '700px',
-      maxHeight: '90vh',
-      data: { solicitud }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) this.loadSolicitudes();
-    });
+  verDetalle(sol: SolicitudTramiteResumen): void {
+    this.router.navigate(['/solicitudes', sol.id]);
   }
 
-  verDetalle(solicitud: SolicitudTramite): void {
-    this.router.navigate(['/solicitudes', solicitud.id]);
+  getEstadoLabel(estado: EstadoTramite): string {
+    return ESTADO_TRAMITE_LABELS[estado];
   }
 
-  confirmDelete(solicitud: SolicitudTramite): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: 'Eliminar solicitud',
-        message: '¿Está seguro que desea eliminar esta solicitud?',
-        confirmText: 'Eliminar',
-        confirmColor: 'warn'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(confirmed => {
-      if (confirmed) {
-        this.solicitudesService.delete(solicitud.id).subscribe({
-          next: () => {
-            this.notificationService.add({
-              title: 'Eliminada',
-              message: 'Solicitud eliminada correctamente',
-              type: 'success'
-            });
-            this.loadSolicitudes();
-          }
-        });
-      }
-    });
-  }
-
-  limpiarFiltros(): void {
-    this.filtroEstado.set('');
-    this.filtroTramite.set('');
-    this.filtroDepartamento.set('');
+  getEstadoClass(estado: EstadoTramite): string {
+    const classes: Record<EstadoTramite, string> = {
+      PENDIENTE: 'estado-pendiente',
+      EN_PROCESO: 'estado-proceso',
+      CANCELADO: 'estado-cancelado',
+      APROBADO: 'estado-aprobado',
+      RECHAZADO: 'estado-rechazado'
+    };
+    return classes[estado];
   }
 }

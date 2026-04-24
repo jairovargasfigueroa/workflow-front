@@ -10,11 +10,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 
 import { FlujosTrabajoService } from '../../services/flujos-trabajo.service';
-import { FlujoTrabajo } from '../../models/flujo-trabajo.model';
+import { FlujoTrabajo, EstadoFlujo } from '../../models/flujo-trabajo.model';
 import { FlujoTrabajoDialogComponent } from '../../components/flujo-trabajo-dialog/flujo-trabajo-dialog';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-flujos-trabajo-list',
@@ -38,10 +39,11 @@ export class FlujosTrabajoListComponent implements OnInit {
   private readonly flujosService = inject(FlujosTrabajoService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
+  private readonly notificationService = inject(NotificationService);
 
   flujos = signal<FlujoTrabajo[]>([]);
   loading = signal(true);
-  displayedColumns = ['nombre', 'procesoKey', 'activo', 'acciones'];
+  displayedColumns = ['nombre', 'procesoKey', 'estadoFlujo', 'acciones'];
 
   ngOnInit(): void {
     this.loadFlujos();
@@ -60,16 +62,40 @@ export class FlujosTrabajoListComponent implements OnInit {
     });
   }
 
+  tieneBorrador(flujo: FlujoTrabajo): boolean {
+    return flujo.tieneBorrador;
+  }
+
+  getEstadoChipLabel(flujo: FlujoTrabajo): string {
+    if (flujo.estadoFlujo === 'SIN_PUBLICAR') {
+      return flujo.tieneBorrador ? 'Sin publicar' : 'Sin diseñar';
+    }
+    const labels: Record<EstadoFlujo, string> = {
+      SIN_PUBLICAR: 'Sin publicar',
+      ACTIVO: 'Publicado',
+      DESACTIVADO: 'Desactivado',
+      ARCHIVADO: 'Archivado'
+    };
+    return labels[flujo.estadoFlujo];
+  }
+
+  getEstadoChipClass(flujo: FlujoTrabajo): string {
+    const map: Record<EstadoFlujo, string> = {
+      SIN_PUBLICAR: 'flujo-sin-publicar',
+      ACTIVO: 'flujo-activo',
+      DESACTIVADO: 'flujo-desactivado',
+      ARCHIVADO: 'flujo-archivado'
+    };
+    return map[flujo.estadoFlujo] ?? '';
+  }
+
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(FlujoTrabajoDialogComponent, {
       width: '600px',
       data: { mode: 'create' }
     });
-
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadFlujos();
-      }
+      if (result) this.loadFlujos();
     });
   }
 
@@ -78,43 +104,109 @@ export class FlujosTrabajoListComponent implements OnInit {
       width: '600px',
       data: { mode: 'edit', flujo }
     });
-
     dialogRef.afterClosed().subscribe(result => {
-      if (result) {
+      if (result) this.loadFlujos();
+    });
+  }
+
+  abrirEditor(flujo: FlujoTrabajo): void {
+    this.router.navigate(['/flujos-trabajo', flujo.id, 'editor']);
+  }
+
+  verFlujo(flujo: FlujoTrabajo): void {
+    this.router.navigate(['/flujos-trabajo', flujo.id, 'ver']);
+  }
+
+  publicarDesdeList(flujo: FlujoTrabajo): void {
+    this.flujosService.publicar(flujo.id).subscribe({
+      next: () => {
+        this.notificationService.add({
+          title: 'Publicado',
+          message: `El flujo "${flujo.nombre}" se publicó correctamente`,
+          type: 'success'
+        });
         this.loadFlujos();
+      },
+      error: (error) => {
+        const errores: string[] = error?.error?.errores ?? [];
+        this.notificationService.add({
+          title: 'Error al publicar',
+          message: errores.length > 0
+            ? errores[0]
+            : 'El diagrama tiene errores. Ábrelo en el editor para verlos.',
+          type: 'error'
+        });
       }
     });
   }
 
-  openEditor(flujo: FlujoTrabajo): void {
-    this.router.navigate(['/flujos-trabajo', flujo.id, 'editor']);
+  descartarDesdeList(flujo: FlujoTrabajo): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Descartar borrador',
+        message: `¿Descartar los cambios sin publicar de "${flujo.nombre}"?`,
+        confirmText: 'Descartar',
+        cancelText: 'Cancelar'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.flujosService.descartarBorrador(flujo.id).subscribe({
+        next: () => {
+          this.notificationService.add({
+            title: 'Borrador descartado',
+            message: `Los cambios de "${flujo.nombre}" fueron descartados`,
+            type: 'success'
+          });
+          this.loadFlujos();
+        },
+        error: () => {
+          this.notificationService.add({
+            title: 'Error',
+            message: 'No se pudo descartar el borrador',
+            type: 'error'
+          });
+        }
+      });
+    });
+  }
+
+  cambiarEstado(flujo: FlujoTrabajo, estado: EstadoFlujo): void {
+    const accion = estado === 'ACTIVO' ? 'activar' : estado === 'DESACTIVADO' ? 'desactivar' : 'archivar';
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: `${accion.charAt(0).toUpperCase() + accion.slice(1)} flujo`,
+        message: `¿Estás seguro de ${accion} el flujo "${flujo.nombre}"?`,
+        confirmText: accion.charAt(0).toUpperCase() + accion.slice(1),
+        cancelText: 'Cancelar'
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.flujosService.cambiarEstado(flujo.id, { estado }).subscribe({
+          next: () => this.loadFlujos()
+        });
+      }
+    });
   }
 
   confirmDelete(flujo: FlujoTrabajo): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Eliminar Flujo',
+        title: 'Eliminar flujo',
         message: `¿Estás seguro de eliminar el flujo "${flujo.nombre}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar'
       }
     });
-
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.deleteFlujo(flujo.id);
-      }
-    });
-  }
-
-  private deleteFlujo(id: string): void {
-    this.flujosService.delete(id).subscribe({
-      next: () => {
-        this.loadFlujos();
-      },
-      error: (error) => {
-        console.error('Error al eliminar flujo:', error);
+        this.flujosService.delete(flujo.id).subscribe({
+          next: () => this.loadFlujos()
+        });
       }
     });
   }

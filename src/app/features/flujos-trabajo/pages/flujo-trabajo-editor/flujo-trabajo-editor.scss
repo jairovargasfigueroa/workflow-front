@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100vh;
   position: relative;
-  background: #f5f5f5;
+  background: var(--surface-page);
 }
 
 .loading-overlay {
@@ -22,18 +22,18 @@
 
   p {
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--color-text-secondary);
   }
 }
 
 .editor-header {
-  background: white;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--color-border);
   padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card);
   z-index: 10;
 
   .header-left {
@@ -47,7 +47,7 @@
       gap: 12px;
 
       .flujo-icon {
-        color: #1976d2;
+        color: var(--color-primary);
         font-size: 32px;
         width: 32px;
         height: 32px;
@@ -59,10 +59,30 @@
         font-weight: 600;
       }
 
+      .flujo-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       .proceso-key {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.6);
+        color: var(--color-text-secondary);
         font-family: 'Courier New', monospace;
+      }
+
+      .estado-chip {
+        font-size: 11px !important;
+        min-height: 20px !important;
+      }
+
+      .version-badge {
+        font-size: 11px;
+        color: var(--color-primary);
+        font-weight: 600;
+        background: var(--bg-primary-light);
+        padding: 2px 6px;
+        border-radius: 10px;
       }
     }
   }
@@ -72,11 +92,25 @@
     align-items: center;
     gap: 16px;
 
+    .saving-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--color-text-hint);
+    }
+
+    button.active {
+      color: var(--color-primary);
+      background: var(--bg-primary-light);
+      border-radius: 50%;
+    }
+
     .zoom-controls {
       display: flex;
       gap: 4px;
       padding: 4px;
-      background: #f5f5f5;
+      background: var(--surface-page);
       border-radius: 4px;
     }
 
@@ -94,22 +128,104 @@
 
 .editor-content {
   flex: 1;
-  display: flex;
+  position: relative;
   overflow: hidden;
 }
 
 .canvas-container {
-  flex: 1;
-  position: relative;
-  background: white;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-card);
+}
+
+.floating-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 300px;
+  background: var(--surface-card);
+  border-left: 1px solid var(--color-border);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  transition: transform 220ms ease;
+  overflow-y: auto;
+  z-index: 20;
+
+  &.visible {
+    transform: translateX(0);
+  }
+}
+
+.versiones-panel-wrapper {
+  display: flex;
+  flex-direction: column;
+
+  .versiones-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+
+    .versiones-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--color-text-hint);
+      }
+    }
+  }
+}
+
+.versiones-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+
+  .version-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 16px;
+    border-bottom: 1px solid var(--color-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .version-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .version-numero {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--color-primary);
+    }
+
+    .version-fecha {
+      font-size: 11px;
+      color: var(--color-text-hint);
+    }
+  }
 }
 
 .collaboration-indicator {
   position: absolute;
   bottom: 24px;
   right: 344px;
-  background: #4caf50;
+  background: var(--color-success);
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -118,7 +234,7 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-card-hover);
   z-index: 10;
 
   mat-icon {
@@ -138,8 +254,7 @@
   }
 }
 
-// Estilos para el snackbar de éxito
 ::ng-deep .success-snackbar {
-  background: #4caf50 !important;
+  background: var(--color-success) !important;
   color: white !important;
 }

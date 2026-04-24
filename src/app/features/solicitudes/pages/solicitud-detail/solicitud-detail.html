@@ -14,12 +14,6 @@
           {{ estadoLabels[sol.estado] }}
         </mat-chip>
       </div>
-      @if (sol.departamentoActualId && sol.estado !== 'APROBADO' && sol.estado !== 'RECHAZADO') {
-        <button mat-fab extended color="primary" (click)="openResponderDialog()">
-          <mat-icon>rate_review</mat-icon>
-          Responder
-        </button>
-      }
     </div>
 
     <!-- Info General -->
@@ -32,15 +26,15 @@
         <div class="info-grid">
           <div class="info-item">
             <span class="label">Trámite</span>
-            <span class="value">{{ tramite()?.nombre || sol.tramiteId }}</span>
+            <span class="value">{{ sol.tramiteNombre }}</span>
           </div>
           <div class="info-item">
             <span class="label">Solicitante</span>
-            <span class="value">{{ sol.solicitanteId }}</span>
+            <span class="value">{{ sol.solicitanteNombre }}</span>
           </div>
           <div class="info-item">
             <span class="label">Departamento actual</span>
-            <span class="value">{{ getDepartamentoNombre(sol.departamentoActualId) }}</span>
+            <span class="value">{{ getDepartamentosActualesLabel(sol) }}</span>
           </div>
           <div class="info-item">
             <span class="label">Fecha creación</span>
@@ -101,72 +95,106 @@
       </mat-card>
     }
 
-    <!-- Historial de Estados -->
-    @if (sol.historialEstados && sol.historialEstados.length > 0) {
+    <!-- Historial por Departamento -->
+    @if (sol.respuestasPorDepartamento && sol.respuestasPorDepartamento.length > 0) {
       <mat-card class="section-card">
         <mat-card-header>
           <mat-icon mat-card-avatar>history</mat-icon>
-          <mat-card-title>Historial de Estados</mat-card-title>
+          <mat-card-title>Historial de Departamentos</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="timeline">
-            @for (hist of sol.historialEstados; track $index) {
+            @for (resp of sol.respuestasPorDepartamento; track $index) {
+
+              <!-- Entrada al departamento -->
               <div class="timeline-item">
                 <div class="timeline-dot"></div>
                 <div class="timeline-content">
                   <div class="timeline-header">
-                    <mat-chip [class]="getEstadoClass($any(hist.estado))" class="timeline-chip">
-                      {{ getEstadoLabel(hist.estado) }}
-                    </mat-chip>
-                    <span class="timeline-date">Respondió: {{ formatDate(hist.fecha) }}</span>
+                    <span class="timeline-date">Entrada: {{ formatDate(resp.fechaEntrada) }}</span>
                   </div>
-                  @if (hist.departamentoId) {
-                    <p class="timeline-meta">Departamento: {{ getDepartamentoNombre(hist.departamentoId) }}</p>
-                  }
-                  @if (hist.fechaEntrada) {
-                    <p class="timeline-meta timeline-duracion">
-                      <span>Entró: {{ formatDate(hist.fechaEntrada) }}</span>
-                      @if (getDuracion(hist.fechaEntrada, hist.fecha)) {
-                        <span class="duracion-badge">{{ getDuracion(hist.fechaEntrada, hist.fecha) }}</span>
-                      }
-                    </p>
-                  }
-                  @if (hist.comentario) {
-                    <p class="timeline-comment">{{ hist.comentario }}</p>
-                  }
+                  <p class="timeline-meta">Departamento: {{ resp.departamentoNombre }}</p>
                 </div>
               </div>
+
+              <!-- Tarea pendiente (sin respuesta aún) -->
+              @if (!resp.fechaRespuesta) {
+                <div class="timeline-item">
+                  <div class="timeline-dot timeline-dot--pending"></div>
+                  <div class="timeline-content">
+
+                    <!-- Estado del claim -->
+                    @if (resp.funcionarioAsignadoId) {
+                      <p class="claim-info">
+                        <mat-icon class="claim-icon">person</mat-icon>
+                        Tomada por <strong>{{ resp.funcionarioAsignadoNombre }}</strong>
+                        @if (resp.fechaAsignacion) {
+                          <span class="claim-tiempo"> — {{ tiempoDesde(resp.fechaAsignacion) }}</span>
+                        }
+                      </p>
+                    } @else {
+                      <p class="claim-info claim-info--libre">
+                        <mat-icon class="claim-icon">person_outline</mat-icon>
+                        Sin asignar
+                      </p>
+                    }
+
+                    <!-- Acciones según claim -->
+                    @if (esMiTarea(resp)) {
+                      <div class="claim-actions">
+                        <button mat-flat-button color="primary" (click)="openResponderDialog(resp)">
+                          <mat-icon>rate_review</mat-icon>
+                          Responder
+                        </button>
+                        <button mat-stroked-button color="warn" (click)="liberar(resp)">
+                          <mat-icon>assignment_return</mat-icon>
+                          Liberar
+                        </button>
+                      </div>
+                    }
+
+                  </div>
+                </div>
+              }
+
+              <!-- Respuesta completada -->
+              @if (resp.fechaRespuesta) {
+                <div class="timeline-item">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-content">
+                    <div class="timeline-header">
+                      <mat-chip class="timeline-chip">{{ resp.accion }}</mat-chip>
+                      <span class="timeline-date">
+                        Respondió: {{ formatDate(resp.fechaRespuesta) }}
+                      </span>
+                      @if (getDuracion(resp.fechaEntrada, resp.fechaRespuesta)) {
+                        <div class="timeline-duracion">
+                          <span class="duracion-badge">{{ getDuracion(resp.fechaEntrada, resp.fechaRespuesta) }}</span>
+                        </div>
+                      }
+                    </div>
+                    @if (resp.funcionarioNombre) {
+                      <p class="timeline-meta">Por: {{ resp.funcionarioNombre }}</p>
+                    }
+                    @if (resp.comentario) {
+                      <p class="timeline-comment">{{ resp.comentario }}</p>
+                    }
+                    @if (resp.respuestas && resp.respuestas.length > 0) {
+                      <div class="respuestas-grid" style="margin-top: 8px">
+                        @for (campo of resp.respuestas; track campo.nombreCampo) {
+                          <div class="respuesta-item">
+                            <span class="label">{{ campo.nombreCampo }}</span>
+                            <span class="value">{{ campo.valor || '-' }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
             }
           </div>
-        </mat-card-content>
-      </mat-card>
-    }
-
-    <!-- Respuestas por Departamento -->
-    @if (sol.respuestasPorDepartamento && sol.respuestasPorDepartamento.length > 0) {
-      <mat-card class="section-card">
-        <mat-card-header>
-          <mat-icon mat-card-avatar>business</mat-icon>
-          <mat-card-title>Respuestas por Departamento</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          @for (respDepto of sol.respuestasPorDepartamento; track $index) {
-            <div class="depto-respuesta">
-              <h4>{{ getDepartamentoNombre(respDepto.departamentoId) }}</h4>
-              <p class="depto-fecha">{{ formatDate(respDepto.fecha) }}</p>
-              <div class="respuestas-grid">
-                @for (resp of respDepto.respuestas; track resp.nombreCampo) {
-                  <div class="respuesta-item">
-                    <span class="label">{{ resp.nombreCampo }}</span>
-                    <span class="value">{{ resp.valor || '-' }}</span>
-                  </div>
-                }
-              </div>
-              @if (!$last) {
-                <mat-divider></mat-divider>
-              }
-            </div>
-          }
         </mat-card-content>
       </mat-card>
     }

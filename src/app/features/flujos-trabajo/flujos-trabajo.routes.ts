@@ -10,5 +10,10 @@ export const FLUJOS_TRABAJO_ROUTES: Routes = [
     path: ':id/editor',
     loadComponent: () => import('./pages/flujo-trabajo-editor/flujo-trabajo-editor')
       .then(m => m.FlujoTrabajoEditorComponent)
+  },
+  {
+    path: ':id/ver',
+    loadComponent: () => import('./pages/flujo-trabajo-viewer/flujo-trabajo-viewer')
+      .then(m => m.FlujoTrabajoViewerComponent)
   }
 ];

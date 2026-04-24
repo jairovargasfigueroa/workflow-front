@@ -6,21 +6,21 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { firstValueFrom } from 'rxjs';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
-import { SolicitudTramite, RespuestaCampo } from '../../models/solicitud.model';
-import { DepartamentosService } from '../../../departamentos/services/departamentos.service';
-import { FormulariosService } from '../../../formularios/services/formularios.service';
-import { UsuariosService } from '../../../usuarios/services/usuarios.service';
-import { Departamento } from '../../../departamentos/models/departamento.model';
-import { FormularioTemplate, CampoFormulario } from '../../../formularios/models/formulario.model';
-import { Usuario } from '../../../usuarios/models/usuario.model';
+import { SolicitudTramite, TareaActiva, AccionDisponible, RespuestaCampo } from '../../models/solicitud.model';
+import { CampoFormulario } from '../../../formularios/models/formulario.model';
+import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { SpeechService } from '../../../../core/services/speech.service';
 
 export interface RespuestaDialogData {
   solicitud: SolicitudTramite;
@@ -37,10 +37,12 @@ export interface RespuestaDialogData {
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatDividerModule,
-    MatDatepickerModule
+    MatDatepickerModule,
+    MatTooltipModule
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './respuesta-dialog.html',
@@ -51,52 +53,43 @@ export class RespuestaDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<RespuestaDialogComponent>);
   private readonly data = inject<RespuestaDialogData>(MAT_DIALOG_DATA);
   private readonly solicitudesService = inject(SolicitudesService);
-  private readonly departamentosService = inject(DepartamentosService);
-  private readonly formulariosService = inject(FormulariosService);
-  private readonly usuariosService = inject(UsuariosService);
+  private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
+  private readonly speechService = inject(SpeechService);
+
+  get escuchando() { return this.speechService.escuchando; }
 
   saving = false;
+  loadingData = true;
   solicitud = this.data.solicitud;
-  departamento: Departamento | null = null;
-  formulario: FormularioTemplate | null = null;
+
+  tarea: TareaActiva | null = null;
   campos: CampoFormulario[] = [];
-  funcionarios: Usuario[] = [];
+  accionSeleccionada: string | null = null;
 
   form = this.fb.nonNullable.group({
-    funcionarioId: ['', Validators.required],
-    accion: ['', Validators.required],
     comentario: ['']
   });
 
   dynamicForm: FormGroup = this.fb.group({});
 
-  acciones = [
-    { value: 'APROBADO', label: 'Aprobar' },
-    { value: 'RECHAZADO', label: 'Rechazar' },
-    { value: 'OBSERVADO', label: 'Observar' }
-  ];
-
   ngOnInit(): void {
-    if (this.solicitud.departamentoActualId) {
-      this.departamentosService.getById(this.solicitud.departamentoActualId).subscribe({
-        next: (depto) => {
-          this.departamento = depto;
-          if (depto.formularioId) {
-            this.formulariosService.getById(depto.formularioId).subscribe({
-              next: (form) => {
-                this.formulario = form;
-                this.campos = form.campos;
-                this.buildDynamicForm(form.campos);
-              }
-            });
-          }
-        }
-      });
+    const departamentoId = this.authService.currentUser()?.departamentoId;
+    if (!departamentoId) {
+      this.loadingData = false;
+      return;
     }
 
-    this.usuariosService.getAll().subscribe({
-      next: (data) => this.funcionarios = data.filter(u => u.rol === 'FUNCIONARIO' && u.activo)
+    this.solicitudesService.getTareasActivas(this.solicitud.id, departamentoId).subscribe({
+      next: tareas => {
+        this.tarea = tareas[0] ?? null;
+        if (this.tarea) {
+          this.campos = this.tarea.campos;
+          this.buildDynamicForm(this.tarea.campos);
+        }
+        this.loadingData = false;
+      },
+      error: () => { this.loadingData = false; }
     });
   }
 
@@ -108,12 +101,45 @@ export class RespuestaDialogComponent implements OnInit {
     this.dynamicForm = this.fb.group(group);
   }
 
+  get puedeEnviar(): boolean {
+    const accionValida = (this.tarea?.acciones.length ?? 0) > 0
+      ? this.accionSeleccionada !== null
+      : true;
+    return !this.form.invalid && !this.dynamicForm.invalid && !this.saving && accionValida;
+  }
+
+  startListening(target: string, opciones?: string[]): void {
+    this.speechService.listen(target).subscribe(transcript => {
+      if (target === '__comentario__') {
+        this.form.get('comentario')?.setValue(transcript);
+        return;
+      }
+      if (target === '__accion__') {
+        const match = this.tarea?.acciones.find(a =>
+          transcript.toLowerCase().includes(a.etiqueta.toLowerCase()) ||
+          transcript.toLowerCase().includes(a.valor.toLowerCase())
+        );
+        if (match) this.accionSeleccionada = match.valor;
+        return;
+      }
+      if (opciones?.length) {
+        const match = opciones.find(opt =>
+          opt.toLowerCase().includes(transcript.toLowerCase()) ||
+          transcript.toLowerCase().includes(opt.toLowerCase())
+        );
+        if (match) this.dynamicForm.get(target)?.setValue(match);
+      } else {
+        this.dynamicForm.get(target)?.setValue(transcript);
+      }
+    });
+  }
+
   onCancel(): void {
     this.dialogRef.close(false);
   }
 
-  onSubmit(): void {
-    if (this.form.invalid || this.dynamicForm.invalid || this.saving) return;
+  async onSubmit(): Promise<void> {
+    if (!this.puedeEnviar || !this.tarea) return;
 
     this.saving = true;
     const formValue = this.form.getRawValue();
@@ -121,30 +147,28 @@ export class RespuestaDialogComponent implements OnInit {
 
     const respuestas: RespuestaCampo[] = Object.entries(dynamicValues)
       .filter(([, valor]) => valor != null && valor !== '')
-      .map(([nombreCampo, valor]) => ({
-        nombreCampo,
-        valor: String(valor)
-      }));
+      .map(([nombreCampo, valor]) => ({ nombreCampo, valor: String(valor) }));
 
-    this.solicitudesService.responderDepartamento(this.solicitud.id, {
-      departamentoId: this.solicitud.departamentoActualId!,
-      formularioId: this.departamento?.formularioId || '',
-      funcionarioId: formValue.funcionarioId,
-      accion: formValue.accion as 'APROBADO' | 'RECHAZADO' | 'OBSERVADO',
-      comentario: formValue.comentario || undefined,
-      respuestas
-    }).subscribe({
-      next: () => {
-        this.notificationService.add({
-          title: 'Respuesta enviada',
-          message: 'La respuesta del departamento se registró correctamente',
-          type: 'success'
-        });
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.saving = false;
-      }
-    });
+    const accion = this.tarea.acciones.length > 0
+      ? (this.accionSeleccionada ?? '')
+      : 'APROBADO';
+
+    try {
+      await firstValueFrom(this.solicitudesService.responderDepartamento(this.solicitud.id, {
+        departamentoId: this.tarea.departamentoId,
+        elementId: this.tarea.elementId,
+        accion,
+        comentario: formValue.comentario || undefined,
+        respuestas
+      }));
+      this.notificationService.add({
+        title: 'Respuesta enviada',
+        message: 'La respuesta del departamento se registró correctamente',
+        type: 'success'
+      });
+      this.dialogRef.close(true);
+    } catch {
+      this.saving = false;
+    }
   }
 }

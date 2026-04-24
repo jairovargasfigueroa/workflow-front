@@ -4,7 +4,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -25,7 +25,6 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatDialogModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     EmptyStateComponent,
@@ -41,13 +40,13 @@ export class DepartamentosListComponent implements OnInit {
 
   departamentos = signal<Departamento[]>([]);
   loading = signal(true);
-  displayedColumns = ['nombre', 'descripcion', 'estado', 'fechaCreacion', 'acciones'];
+  displayedColumns = ['nombre', 'estado', 'fechaCreacion', 'acciones'];
 
   ngOnInit(): void {
     this.loadDepartamentos();
   }
 
-  loadDepartamentos(): void {
+  private loadDepartamentos(): void {
     this.loading.set(true);
     this.departamentosService.getAll().subscribe({
       next: (data) => {
@@ -60,23 +59,10 @@ export class DepartamentosListComponent implements OnInit {
     });
   }
 
-  openCreateDialog(): void {
+  openDialog(departamento?: Departamento): void {
     const dialogRef = this.dialog.open(DepartamentoDialogComponent, {
       width: '500px',
-      data: { mode: 'create' }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadDepartamentos();
-      }
-    });
-  }
-
-  openEditDialog(departamento: Departamento): void {
-    const dialogRef = this.dialog.open(DepartamentoDialogComponent, {
-      width: '500px',
-      data: { mode: 'edit', departamento }
+      data: departamento ? { mode: 'edit', departamento } : { mode: 'create' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -112,6 +98,9 @@ export class DepartamentosListComponent implements OnInit {
           message: 'Departamento eliminado correctamente',
           type: 'success'
         });
+        this.loadDepartamentos();
+      },
+      error: () => {
         this.loadDepartamentos();
       }
     });

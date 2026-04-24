@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
@@ -25,7 +25,6 @@ import { ROL_LABELS, Rol } from '../../../../core/models';
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatDialogModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule,
@@ -52,7 +51,7 @@ export class UsuariosListComponent implements OnInit {
     this.loadUsuarios();
   }
 
-  loadUsuarios(): void {
+  private loadUsuarios(): void {
     this.loading.set(true);
     this.usuariosService.getAll().subscribe({
       next: (data) => {
@@ -65,23 +64,10 @@ export class UsuariosListComponent implements OnInit {
     });
   }
 
-  openCreateDialog(): void {
+  openDialog(usuario?: Usuario): void {
     const dialogRef = this.dialog.open(UsuarioDialogComponent, {
       width: '600px',
-      data: { mode: 'create' }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadUsuarios();
-      }
-    });
-  }
-
-  openEditDialog(usuario: Usuario): void {
-    const dialogRef = this.dialog.open(UsuarioDialogComponent, {
-      width: '600px',
-      data: { mode: 'edit', usuario }
+      data: usuario ? { mode: 'edit', usuario } : { mode: 'create' }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -117,6 +103,9 @@ export class UsuariosListComponent implements OnInit {
           message: 'Usuario eliminado correctamente',
           type: 'success'
         });
+        this.loadUsuarios();
+      },
+      error: () => {
         this.loadUsuarios();
       }
     });

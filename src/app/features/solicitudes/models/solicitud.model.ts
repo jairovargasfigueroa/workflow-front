@@ -1,4 +1,17 @@
 import { EstadoTramite } from '../../../core/models';
+import { CampoFormulario } from '../../formularios/models/formulario.model';
+
+export interface SolicitudTramiteResumen {
+  id: string;
+  tramiteId: string;
+  tramiteNombre: string;
+  solicitanteId: string;
+  solicitanteNombre: string;
+  estado: EstadoTramite;
+  departamentosActuales: string[];
+  fechaCreacion: string;
+  fechaFinalizacion: string | null;
+}
 
 export interface RespuestaCampo {
   nombreCampo: string;
@@ -7,19 +20,19 @@ export interface RespuestaCampo {
 
 export interface RespuestaDepartamento {
   departamentoId: string;
+  departamentoNombre: string;
+  elementId: string;
   formularioId: string;
-  funcionarioId: string;
-  fecha: string;
+  funcionarioId: string | null;
+  funcionarioNombre: string | null;
+  accion: string | null;
+  comentario: string | null;
+  fechaEntrada: string;
+  fechaRespuesta: string | null;
   respuestas: RespuestaCampo[];
-}
-
-export interface HistorialEstado {
-  estado: string;
-  departamentoId: string;
-  funcionarioId: string;
-  fechaEntrada?: string;
-  fecha: string;
-  comentario: string;
+  funcionarioAsignadoId: string | null;
+  funcionarioAsignadoNombre: string | null;
+  fechaAsignacion: string | null;
 }
 
 export interface Adjunto {
@@ -32,31 +45,46 @@ export interface Adjunto {
 export interface SolicitudTramite {
   id: string;
   tramiteId: string;
+  tramiteNombre: string;
   solicitanteId: string;
+  solicitanteNombre: string;
   estado: EstadoTramite;
-  departamentoActualId: string | null;
-  processInstanceId: string | null;
+  departamentosActuales: string[];
   fechaCreacion: string;
   fechaActualizacion: string;
-  fechaFinalizacion?: string | null;
+  fechaFinalizacion: string | null;
   respuestasSolicitante: RespuestaCampo[];
   respuestasPorDepartamento: RespuestaDepartamento[];
-  historialEstados: HistorialEstado[];
   adjuntos: Adjunto[];
 }
 
 export interface SolicitudTramiteRequest {
   tramiteId: string;
-  solicitanteId: string;
   respuestas: RespuestaCampo[];
   adjuntos?: Adjunto[];
 }
 
+export interface AccionDisponible {
+  etiqueta: string;
+  valor: string;
+}
+
+export interface TareaActiva {
+  elementId: string;
+  departamentoId: string;
+  departamentoNombre: string;
+  campos: CampoFormulario[];
+  acciones: AccionDisponible[];
+}
+
 export interface RespuestaDepartamentoRequest {
   departamentoId: string;
-  formularioId: string;
-  funcionarioId: string;
-  accion: 'APROBADO' | 'RECHAZADO' | 'OBSERVADO';
+  elementId: string;
+  accion: string;
   comentario?: string;
   respuestas: RespuestaCampo[];
+}
+
+export interface TomarLiberarRequest {
+  elementId: string;
 }

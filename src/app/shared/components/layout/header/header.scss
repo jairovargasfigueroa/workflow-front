@@ -12,3 +12,23 @@
 .spacer {
   flex: 1;
 }
+
+.user-menu-info {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px;
+  min-width: 160px;
+  pointer-events: none;
+}
+
+.user-menu-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.user-menu-role {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.54);
+  margin-top: 2px;
+}

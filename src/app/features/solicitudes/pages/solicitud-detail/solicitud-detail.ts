@@ -11,13 +11,12 @@ import { MatListModule } from '@angular/material/list';
 import { MatDialog } from '@angular/material/dialog';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
-import { SolicitudTramite } from '../../models/solicitud.model';
-import { TramitesService } from '../../../tramites/services/tramites.service';
-import { DepartamentosService } from '../../../departamentos/services/departamentos.service';
-import { Tramite } from '../../../tramites/models/tramite.model';
-import { Departamento } from '../../../departamentos/models/departamento.model';
+import { SolicitudTramite, RespuestaDepartamento } from '../../models/solicitud.model';
 import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
 import { RespuestaDialogComponent } from '../../components/respuesta-dialog/respuesta-dialog';
+import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-solicitud-detail',
@@ -40,55 +39,96 @@ export class SolicitudDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly solicitudesService = inject(SolicitudesService);
-  private readonly tramitesService = inject(TramitesService);
-  private readonly departamentosService = inject(DepartamentosService);
+  private readonly authService = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
 
   solicitud = signal<SolicitudTramite | null>(null);
-  tramite = signal<Tramite | null>(null);
-  departamentos = signal<Departamento[]>([]);
   loading = signal(true);
   estadoLabels = ESTADO_TRAMITE_LABELS;
 
-  getEstadoLabel(estado: string): string {
-    return ESTADO_TRAMITE_LABELS[estado as EstadoTramite] || estado;
-  }
+  get currentUserId() { return this.authService.currentUser()?.id; }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadSolicitud(id);
-    }
-    this.departamentosService.getAll().subscribe(data => this.departamentos.set(data));
+    if (id) this.loadSolicitud(id);
   }
 
   loadSolicitud(id: string): void {
     this.solicitudesService.getById(id).subscribe({
-      next: (data) => {
-        this.solicitud.set(data);
-        this.loading.set(false);
-        if (data.tramiteId) {
-          this.tramitesService.getById(data.tramiteId).subscribe({
-            next: (t) => this.tramite.set(t)
-          });
-        }
-      },
-      error: () => {
-        this.loading.set(false);
-        this.router.navigate(['/solicitudes']);
-      }
+      next: data => { this.solicitud.set(data); this.loading.set(false); },
+      error: () => { this.loading.set(false); this.router.navigate(['/solicitudes']); }
     });
   }
 
-  getDepartamentoNombre(deptoId: string | null): string {
-    if (!deptoId) return '-';
-    return this.departamentos().find(d => d.id === deptoId)?.nombre || deptoId;
+  esMiTarea(resp: RespuestaDepartamento): boolean {
+    return !!this.currentUserId && resp.funcionarioAsignadoId === this.currentUserId;
+  }
+
+  tiempoDesde(fecha: string | null): string {
+    if (!fecha) return '';
+    const diff = Date.now() - new Date(fecha).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `hace ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `hace ${hours}h`;
+    return `hace ${Math.floor(hours / 24)}d`;
+  }
+
+  liberar(resp: RespuestaDepartamento): void {
+    const sol = this.solicitud();
+    if (!sol) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Liberar tarea',
+        message: '¿Liberar esta tarea? Otro funcionario podrá tomarla.',
+        confirmText: 'Liberar',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.solicitudesService.liberar(sol.id, { elementId: resp.elementId }).subscribe({
+        next: () => {
+          this.loadSolicitud(sol.id);
+          this.notificationService.add({ title: 'Tarea liberada', message: 'Volvió a la bandeja del departamento', type: 'success' });
+        }
+      });
+    });
+  }
+
+  openResponderDialog(resp: RespuestaDepartamento): void {
+    const sol = this.solicitud();
+    if (!sol) return;
+
+    const dialogRef = this.dialog.open(RespuestaDialogComponent, {
+      width: '700px',
+      maxHeight: '90vh',
+      data: { solicitud: sol }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) this.loadSolicitud(sol.id);
+    });
+  }
+
+  getDepartamentosActualesLabel(sol: SolicitudTramite): string {
+    const activos = sol.respuestasPorDepartamento.filter(r => !r.fechaRespuesta);
+    if (!activos.length) return 'Finalizado';
+    return activos.map(r => r.departamentoNombre).join(', ');
+  }
+
+  getEstadoLabel(estado: string): string {
+    return ESTADO_TRAMITE_LABELS[estado as EstadoTramite] || estado;
   }
 
   getEstadoClass(estado: EstadoTramite): string {
     const classes: Record<EstadoTramite, string> = {
       PENDIENTE: 'estado-pendiente',
       EN_PROCESO: 'estado-proceso',
-      OBSERVADO: 'estado-observado',
+      CANCELADO: 'estado-cancelado',
       APROBADO: 'estado-aprobado',
       RECHAZADO: 'estado-rechazado'
     };
@@ -97,11 +137,7 @@ export class SolicitudDetailComponent implements OnInit {
 
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   }
 
@@ -119,21 +155,6 @@ export class SolicitudDetailComponent implements OnInit {
     }
     if (totalH > 0) return min > 0 ? `${totalH}h ${min}m` : `${totalH}h`;
     return `${totalMin}m`;
-  }
-
-  openResponderDialog(): void {
-    const sol = this.solicitud();
-    if (!sol) return;
-
-    const dialogRef = this.dialog.open(RespuestaDialogComponent, {
-      width: '700px',
-      maxHeight: '90vh',
-      data: { solicitud: sol }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) this.loadSolicitud(sol.id);
-    });
   }
 
   goBack(): void {

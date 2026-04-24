@@ -26,6 +26,13 @@
   </button>
 
   <mat-menu #userMenu="matMenu">
+    @if (currentUser()) {
+      <div class="user-menu-info">
+        <span class="user-menu-name">{{ currentUser()!.nombre }}</span>
+        <span class="user-menu-role">{{ rolLabels[currentUser()!.rol] }}</span>
+      </div>
+      <mat-divider />
+    }
     <button mat-menu-item>
       <mat-icon>person</mat-icon>
       <span>Mi Perfil</span>
@@ -35,7 +42,7 @@
       <span>Configuración</span>
     </button>
     <mat-divider />
-    <button mat-menu-item>
+    <button mat-menu-item (click)="logout()">
       <mat-icon>logout</mat-icon>
       <span>Cerrar Sesión</span>
     </button>

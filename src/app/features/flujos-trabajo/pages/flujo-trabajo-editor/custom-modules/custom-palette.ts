@@ -79,6 +79,25 @@ class CustomPaletteProvider {
         group: 'tools',
         separator: true
       },
+      'create.participant': {
+        group: 'container',
+        className: 'bpmn-icon-participant',
+        title: translate('Pool / Carril'),
+        action: {
+          dragstart: (event: any) => {
+            const shape = elementFactory.createParticipantShape();
+            create.start(event, shape, { width: 600, height: 200 });
+          },
+          click: (event: any) => {
+            const shape = elementFactory.createParticipantShape();
+            create.start(event, shape, { width: 600, height: 200 });
+          }
+        }
+      },
+      'container-separator': {
+        group: 'container',
+        separator: true
+      },
       'create.start-event': createAction(
         'bpmn:StartEvent', 'event', 'bpmn-icon-start-event-none', 'Evento de Inicio'
       ),

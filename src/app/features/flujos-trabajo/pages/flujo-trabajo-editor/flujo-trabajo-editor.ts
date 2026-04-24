@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,6 +6,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+
+import { switchMap, map, catchError, of } from 'rxjs';
 
 import BpmnModeler from 'bpmn-js/lib/Modeler';
 import { environment } from '../../../../../environments/environment';
@@ -17,7 +22,14 @@ import customPaletteModule from './custom-modules/custom-palette';
 import customContextPadModule from './custom-modules/custom-context-pad';
 import { PropertiesPanelComponent } from './properties-panel/properties-panel';
 import { FlujosTrabajoService } from '../../services/flujos-trabajo.service';
-import { FlujoTrabajo } from '../../models/flujo-trabajo.model';
+import {
+  FlujoTrabajo,
+  FlujoVersion,
+  EstadoFlujo,
+  ESTADO_FLUJO_LABELS
+} from '../../models/flujo-trabajo.model';
+import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
+import { PublishErrorsDialogComponent } from '../../components/publish-errors-dialog/publish-errors-dialog';
 
 @Component({
   selector: 'app-flujo-trabajo-editor',
@@ -29,34 +41,48 @@ import { FlujoTrabajo } from '../../models/flujo-trabajo.model';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatChipsModule,
+    MatDialogModule,
+    MatDividerModule,
     PropertiesPanelComponent
   ],
   templateUrl: './flujo-trabajo-editor.html',
   styleUrl: './flujo-trabajo-editor.scss'
 })
-export class FlujoTrabajoEditorComponent implements OnInit, OnDestroy {
+export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly flujosService = inject(FlujosTrabajoService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   private modeler!: BpmnModeler;
   private stompClient!: Client;
   private subscription?: StompSubscription;
   private debounceTimer?: any;
   private lastXmlSent: string = '';
+  private isInitialLoad = true;
 
   flujo = signal<FlujoTrabajo | null>(null);
+  versiones = signal<FlujoVersion[]>([]);
   loading = signal(true);
-  deploying = signal(false);
-  connectedUsers = signal(0);
+  publishing = signal(false);
+  savingBorrador = signal(false);
+  descartando = signal(false);
   modelerReady = signal<BpmnModeler | null>(null);
+  hasElementSelected = signal(false);
+  showVersiones = signal(false);
   flujoId = '';
+
+  readonly estadoLabels = ESTADO_FLUJO_LABELS;
 
   ngOnInit(): void {
     this.flujoId = this.route.snapshot.paramMap.get('id')!;
+  }
+
+  ngAfterViewInit(): void {
     this.initBpmnModeler();
     this.loadFlujo();
   }
@@ -88,54 +114,77 @@ export class FlujoTrabajoEditorComponent implements OnInit, OnDestroy {
 
     this.modelerReady.set(this.modeler);
 
-    // Escuchar cambios en el diagrama
     this.modeler.on('commandStack.changed', () => {
       this.onDiagramChange();
+    });
+
+    this.modeler.on('selection.changed', (e: any) => {
+      this.hasElementSelected.set(e.newSelection?.length > 0);
     });
   }
 
   private loadFlujo(): void {
     this.loading.set(true);
 
-    this.flujosService.getById(this.flujoId).subscribe({
-      next: (flujo) => {
+    this.flujosService.getById(this.flujoId).pipe(
+      switchMap(flujo => {
         this.flujo.set(flujo);
-        this.loadDiagram(flujo.procesoKey);
+        this.loadVersiones();
+
+        const shouldLoadXml = flujo.tieneBorrador || flujo.estadoFlujo === 'ACTIVO';
+        if (!shouldLoadXml) {
+          return of({ flujo, xml: null as string | null });
+        }
+
+        return this.flujosService.getXml(this.flujoId).pipe(
+          map(xml => ({ flujo, xml })),
+          catchError(() => of({ flujo, xml: null as string | null }))
+        );
+      })
+    ).subscribe({
+      next: ({ flujo, xml }) => {
+        if (xml) {
+          this.importXml(xml, flujo.procesoKey);
+        } else {
+          this.createNewDiagram(flujo.procesoKey);
+        }
       },
-      error: (error) => {
-        console.error('Error al cargar flujo:', error);
+      error: () => {
         this.snackBar.open('Error al cargar el flujo de trabajo', 'Cerrar', { duration: 3000 });
         this.loading.set(false);
       }
     });
   }
 
-  private loadDiagram(procesoKey: string): void {
-    this.flujosService.getDeployedXml(this.flujoId).subscribe({
-      next: (response) => {
-        this.modeler.importXML(response.xml).then(() => {
-          this.forceProcessProperties(procesoKey);
-          this.loading.set(false);
-          this.connectWebSocket();
-        }).catch(err => {
-          console.error('Error al importar XML:', err);
-          this.createNewDiagram(procesoKey);
-        });
-      },
-      error: () => {
-        // No hay diagrama desplegado, crear diagrama vacío
-        this.createNewDiagram(procesoKey);
-      }
+  private loadVersiones(): void {
+    this.flujosService.getVersiones(this.flujoId).subscribe({
+      next: (v) => this.versiones.set(v),
+      error: () => {}
+    });
+  }
+
+  private importXml(xml: string, procesoKey: string): void {
+    this.modeler.importXML(xml).then(() => {
+      this.forceProcessProperties(procesoKey);
+      const canvas: any = this.modeler.get('canvas');
+      canvas.zoom('fit-viewport', 'auto');
+      this.loading.set(false);
+      this.connectWebSocket();
+      setTimeout(() => { this.isInitialLoad = false; }, 600);
+    }).catch(() => {
+      this.createNewDiagram(procesoKey);
     });
   }
 
   private createNewDiagram(procesoKey: string): void {
     const xml = this.getEmptyDiagramXml(procesoKey);
     this.modeler.importXML(xml).then(() => {
+      const canvas: any = this.modeler.get('canvas');
+      canvas.zoom('fit-viewport', 'auto');
       this.loading.set(false);
       this.connectWebSocket();
-    }).catch(err => {
-      console.error('Error al crear diagrama:', err);
+      setTimeout(() => { this.isInitialLoad = false; }, 600);
+    }).catch(() => {
       this.loading.set(false);
     });
   }
@@ -181,11 +230,8 @@ export class FlujoTrabajoEditorComponent implements OnInit, OnDestroy {
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      debug: (str) => {
-        console.log('STOMP: ' + str);
-      },
+      debug: () => {},
       onConnect: () => {
-        console.log('WebSocket conectado');
         this.subscribeToChanges();
       },
       onStompError: (frame) => {
@@ -203,22 +249,15 @@ export class FlujoTrabajoEditorComponent implements OnInit, OnDestroy {
       `/topic/flujo/${this.flujoId}`,
       (message) => {
         const xmlReceived = message.body;
-
-        // Ignorar mensajes que nosotros mismos enviamos
-        if (xmlReceived === this.lastXmlSent) {
-          return;
-        }
-
-        // Importar el XML recibido
-        this.modeler.importXML(xmlReceived).catch(err => {
-          console.error('Error al importar cambios:', err);
-        });
+        if (xmlReceived === this.lastXmlSent) return;
+        this.modeler.importXML(xmlReceived).catch(() => {});
       }
     );
   }
 
   private onDiagramChange(): void {
-    // Debounce para no enviar cada cambio inmediatamente
+    if (this.isInitialLoad) return;
+
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
@@ -229,20 +268,31 @@ export class FlujoTrabajoEditorComponent implements OnInit, OnDestroy {
   }
 
   private sendChanges(): void {
-    if (!this.stompClient || !this.stompClient.connected) return;
-
     this.modeler.saveXML({ format: true }).then(({ xml }) => {
       if (!xml) return;
 
       this.lastXmlSent = xml;
 
-      this.stompClient.publish({
-        destination: `/app/flujo/${this.flujoId}`,
-        body: xml
+      // Sincronización en tiempo real vía WebSocket
+      if (this.stompClient?.connected) {
+        this.stompClient.publish({
+          destination: `/app/flujo/${this.flujoId}`,
+          body: xml
+        });
+      }
+
+      // Persistencia del borrador
+      this.savingBorrador.set(true);
+      this.flujosService.guardarBorrador(this.flujoId, { xml }).subscribe({
+        next: (flujo) => {
+          this.flujo.set(flujo);
+          this.savingBorrador.set(false);
+        },
+        error: () => {
+          this.savingBorrador.set(false);
+        }
       });
-    }).catch(err => {
-      console.error('Error al guardar XML:', err);
-    });
+    }).catch(() => {});
   }
 
   private disconnectWebSocket(): void {
@@ -254,34 +304,124 @@ export class FlujoTrabajoEditorComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDesplegar(): void {
-    this.deploying.set(true);
+  onPublicar(): void {
+    this.publishing.set(true);
 
-    this.modeler.saveXML({ format: true }).then(({ xml }) => {
-      if (!xml) {
-        this.snackBar.open('No hay diagrama para desplegar', 'Cerrar', { duration: 3000 });
-        this.deploying.set(false);
-        return;
-      }
-
-      this.flujosService.desplegar(this.flujoId, { xml }).subscribe({
-        next: () => {
-          this.snackBar.open('✓ Flujo desplegado exitosamente en Camunda', 'Cerrar', {
-            duration: 4000,
-            panelClass: ['success-snackbar']
+    this.flujosService.publicar(this.flujoId).subscribe({
+      next: (flujo) => {
+        this.flujo.set(flujo);
+        this.loadVersiones();
+        this.snackBar.open('Flujo publicado exitosamente', 'Cerrar', {
+          duration: 4000,
+          panelClass: ['success-snackbar']
+        });
+        this.publishing.set(false);
+      },
+      error: (error) => {
+        if (error.status === 422 && error.error?.errores) {
+          this.dialog.open(PublishErrorsDialogComponent, {
+            width: '500px',
+            data: { errores: error.error.errores }
           });
-          this.deploying.set(false);
+        } else {
+          this.snackBar.open('Error al publicar el flujo', 'Cerrar', { duration: 3000 });
+        }
+        this.publishing.set(false);
+      }
+    });
+  }
+
+  onCopiarVersionComoBorrador(version: FlujoVersion): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Restaurar versión',
+        message: `¿Cargar la versión ${version.numero} como borrador actual? El borrador actual se perderá.`,
+        confirmText: 'Restaurar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      this.flujosService.copiarVersionComoBorrador(this.flujoId, { numeroVersion: version.numero }).subscribe({
+        next: (flujo) => {
+          this.flujo.set(flujo);
+          this.flujosService.getXml(this.flujoId).subscribe({
+            next: (xml) => this.importXml(xml, flujo.procesoKey),
+            error: () => {}
+          });
+          this.snackBar.open(`Versión ${version.numero} cargada como borrador`, 'Cerrar', { duration: 3000 });
         },
-        error: (error) => {
-          console.error('Error al desplegar:', error);
-          this.snackBar.open('Error al desplegar el flujo', 'Cerrar', { duration: 3000 });
-          this.deploying.set(false);
+        error: () => {
+          this.snackBar.open('Error al restaurar la versión', 'Cerrar', { duration: 3000 });
         }
       });
-    }).catch(err => {
-      console.error('Error al exportar XML:', err);
-      this.deploying.set(false);
     });
+  }
+
+  hasBorrador(): boolean {
+    return this.flujo()?.tieneBorrador ?? false;
+  }
+
+  onDescartar(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Descartar borrador',
+        message: '¿Descartar todos los cambios sin publicar? Esta acción no se puede deshacer.',
+        confirmText: 'Descartar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.descartando.set(true);
+      this.flujosService.descartarBorrador(this.flujoId).pipe(
+        switchMap(flujo => {
+          this.flujo.set(flujo);
+          return this.flujosService.getXml(this.flujoId).pipe(
+            catchError(() => of(null as string | null))
+          );
+        })
+      ).subscribe({
+        next: (xml) => {
+          const flujo = this.flujo()!;
+          if (xml) {
+            this.importXml(xml, flujo.procesoKey);
+          } else {
+            this.createNewDiagram(flujo.procesoKey);
+          }
+          this.descartando.set(false);
+          this.snackBar.open('Borrador descartado', 'Cerrar', { duration: 3000 });
+        },
+        error: () => {
+          this.descartando.set(false);
+          this.snackBar.open('Error al descartar el borrador', 'Cerrar', { duration: 3000 });
+        }
+      });
+    });
+  }
+
+  canPublicar(): boolean {
+    const flujo = this.flujo();
+    return flujo?.estadoFlujo !== 'ARCHIVADO' && flujo?.tieneBorrador === true;
+  }
+
+  getEstadoClass(estado: EstadoFlujo): string {
+    const map: Record<EstadoFlujo, string> = {
+      SIN_PUBLICAR: 'flujo-sin-publicar',
+      ACTIVO: 'flujo-activo',
+      DESACTIVADO: 'flujo-desactivado',
+      ARCHIVADO: 'flujo-archivado'
+    };
+    return map[estado] ?? '';
+  }
+
+  toggleVersiones(): void {
+    this.showVersiones.update(v => !v);
   }
 
   onVolver(): void {

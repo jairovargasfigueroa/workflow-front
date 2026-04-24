@@ -18,8 +18,8 @@
     </div>
 
     <div class="properties-form">
-      <!-- Nombre (para todos los elementos excepto SequenceFlow) -->
-      @if (elementType() !== 'bpmn:SequenceFlow' && elementType() !== 'bpmn:Process') {
+      <!-- Nombre (para todos los elementos excepto el proceso raíz) -->
+      @if (elementType() !== 'bpmn:Process') {
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input
@@ -27,10 +27,13 @@
             [value]="elementName()"
             (input)="onNameChange($event)"
             placeholder="Nombre del elemento">
+          @if (elementType() === 'bpmn:SequenceFlow') {
+            <mat-hint>El nombre se usará como etiqueta de la acción para el funcionario</mat-hint>
+          }
         </mat-form-field>
       }
 
-      <!-- User Task: Departamento asignado -->
+      <!-- User Task: Departamento y Formulario asignados -->
       @if (elementType() === 'bpmn:UserTask') {
         <mat-form-field appearance="outline">
           <mat-label>Departamento asignado</mat-label>
@@ -45,42 +48,30 @@
           <mat-hint>camunda:candidateGroups</mat-hint>
         </mat-form-field>
 
-        <div class="info-box">
-          <mat-icon>info</mat-icon>
-          <span>El departamento determina qué funcionarios pueden completar esta tarea.</span>
-        </div>
-      }
-
-      <!-- Sequence Flow desde Exclusive Gateway: Condición -->
-      @if (elementType() === 'bpmn:SequenceFlow' && isFromExclusiveGateway()) {
         <mat-form-field appearance="outline">
-          <mat-label>Condición</mat-label>
+          <mat-label>Formulario de la tarea</mat-label>
           <mat-select
-            [value]="conditionExpression()"
-            (selectionChange)="onConditionChange($event.value)">
-            <mat-option value="">— Sin condición —</mat-option>
-            @for (option of conditionOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            [value]="formularioId()"
+            (selectionChange)="onFormularioChange($event.value)">
+            <mat-option value="">— Sin formulario —</mat-option>
+            @for (form of formularios(); track form.id) {
+              <mat-option [value]="form.id">{{ form.titulo }}</mat-option>
             }
           </mat-select>
-          <mat-hint>conditionExpression</mat-hint>
+          <mat-hint>camunda:formKey</mat-hint>
         </mat-form-field>
 
         <div class="info-box">
           <mat-icon>info</mat-icon>
-          <span>La condición evalúa la variable <strong>aprobado</strong> que setea el funcionario al completar la tarea.</span>
+          <span>El departamento y el formulario determinan qué funcionarios atienden esta tarea y qué datos capturan.</span>
         </div>
       }
 
-      <!-- Sequence Flow que NO es de gateway exclusivo -->
-      @if (elementType() === 'bpmn:SequenceFlow' && !isFromExclusiveGateway()) {
+      <!-- Sequence Flow -->
+      @if (elementType() === 'bpmn:SequenceFlow') {
         <div class="info-box neutral">
           <mat-icon>arrow_forward</mat-icon>
-          <span>Este flujo conecta dos elementos.
-            @if (elementType() === 'bpmn:SequenceFlow') {
-              Las condiciones solo aplican a flujos salientes de compuertas exclusivas.
-            }
-          </span>
+          <span>Asigna un nombre a este flujo para que el funcionario vea una acción con esa etiqueta al responder.</span>
         </div>
       }
 

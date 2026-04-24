@@ -2,13 +2,17 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
-  // Solo agregar el baseUrl si la request no es a una URL absoluta
+  const token = localStorage.getItem('auth_token');
+
+  let apiReq = req;
+
   if (!req.url.startsWith('http')) {
-    const apiReq = req.clone({
-      url: `${environment.apiUrl}${req.url}`
-    });
-    return next(apiReq);
+    apiReq = apiReq.clone({ url: `${environment.apiUrl}${req.url}` });
   }
 
-  return next(req);
+  if (token) {
+    apiReq = apiReq.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
+  }
+
+  return next(apiReq);
 };
