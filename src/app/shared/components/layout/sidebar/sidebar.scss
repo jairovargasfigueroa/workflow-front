@@ -1,0 +1,28 @@
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.logo {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #1976d2;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1976d2;
+}
+
+a.active {
+  background: rgba(25, 118, 210, 0.1);
+
+  mat-icon, span {
+    color: #1976d2;
+  }
+}

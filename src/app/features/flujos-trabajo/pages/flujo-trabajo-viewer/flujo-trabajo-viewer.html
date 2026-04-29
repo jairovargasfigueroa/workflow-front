@@ -1,0 +1,85 @@
+<div class="viewer-container">
+  @if (loading()) {
+    <div class="loading-overlay">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando diagrama...</p>
+    </div>
+  }
+
+  <!-- Header -->
+  <header class="viewer-header">
+    <div class="header-left">
+      <button mat-icon-button (click)="onVolver()" matTooltip="Volver a la lista">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="flujo-info">
+        <mat-icon class="flujo-icon">visibility</mat-icon>
+        <div>
+          <h1>{{ flujo()?.nombre || 'Cargando...' }}</h1>
+          <span class="readonly-badge">solo lectura</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Selector de versión -->
+      @if (versiones().length > 0) {
+        <mat-form-field appearance="outline" class="version-select">
+          <mat-label>Versión</mat-label>
+          <mat-select
+            [value]="versionSeleccionada()"
+            (selectionChange)="cargarVersion($event.value)">
+            @for (v of versiones(); track v.id) {
+              <mat-option [value]="v.numero">
+                v{{ v.numero }}
+                @if (v.numero === flujo()?.versionActualNumero) {
+                  (publicada)
+                }
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      <!-- Zoom -->
+      <div class="zoom-controls">
+        <button mat-icon-button (click)="onZoomOut()" matTooltip="Alejar">
+          <mat-icon>zoom_out</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onZoomReset()" matTooltip="Ajustar al contenedor">
+          <mat-icon>fit_screen</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onZoomIn()" matTooltip="Acercar">
+          <mat-icon>zoom_in</mat-icon>
+        </button>
+      </div>
+
+      <!-- Restaurar como borrador -->
+      @if (versionSeleccionada() && flujo()?.estadoFlujo !== 'ARCHIVADO') {
+        <button
+          mat-stroked-button
+          (click)="onRestaurar()"
+          [disabled]="restaurando()">
+          @if (restaurando()) {
+            <mat-spinner diameter="18"></mat-spinner>
+          } @else {
+            <mat-icon>restore</mat-icon>
+          }
+          Restaurar como borrador
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Canvas -->
+  <div class="canvas-wrapper">
+    <div class="canvas-container" #canvas></div>
+
+    @if (!loading() && versiones().length === 0) {
+      <div class="no-version">
+        <mat-icon>info_outline</mat-icon>
+        <p>Este flujo no tiene versiones publicadas aún.</p>
+      </div>
+    }
+  </div>
+</div>

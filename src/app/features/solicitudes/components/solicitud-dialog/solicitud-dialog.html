@@ -1,0 +1,108 @@
+<h2 mat-dialog-title>Nueva Solicitud</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="solicitudForm" (ngSubmit)="onSubmit()">
+    <section class="form-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Trámite</mat-label>
+        <mat-select formControlName="tramiteId" (selectionChange)="onTramiteChange($event.value)">
+          @for (tramite of tramites; track tramite.id) {
+            <mat-option [value]="tramite.id">{{ tramite.nombre }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.tramiteId.hasError('required')) {
+          <mat-error>El trámite es requerido</mat-error>
+        }
+      </mat-form-field>
+
+    </section>
+
+    <!-- Formulario dinámico -->
+    @if (formulario && campos.length > 0) {
+      <mat-divider></mat-divider>
+
+      <section class="form-section">
+        <h3>{{ formulario.titulo }}</h3>
+        @if (formulario.descripcion) {
+          <p class="section-desc">{{ formulario.descripcion }}</p>
+        }
+
+        <div [formGroup]="dynamicForm" class="dynamic-fields">
+          @for (campo of campos; track campo.nombre) {
+            @switch (campo.tipo) {
+              @case ('TEXT') {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ campo.etiqueta }}</mat-label>
+                  <input matInput [formControlName]="campo.nombre">
+                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                    <mat-error>Este campo es requerido</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @case ('NUMBER') {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ campo.etiqueta }}</mat-label>
+                  <input matInput type="number" [formControlName]="campo.nombre">
+                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                    <mat-error>Este campo es requerido</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @case ('TEXTAREA') {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ campo.etiqueta }}</mat-label>
+                  <textarea matInput rows="3" [formControlName]="campo.nombre"></textarea>
+                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                    <mat-error>Este campo es requerido</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @case ('DATE') {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ campo.etiqueta }}</mat-label>
+                  <input matInput [matDatepicker]="picker" [formControlName]="campo.nombre">
+                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                    <mat-error>Este campo es requerido</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @case ('SELECT') {
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ campo.etiqueta }}</mat-label>
+                  <mat-select [formControlName]="campo.nombre">
+                    @for (opt of campo.opciones; track opt) {
+                      <mat-option [value]="opt">{{ opt }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (campo.requerido && dynamicForm.get(campo.nombre)?.hasError('required')) {
+                    <mat-error>Este campo es requerido</mat-error>
+                  }
+                </mat-form-field>
+              }
+              @case ('FILE') {
+                <div class="file-field">
+                  <label>{{ campo.etiqueta }} {{ campo.requerido ? '*' : '' }}</label>
+                  <input type="text" [formControlName]="campo.nombre" placeholder="URL del archivo">
+                </div>
+              }
+            }
+          }
+        </div>
+      </section>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="saving">Cancelar</button>
+  <button mat-flat-button color="primary" type="submit" form="solicitudForm"
+          [disabled]="form.invalid || dynamicForm.invalid || saving">
+    @if (saving) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      Crear Solicitud
+    }
+  </button>
+</mat-dialog-actions>

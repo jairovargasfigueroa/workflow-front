@@ -1,0 +1,58 @@
+<div class="analytics-container">
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Analytics de Flujos</h1>
+      <p class="subtitle">Salud y rendimiento de los procesos activos</p>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (error()) {
+    <app-empty-state
+      icon="error_outline"
+      title="Error al cargar"
+      message="No se pudieron obtener los datos de analytics">
+    </app-empty-state>
+  } @else if (flujos().length === 0) {
+    <app-empty-state
+      icon="analytics"
+      title="Sin datos"
+      message="No hay flujos registrados para analizar">
+    </app-empty-state>
+  } @else {
+    <div class="table-container">
+      <table mat-table [dataSource]="flujos()">
+
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Flujo</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="flujo-nombre">{{ row.flujoNombre }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="salud">
+          <th mat-header-cell *matHeaderCellDef>Puntaje de salud</th>
+          <td mat-cell *matCellDef="let row">
+            <mat-chip [class]="getSaludClass(row.puntajeSalud)">
+              {{ row.puntajeSalud }}/100
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="solicitudes">
+          <th mat-header-cell *matHeaderCellDef>Solicitudes</th>
+          <td mat-cell *matCellDef="let row">{{ row.totalSolicitudes }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas;"
+            class="clickable-row"
+            (click)="verDetalle(row.flujoId)">
+        </tr>
+      </table>
+    </div>
+  }
+</div>

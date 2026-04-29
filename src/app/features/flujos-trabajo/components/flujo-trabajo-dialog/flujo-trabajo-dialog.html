@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>
+  <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+  {{ title }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre del Flujo</mat-label>
+      <input matInput formControlName="nombre" placeholder="Ej: Licencia de Conducir" maxlength="100" required>
+      @if (form.controls.nombre.hasError('required')) {
+        <mat-error>El nombre es requerido</mat-error>
+      }
+      @if (form.controls.nombre.hasError('maxlength')) {
+        <mat-error>Máximo 100 caracteres</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Descripción</mat-label>
+      <textarea
+        matInput
+        formControlName="descripcion"
+        placeholder="Describe el propósito de este flujo de trabajo"
+        rows="3"
+        maxlength="500">
+      </textarea>
+      <mat-hint>Opcional</mat-hint>
+    </mat-form-field>
+
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="saving">
+    Cancelar
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="form.invalid || saving">
+    @if (saving) {
+      <mat-spinner diameter="20"></mat-spinner>
+    }
+    {{ isEditMode ? 'Guardar Cambios' : 'Crear Flujo' }}
+  </button>
+</mat-dialog-actions>

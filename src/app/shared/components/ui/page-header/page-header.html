@@ -1,0 +1,15 @@
+<header class="page-header">
+  <div class="header-content">
+    <h1>{{ title() }}</h1>
+    @if (subtitle()) {
+      <p class="subtitle">{{ subtitle() }}</p>
+    }
+  </div>
+
+  @if (buttonLabel()) {
+    <button mat-fab extended color="primary" (click)="buttonClick.emit()">
+      <mat-icon>{{ buttonIcon() }}</mat-icon>
+      {{ buttonLabel() }}
+    </button>
+  }
+</header>

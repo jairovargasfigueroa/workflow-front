@@ -1,0 +1,20 @@
+.formularios-container {
+  padding: 24px;
+}
+
+.formularios-table {
+  .actions-column {
+    width: 120px;
+  }
+
+  // Título del formulario con ícono
+  .form-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .form-icon {
+    color: var(--color-primary);
+  }
+}

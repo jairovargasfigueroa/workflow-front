@@ -1,0 +1,20 @@
+.tramites-container {
+  padding: 24px;
+}
+
+.tramites-table {
+  .actions-column {
+    width: 80px;
+  }
+
+  // Nombre del trámite con ícono
+  .tramite-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tramite-icon {
+    color: var(--color-primary);
+  }
+}

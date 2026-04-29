@@ -1,0 +1,87 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="tramiteForm" (ngSubmit)="onSubmit()">
+    <section class="form-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre del trámite</mat-label>
+        <input matInput formControlName="nombre" placeholder="Ej: Licencia de construcción">
+        @if (form.controls.nombre.hasError('required')) {
+          <mat-error>El nombre es requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" rows="3"
+                  placeholder="Descripción del trámite (opcional)"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Formulario del solicitante</mat-label>
+        <mat-select formControlName="formularioSolicitanteId">
+          <mat-option value="">Sin formulario</mat-option>
+          @for (formulario of formularios; track formulario.id) {
+            <mat-option [value]="formulario.id">{{ formulario.titulo }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Flujo de trabajo</mat-label>
+        <mat-select formControlName="flujoTrabajoId">
+          <mat-option value="">Sin flujo de trabajo</mat-option>
+          @for (flujo of flujos; track flujo.id) {
+            <mat-option [value]="flujo.id">{{ flujo.nombre }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Proceso BPMN que se ejecutará cuando se cree una solicitud</mat-hint>
+      </mat-form-field>
+    </section>
+
+    <mat-divider></mat-divider>
+
+    <section class="form-section">
+      <div class="section-header">
+        <h3>Requisitos</h3>
+        <button mat-stroked-button color="primary" type="button" (click)="addRequisito()">
+          <mat-icon>add</mat-icon>
+          Agregar requisito
+        </button>
+      </div>
+
+      @if (requisitosArray.length === 0) {
+        <div class="empty-requisitos">
+          <mat-icon>checklist</mat-icon>
+          <p>No hay requisitos definidos. Agrega los documentos que el solicitante debe presentar.</p>
+        </div>
+      } @else {
+        <div class="requisitos-list" formArrayName="requisitos">
+          @for (req of requisitosArray.controls; track $index; let i = $index) {
+            <div class="requisito-item">
+              <mat-form-field appearance="outline" class="requisito-field">
+                <mat-label>Requisito {{ i + 1 }}</mat-label>
+                <input matInput [formControlName]="i" placeholder="Ej: Cédula de identidad">
+              </mat-form-field>
+              <button mat-icon-button color="warn" type="button" (click)="removeRequisito(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="saving">Cancelar</button>
+  <button mat-flat-button color="primary" type="submit" form="tramiteForm"
+          [disabled]="form.invalid || saving">
+    @if (saving) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ isEditMode ? 'Guardar' : 'Crear' }}
+    }
+  </button>
+</mat-dialog-actions>

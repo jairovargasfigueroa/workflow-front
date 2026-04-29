@@ -1,0 +1,138 @@
+<div class="editor-container">
+  @if (loading()) {
+    <div class="loading-overlay">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Cargando editor...</p>
+    </div>
+  }
+
+  <!-- Header -->
+  <header class="editor-header">
+    <div class="header-left">
+      <button mat-icon-button (click)="onVolver()" matTooltip="Volver a la lista">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="flujo-info">
+        <mat-icon class="flujo-icon">account_tree</mat-icon>
+        <div>
+          <h1>{{ flujo()?.nombre || 'Cargando...' }}</h1>
+          <div class="flujo-meta">
+            <span class="proceso-key">{{ flujo()?.procesoKey }}</span>
+            @if (flujo()?.estadoFlujo) {
+              <mat-chip [class]="getEstadoClass(flujo()!.estadoFlujo)" class="estado-chip">
+                {{ estadoLabels[flujo()!.estadoFlujo] }}
+              </mat-chip>
+            }
+            @if (flujo()?.versionActualNumero) {
+              <span class="version-badge">v{{ flujo()?.versionActualNumero }}</span>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      @if (savingBorrador()) {
+        <span class="saving-indicator">
+          <mat-spinner diameter="14"></mat-spinner>
+          Guardando...
+        </span>
+      }
+
+      <!-- Historial de versiones -->
+      @if (versiones().length > 0) {
+        <button
+          mat-icon-button
+          matTooltip="Historial de versiones"
+          [class.active]="showVersiones()"
+          (click)="toggleVersiones()">
+          <mat-icon>history</mat-icon>
+        </button>
+      }
+
+      <div class="zoom-controls">
+        <button mat-icon-button (click)="onZoomOut()" matTooltip="Alejar">
+          <mat-icon>zoom_out</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onZoomReset()" matTooltip="Ajustar al contenedor">
+          <mat-icon>fit_screen</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onZoomIn()" matTooltip="Acercar">
+          <mat-icon>zoom_in</mat-icon>
+        </button>
+      </div>
+
+      @if (hasBorrador()) {
+        <button
+          mat-stroked-button
+          color="warn"
+          (click)="onDescartar()"
+          [disabled]="descartando() || publishing() || loading()">
+          @if (descartando()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>undo</mat-icon>
+          }
+          Descartar
+        </button>
+      }
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="onPublicar()"
+        [disabled]="publishing() || loading() || !canPublicar()">
+        @if (publishing()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          <mat-icon>publish</mat-icon>
+        }
+        Publicar
+      </button>
+    </div>
+  </header>
+
+  <!-- Canvas + paneles flotantes -->
+  <div class="editor-content">
+    <div class="canvas-container" #canvas></div>
+
+    <!-- Panel de propiedades flotante -->
+    <div class="floating-panel properties-panel-wrapper" [class.visible]="hasElementSelected()">
+      <app-properties-panel [modeler]="modelerReady()" />
+    </div>
+
+    <!-- Panel de versiones flotante -->
+    <div class="floating-panel versiones-panel-wrapper" [class.visible]="showVersiones()">
+      <div class="versiones-header">
+        <div class="versiones-title">
+          <mat-icon>history</mat-icon>
+          <span>Versiones publicadas</span>
+        </div>
+        <button mat-icon-button (click)="toggleVersiones()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <ul class="versiones-list">
+        @for (version of versiones(); track version.id) {
+          <li class="version-item">
+            <div class="version-info">
+              <span class="version-numero">v{{ version.numero }}</span>
+              <span class="version-fecha">{{ version.fechaCreacion | date:'dd/MM/yy HH:mm' }}</span>
+            </div>
+            <button
+              mat-icon-button
+              matTooltip="Cargar como borrador"
+              (click)="onCopiarVersionComoBorrador(version)">
+              <mat-icon>restore</mat-icon>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="collaboration-indicator">
+    <mat-icon>wifi</mat-icon>
+    <span>Edición colaborativa activa</span>
+  </div>
+</div>

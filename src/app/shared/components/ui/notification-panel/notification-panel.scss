@@ -1,0 +1,74 @@
+.notification-panel {
+  width: 360px;
+  max-height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.panel-title {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.notification-list {
+  max-height: 320px;
+  overflow-y: auto;
+
+  mat-list-item {
+    cursor: pointer;
+
+    &.unread {
+      background: rgba(25, 118, 210, 0.05);
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+  }
+
+  .remove-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  mat-list-item:hover .remove-btn {
+    opacity: 1;
+  }
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #999;
+}
+
+.empty-notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+  color: #999;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.panel-footer {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+}

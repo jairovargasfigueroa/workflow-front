@@ -1,0 +1,196 @@
+<div class="solicitudes-container">
+  <app-page-header
+    title="Solicitudes"
+    subtitle="Gestiona las solicitudes del departamento"
+    buttonLabel="Nueva Solicitud"
+    buttonIcon="add"
+    (buttonClick)="openCreateDialog()">
+  </app-page-header>
+
+  <mat-tab-group animationDuration="200ms" (selectedIndexChange)="onTabChange($event)">
+
+    <!-- TAB 1: BANDEJA DEL DEPARTAMENTO -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Bandeja
+        @if (bandejaDepto().length > 0) {
+          <span class="tab-badge">{{ bandejaDepto().length }}</span>
+        }
+      </ng-template>
+
+      @if (loadingBandeja()) {
+        <div class="tab-loading">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (bandejaDepto().length === 0) {
+        <app-empty-state
+          icon="inbox"
+          title="Bandeja vacía"
+          message="No hay solicitudes pendientes de tomar en tu departamento.">
+        </app-empty-state>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="bandejaDepto()" class="solicitudes-table">
+
+            <ng-container matColumnDef="urgencia">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let sol">
+                @if (sol.fechaEntradaDepartamentoActual) {
+                  <span class="urgency-dot {{ getUrgencyColor(sol.fechaEntradaDepartamentoActual) }}"></span>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="tramite">
+              <th mat-header-cell *matHeaderCellDef>Trámite</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.tramiteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="solicitante">
+              <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Recibida</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.fechaEntradaDepartamentoActual ?? sol.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+              <td mat-cell *matCellDef="let sol" class="actions-column">
+                <button mat-icon-button color="primary" matTooltip="Tomar tarea" (click)="tomar(sol)">
+                  <mat-icon>assignment_ind</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(sol)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasBandeja"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasBandeja;"></tr>
+          </table>
+        </div>
+      }
+    </mat-tab>
+
+    <!-- TAB 2: MIS TAREAS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        Mis tareas
+        @if (misTareas().length > 0) {
+          <span class="tab-badge tab-badge--accent">{{ misTareas().length }}</span>
+        }
+      </ng-template>
+
+      @if (loadingMisTareas()) {
+        <div class="tab-loading">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (misTareas().length === 0) {
+        <app-empty-state
+          icon="assignment_turned_in"
+          title="Sin tareas asignadas"
+          message="No tienes tareas tomadas en este momento.">
+        </app-empty-state>
+      } @else {
+        <div class="table-container">
+          <table mat-table [dataSource]="misTareas()" class="solicitudes-table">
+
+            <ng-container matColumnDef="tramite">
+              <th mat-header-cell *matHeaderCellDef>Trámite</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.tramiteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="solicitante">
+              <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Fecha solicitud</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+              <td mat-cell *matCellDef="let sol" class="actions-column">
+                <button mat-icon-button color="primary" matTooltip="Responder" (click)="responderDesdeList(sol)">
+                  <mat-icon>rate_review</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" matTooltip="Liberar tarea" (click)="liberarDesdeList(sol)">
+                  <mat-icon>assignment_return</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(sol)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasMisTareas"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasMisTareas;"></tr>
+          </table>
+        </div>
+      }
+    </mat-tab>
+
+    <!-- TAB 3: HISTORIAL -->
+    <mat-tab label="Historial">
+
+      @if (loadingHistorial()) {
+        <div class="tab-loading">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else if (historialDepto().length === 0 && historialCargado) {
+        <app-empty-state
+          icon="history"
+          title="Sin historial"
+          message="No hay solicitudes procesadas por tu departamento.">
+        </app-empty-state>
+      } @else if (historialDepto().length > 0) {
+        <div class="table-container">
+          <table mat-table [dataSource]="historialDepto()" class="solicitudes-table">
+
+            <ng-container matColumnDef="tramite">
+              <th mat-header-cell *matHeaderCellDef>Trámite</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.tramiteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="solicitante">
+              <th mat-header-cell *matHeaderCellDef>Solicitante</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let sol">
+                <mat-chip [class]="getEstadoClass(sol.estado)">
+                  {{ getEstadoLabel(sol.estado) }}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+              <td mat-cell *matCellDef="let sol">{{ sol.fechaCreacion | date:'dd/MM/yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+              <td mat-cell *matCellDef="let sol" class="actions-column">
+                <button mat-icon-button matTooltip="Ver detalle" (click)="verDetalle(sol)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnasHistorial"></tr>
+            <tr mat-row *matRowDef="let row; columns: columnasHistorial;"></tr>
+          </table>
+        </div>
+      }
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

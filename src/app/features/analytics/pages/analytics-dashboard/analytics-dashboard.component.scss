@@ -1,0 +1,15 @@
+.analytics-container {
+  padding: 24px;
+}
+
+.flujo-nombre {
+  font-weight: 500;
+}
+
+.clickable-row {
+  cursor: pointer;
+
+  &:hover .flujo-nombre {
+    color: var(--color-primary);
+  }
+}

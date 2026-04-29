@@ -1,0 +1,73 @@
+<div class="formularios-container">
+  <app-page-header
+    title="Formularios"
+    subtitle="Diseña los formularios dinámicos para cada departamento"
+    buttonLabel="Nuevo Formulario"
+    buttonIcon="note_add"
+    (buttonClick)="openDialog()">
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (formularios().length === 0) {
+    <app-empty-state
+      icon="dynamic_form"
+      title="No hay formularios"
+      message="Aún no se han creado formularios. Crea el primero para comenzar."
+      actionText="Crear Formulario"
+      (action)="openDialog()">
+    </app-empty-state>
+  } @else {
+    <div class="table-container">
+      <table mat-table [dataSource]="formularios()" class="formularios-table">
+<ng-container matColumnDef="titulo">
+          <th mat-header-cell *matHeaderCellDef>Título</th>
+          <td mat-cell *matCellDef="let form">
+            <div class="form-title">
+              <mat-icon class="form-icon">description</mat-icon>
+              <span>{{ form.titulo }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+<ng-container matColumnDef="descripcion">
+          <th mat-header-cell *matHeaderCellDef>Descripción</th>
+          <td mat-cell *matCellDef="let form">{{ form.descripcion || '-' }}</td>
+        </ng-container>
+
+<ng-container matColumnDef="campos">
+          <th mat-header-cell *matHeaderCellDef>Campos</th>
+          <td mat-cell *matCellDef="let form">
+            <mat-chip>{{ form.campos.length }} campos</mat-chip>
+          </td>
+        </ng-container>
+
+<ng-container matColumnDef="activo">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let form">
+            <mat-chip [class]="form.activo ? 'status-activo' : 'status-inactivo'">
+              {{ form.activo ? 'Activo' : 'Inactivo' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+<ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+          <td mat-cell *matCellDef="let form" class="actions-column">
+            <button mat-icon-button color="primary" matTooltip="Editar" (click)="openDialog(form)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDelete(form)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+  }
+</div>

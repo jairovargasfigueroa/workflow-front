@@ -1,0 +1,139 @@
+<div class="flujos-container">
+  <app-page-header
+    title="Flujos de Trabajo"
+    subtitle="Gestiona y edita los diagramas BPMN de tus procesos"
+    buttonLabel="Nuevo Flujo"
+    buttonIcon="add"
+    (buttonClick)="openCreateDialog()">
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (flujos().length === 0) {
+    <app-empty-state
+      icon="account_tree"
+      title="No hay flujos de trabajo"
+      message="Crea tu primer flujo de trabajo para comenzar a modelar procesos."
+      actionText="Crear Flujo"
+      (action)="openCreateDialog()">
+    </app-empty-state>
+  } @else {
+    <div class="table-container">
+      <table mat-table [dataSource]="flujos()" class="flujos-table">
+
+        <!-- Nombre Column -->
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let flujo">
+            <div class="flujo-info">
+              <mat-icon class="flujo-icon">account_tree</mat-icon>
+              <div>
+                <div class="flujo-nombre">{{ flujo.nombre }}</div>
+                <div class="flujo-descripcion">{{ flujo.descripcion || 'Sin descripción' }}</div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Versión Column -->
+        <ng-container matColumnDef="version">
+          <th mat-header-cell *matHeaderCellDef>Versión</th>
+          <td mat-cell *matCellDef="let flujo">
+            @if (flujo.versionActualNumero) {
+              <span class="version-badge">v{{ flujo.versionActualNumero }}</span>
+            } @else {
+              <span class="sin-version">—</span>
+            }
+          </td>
+        </ng-container>
+
+        <!-- Estado Column -->
+        <ng-container matColumnDef="estadoFlujo">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let flujo">
+            <div class="estado-cell">
+              <mat-chip [class]="getEstadoChipClass(flujo)">
+                {{ getEstadoChipLabel(flujo) }}
+              </mat-chip>
+              @if (tieneBorrador(flujo) && flujo.estadoFlujo === 'ACTIVO') {
+                <mat-chip class="flujo-sin-publicar chip-sm">borrador</mat-chip>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Acciones Column -->
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
+          <td mat-cell *matCellDef="let flujo" class="actions-column">
+
+            <!-- SIN_PUBLICAR sin XML: "Sin diseñar" -->
+            @if (flujo.estadoFlujo === 'SIN_PUBLICAR' && !tieneBorrador(flujo)) {
+              <button mat-stroked-button (click)="abrirEditor(flujo)">Diseñar</button>
+              <button mat-icon-button matTooltip="Editar información" (click)="openEditDialog(flujo)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDelete(flujo)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+
+            <!-- SIN_PUBLICAR con XML: "Solo borrador" -->
+            @if (flujo.estadoFlujo === 'SIN_PUBLICAR' && tieneBorrador(flujo)) {
+              <button mat-stroked-button color="primary" (click)="abrirEditor(flujo)">Continuar</button>
+              <button mat-stroked-button (click)="publicarDesdeList(flujo)">Publicar</button>
+              <button mat-icon-button color="warn" matTooltip="Descartar borrador" (click)="descartarDesdeList(flujo)">
+                <mat-icon>undo</mat-icon>
+              </button>
+            }
+
+            <!-- ACTIVO sin borrador: "Publicado" -->
+            @if (flujo.estadoFlujo === 'ACTIVO' && !tieneBorrador(flujo)) {
+              <button mat-icon-button matTooltip="Ver diagrama" (click)="verFlujo(flujo)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-stroked-button (click)="abrirEditor(flujo)">Crear borrador</button>
+              <button mat-icon-button matTooltip="Desactivar" (click)="cambiarEstado(flujo, 'DESACTIVADO')">
+                <mat-icon>pause_circle</mat-icon>
+              </button>
+            }
+
+            <!-- ACTIVO con borrador: "Publicado + borrador" -->
+            @if (flujo.estadoFlujo === 'ACTIVO' && tieneBorrador(flujo)) {
+              <button mat-icon-button matTooltip="Ver diagrama publicado" (click)="verFlujo(flujo)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-stroked-button color="primary" (click)="abrirEditor(flujo)">Continuar</button>
+              <button mat-stroked-button (click)="publicarDesdeList(flujo)">Publicar</button>
+              <button mat-icon-button color="warn" matTooltip="Descartar borrador" (click)="descartarDesdeList(flujo)">
+                <mat-icon>undo</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Desactivar" (click)="cambiarEstado(flujo, 'DESACTIVADO')">
+                <mat-icon>pause_circle</mat-icon>
+              </button>
+            }
+
+            <!-- DESACTIVADO -->
+            @if (flujo.estadoFlujo === 'DESACTIVADO') {
+              <button mat-stroked-button color="primary" (click)="cambiarEstado(flujo, 'ACTIVO')">Activar</button>
+              <button mat-stroked-button (click)="cambiarEstado(flujo, 'ARCHIVADO')">Archivar</button>
+            }
+
+            <!-- ARCHIVADO -->
+            @if (flujo.estadoFlujo === 'ARCHIVADO') {
+              <button mat-icon-button matTooltip="Ver diagrama" (click)="verFlujo(flujo)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            }
+
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+  }
+</div>

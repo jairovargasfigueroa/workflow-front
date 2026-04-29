@@ -1,0 +1,104 @@
+<h2 mat-dialog-title>{{ title }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" id="formularioForm" (ngSubmit)="onSubmit()">
+    <!-- Info básica -->
+    <section class="form-section">
+      <h3>Información del formulario</h3>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Título</mat-label>
+        <input matInput formControlName="titulo" placeholder="Nombre del formulario">
+        @if (form.controls.titulo.hasError('required')) {
+          <mat-error>El título es requerido</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput formControlName="descripcion" rows="2"
+                  placeholder="Descripción del formulario (opcional)"></textarea>
+      </mat-form-field>
+    </section>
+
+    <mat-divider></mat-divider>
+
+    <!-- Builder de campos -->
+    <section class="form-section">
+      <div class="section-header">
+        <h3>Campos del formulario</h3>
+        <button mat-stroked-button color="primary" type="button" (click)="addCampo()">
+          <mat-icon>add</mat-icon>
+          Agregar campo
+        </button>
+      </div>
+
+      @if (camposArray.length === 0) {
+        <div class="empty-campos">
+          <mat-icon>dynamic_form</mat-icon>
+          <p>No hay campos definidos. Agrega campos para construir el formulario.</p>
+        </div>
+      } @else {
+        <div cdkDropList (cdkDropListDropped)="dropCampo($event)" class="campos-list" formArrayName="campos">
+          @for (campo of camposArray.controls; track $index; let i = $index) {
+            <div cdkDrag class="campo-item" [formGroupName]="i">
+              <div class="drag-handle" cdkDragHandle>
+                <mat-icon>drag_indicator</mat-icon>
+              </div>
+
+              <div class="campo-content">
+                <div class="campo-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Nombre (ID)</mat-label>
+                    <input matInput formControlName="nombre" placeholder="nombre_campo">
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Etiqueta</mat-label>
+                    <input matInput formControlName="etiqueta" placeholder="Nombre visible">
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Tipo</mat-label>
+                    <mat-select formControlName="tipo">
+                      @for (tipo of tiposCampo; track tipo.value) {
+                        <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                <div class="campo-row">
+                  <mat-checkbox formControlName="requerido">Requerido</mat-checkbox>
+
+                  @if (isTipoSelect(i)) {
+                    <mat-form-field appearance="outline" class="opciones-field">
+                      <mat-label>Opciones (separadas por coma)</mat-label>
+                      <input matInput formControlName="opciones" placeholder="Opción 1, Opción 2, Opción 3">
+                    </mat-form-field>
+                  }
+                </div>
+              </div>
+
+              <button mat-icon-button color="warn" type="button" (click)="removeCampo(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="saving">Cancelar</button>
+  <button mat-flat-button color="primary" type="submit" form="formularioForm"
+          [disabled]="form.invalid || camposArray.length === 0 || saving">
+    @if (saving) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ isEditMode ? 'Guardar' : 'Crear' }}
+    }
+  </button>
+</mat-dialog-actions>
