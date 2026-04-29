@@ -43,7 +43,7 @@ export class FlujosTrabajoListComponent implements OnInit {
 
   flujos = signal<FlujoTrabajo[]>([]);
   loading = signal(true);
-  displayedColumns = ['nombre', 'procesoKey', 'estadoFlujo', 'acciones'];
+  displayedColumns = ['nombre', 'version', 'estadoFlujo', 'acciones'];
 
   ngOnInit(): void {
     this.loadFlujos();

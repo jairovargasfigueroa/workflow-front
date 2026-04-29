@@ -128,31 +128,29 @@
         </section>
       }
 
-      @if (tarea.acciones.length > 0) {
-        <mat-divider></mat-divider>
+      <mat-divider></mat-divider>
 
-        <section class="form-section">
-          <p class="accion-label">Selecciona la acción a tomar:</p>
-          <div class="accion-row">
-            <mat-button-toggle-group
-              [value]="accionSeleccionada"
-              (change)="accionSeleccionada = $event.value">
-              @for (accion of tarea.acciones; track accion.valor) {
-                <mat-button-toggle [value]="accion.valor">{{ accion.etiqueta }}</mat-button-toggle>
-              }
-            </mat-button-toggle-group>
-            <button mat-icon-button type="button"
-                    [color]="escuchando() === '__accion__' ? 'warn' : ''"
-                    matTooltip="Dictar acción"
-                    (click)="startListening('__accion__')">
-              <mat-icon>{{ escuchando() === '__accion__' ? 'mic_off' : 'mic' }}</mat-icon>
-            </button>
-          </div>
-          @if (accionSeleccionada === null) {
-            <p class="accion-hint">Debes seleccionar una acción para continuar</p>
-          }
-        </section>
-      }
+      <section class="form-section">
+        <p class="accion-label">Selecciona la acción a tomar:</p>
+        <div class="accion-row">
+          <mat-button-toggle-group
+            [value]="accionSeleccionada"
+            (change)="accionSeleccionada = $event.value">
+            @for (accion of tarea.acciones; track accion.valor) {
+              <mat-button-toggle [value]="accion.valor">{{ accion.etiqueta ?? accion.valor }}</mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+          <button mat-icon-button type="button"
+                  [color]="escuchando() === '__accion__' ? 'warn' : ''"
+                  matTooltip="Dictar acción"
+                  (click)="startListening('__accion__')">
+            <mat-icon>{{ escuchando() === '__accion__' ? 'mic_off' : 'mic' }}</mat-icon>
+          </button>
+        </div>
+        @if (accionSeleccionada === null) {
+          <p class="accion-hint">Debes seleccionar una acción para continuar</p>
+        }
+      </section>
     </form>
   }
 </mat-dialog-content>

@@ -24,7 +24,6 @@ export interface FlujoTrabajo {
 export interface FlujoTrabajoRequest {
   nombre: string;
   descripcion?: string;
-  procesoKey: string;
   creadoPor?: string;
 }
 

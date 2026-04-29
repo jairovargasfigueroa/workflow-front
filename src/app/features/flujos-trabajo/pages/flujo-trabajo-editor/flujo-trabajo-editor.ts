@@ -20,6 +20,7 @@ import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json'
 
 import customPaletteModule from './custom-modules/custom-palette';
 import customContextPadModule from './custom-modules/custom-context-pad';
+import customRendererModule from './custom-modules/custom-renderer';
 import { PropertiesPanelComponent } from './properties-panel/properties-panel';
 import { FlujosTrabajoService } from '../../services/flujos-trabajo.service';
 import {
@@ -108,7 +109,8 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
       },
       additionalModules: [
         customPaletteModule,
-        customContextPadModule
+        customContextPadModule,
+        customRendererModule
       ]
     });
 

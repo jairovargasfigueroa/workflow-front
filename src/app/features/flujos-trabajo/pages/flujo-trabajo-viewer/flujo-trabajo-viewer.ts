@@ -11,6 +11,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 
 import BpmnNavigatedViewer from 'bpmn-js/lib/NavigatedViewer';
+import customRendererModule from '../flujo-trabajo-editor/custom-modules/custom-renderer';
 
 import { FlujosTrabajoService } from '../../services/flujos-trabajo.service';
 import { FlujoTrabajo, FlujoVersion } from '../../models/flujo-trabajo.model';
@@ -66,7 +67,8 @@ export class FlujoTrabajoViewerComponent implements OnInit, OnDestroy {
 
   private initViewer(): void {
     this.viewer = new BpmnNavigatedViewer({
-      container: this.canvasRef.nativeElement
+      container: this.canvasRef.nativeElement,
+      additionalModules: [customRendererModule]
     });
   }
 

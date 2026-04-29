@@ -16,7 +16,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { firstValueFrom } from 'rxjs';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
-import { SolicitudTramite, TareaActiva, AccionDisponible, RespuestaCampo } from '../../models/solicitud.model';
+import { SolicitudTramite, TareaActiva, RespuestaCampo } from '../../models/solicitud.model';
 import { CampoFormulario } from '../../../formularios/models/formulario.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -116,7 +116,7 @@ export class RespuestaDialogComponent implements OnInit {
       }
       if (target === '__accion__') {
         const match = this.tarea?.acciones.find(a =>
-          transcript.toLowerCase().includes(a.etiqueta.toLowerCase()) ||
+          (a.etiqueta != null && transcript.toLowerCase().includes(a.etiqueta.toLowerCase())) ||
           transcript.toLowerCase().includes(a.valor.toLowerCase())
         );
         if (match) this.accionSeleccionada = match.valor;

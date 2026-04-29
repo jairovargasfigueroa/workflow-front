@@ -6,6 +6,18 @@
   width: 140px;
 }
 
+.urgency-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+
+  &.urgency-verde    { background: #4caf50; }
+  &.urgency-amarillo { background: #ff9800; }
+  &.urgency-rojo     { background: #f44336; }
+  &.urgency-gris     { background: #9e9e9e; }
+}
+
 .tab-loading {
   display: flex;
   justify-content: center;

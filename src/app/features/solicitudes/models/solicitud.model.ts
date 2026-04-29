@@ -11,6 +11,7 @@ export interface SolicitudTramiteResumen {
   departamentosActuales: string[];
   fechaCreacion: string;
   fechaFinalizacion: string | null;
+  fechaEntradaDepartamentoActual?: string | null;
 }
 
 export interface RespuestaCampo {
@@ -65,7 +66,7 @@ export interface SolicitudTramiteRequest {
 }
 
 export interface AccionDisponible {
-  etiqueta: string;
+  etiqueta: string | null;
   valor: string;
 }
 

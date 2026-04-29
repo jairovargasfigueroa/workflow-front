@@ -37,13 +37,14 @@
           </td>
         </ng-container>
 
-        <!-- Proceso Key + Versión Column -->
-        <ng-container matColumnDef="procesoKey">
-          <th mat-header-cell *matHeaderCellDef>Proceso / Versión</th>
+        <!-- Versión Column -->
+        <ng-container matColumnDef="version">
+          <th mat-header-cell *matHeaderCellDef>Versión</th>
           <td mat-cell *matCellDef="let flujo">
-            <code class="proceso-key">{{ flujo.procesoKey }}</code>
             @if (flujo.versionActualNumero) {
               <span class="version-badge">v{{ flujo.versionActualNumero }}</span>
+            } @else {
+              <span class="sin-version">—</span>
             }
           </td>
         </ng-container>

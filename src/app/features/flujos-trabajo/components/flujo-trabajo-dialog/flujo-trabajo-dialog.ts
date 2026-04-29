@@ -43,11 +43,7 @@ export class FlujoTrabajoDialogComponent {
 
   form = this.fb.nonNullable.group({
     nombre: [this.data.flujo?.nombre || '', [Validators.required, Validators.maxLength(100)]],
-    descripcion: [this.data.flujo?.descripcion || '', Validators.maxLength(500)],
-    procesoKey: [
-      { value: this.data.flujo?.procesoKey || '', disabled: this.isEditMode },
-      [Validators.required, Validators.pattern(/^[a-z0-9-_]+$/)]
-    ]
+    descripcion: [this.data.flujo?.descripcion || '', Validators.maxLength(500)]
   });
 
   get title(): string {
@@ -79,11 +75,4 @@ export class FlujoTrabajoDialogComponent {
     });
   }
 
-  formatKey(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const value = input.value;
-    // Convertir a minúsculas y reemplazar espacios por guiones
-    const formatted = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, '');
-    this.form.patchValue({ procesoKey: formatted });
-  }
 }

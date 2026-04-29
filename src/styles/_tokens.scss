@@ -68,6 +68,10 @@
   --chip-solicitante-bg: #f3e5f5;
   --chip-solicitante-text: #7b1fa2;
 
+  // --- Chips: Impacto bajo (analytics cuellos) ---
+  --chip-impacto-bajo-bg: var(--chip-process-bg);
+  --chip-impacto-bajo-text: var(--chip-process-text);
+
   // --- Chips: Prioridad (analytics) ---
   --chip-prioridad-alta-bg: var(--chip-rejected-bg);
   --chip-prioridad-alta-text: var(--chip-rejected-text);

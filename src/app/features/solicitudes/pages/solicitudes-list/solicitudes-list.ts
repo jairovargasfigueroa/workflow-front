@@ -56,7 +56,7 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
   loadingMisTareas = signal(true);
   loadingHistorial = signal(false);
 
-  columnasBandeja = ['tramite', 'solicitante', 'fecha', 'acciones'];
+  columnasBandeja = ['urgencia', 'tramite', 'solicitante', 'fecha', 'acciones'];
   columnasMisTareas = ['tramite', 'solicitante', 'fecha', 'acciones'];
   columnasHistorial = ['tramite', 'solicitante', 'estado', 'fecha', 'acciones'];
 
@@ -202,6 +202,14 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
 
   getEstadoLabel(estado: EstadoTramite): string {
     return ESTADO_TRAMITE_LABELS[estado];
+  }
+
+  getUrgencyColor(fechaEntrada: string | null | undefined): string {
+    if (!fechaEntrada) return 'urgency-gris';
+    const horas = (Date.now() - new Date(fechaEntrada).getTime()) / (1000 * 60 * 60);
+    if (horas < 24) return 'urgency-verde';
+    if (horas < 48) return 'urgency-amarillo';
+    return 'urgency-rojo';
   }
 
   getEstadoClass(estado: EstadoTramite): string {
