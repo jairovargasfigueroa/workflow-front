@@ -10,86 +10,76 @@
   }
 }
 
-// // Estilos base en src/styles/_dialogs.scss
+.loading-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 200px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
 
-// .loading-dialog {
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   justify-content: center;
-//   gap: 16px;
-//   min-height: 200px;
-//   color: var(--color-text-secondary);
-//   font-size: 14px;
-// }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 180px;
+  color: var(--color-text-secondary);
 
-// .accion-label {
-//   font-size: 14px;
-//   font-weight: 500;
-//   color: var(--color-text-primary);
-//   margin: 0 0 12px;
-// }
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: var(--color-text-hint);
+  }
+}
 
-// .transiciones-buttons {
-//   display: flex;
-//   flex-wrap: wrap;
-//   gap: 10px;
+.dept-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  padding: 12px;
+  background: var(--surface-page);
+  border-radius: var(--radius-card);
 
-//   button.selected {
-//     background: var(--color-primary);
-//     color: white;
-//     border-color: var(--color-primary);
-//   }
-// }
+  mat-icon {
+    color: var(--color-primary);
+  }
 
-// .accion-hint {
-//   font-size: 12px;
-//   color: var(--color-error);
-//   margin: 8px 0 0;
-// }
+  .dept-carril {
+    color: var(--color-text-hint);
+    font-size: 13px;
+  }
+}
 
-// // Banner informativo del departamento actual
-// .dept-info {
-//   display: flex;
-//   align-items: center;
-//   gap: 8px;
-//   margin: 0 0 16px;
-//   font-size: 14px;
-//   color: var(--color-text-secondary);
-//   padding: 12px;
-//   background: var(--surface-page);
-//   border-radius: var(--radius-card);
+app-archivos-panel {
+  display: block;
+  margin: 16px 0;
+}
 
-//   mat-icon {
-//     color: var(--color-primary);
-//   }
-// }
+.dynamic-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-// .dynamic-fields {
-//   display: flex;
-//   flex-direction: column;
-//   gap: 8px;
-//   padding: 16px;
-//   background: var(--surface-subtle);
-//   border-radius: var(--radius-card);
-//   border: 1px solid var(--color-border);
-// }
+.accion-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0 0 12px;
+}
 
-// .file-field {
-//   display: flex;
-//   flex-direction: column;
-//   gap: 8px;
-
-//   label {
-//     font-size: 14px;
-//     color: var(--color-text-secondary);
-//   }
-
-//   input[type='text'] {
-//     padding: 8px;
-//     border: 1px dashed #bdbdbd;
-//     border-radius: 4px;
-//     background: white;
-//     font-size: 14px;
-//   }
-// }
+.accion-hint {
+  font-size: 12px;
+  color: var(--color-error);
+  margin: 8px 0 0;
+}

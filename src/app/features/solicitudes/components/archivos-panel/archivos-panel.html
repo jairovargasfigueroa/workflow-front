@@ -1,0 +1,104 @@
+<div class="archivos-panel">
+  <div class="archivos-panel-header">
+    <mat-icon>folder_open</mat-icon>
+    <h3>Archivos del expediente</h3>
+  </div>
+
+  @if (loading) {
+    <div class="archivos-loading">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>Cargando archivos...</span>
+    </div>
+  } @else if (archivos.length === 0) {
+    <div class="archivos-empty">
+      <mat-icon>description</mat-icon>
+      <span>Aún no hay archivos en este expediente.</span>
+    </div>
+  } @else {
+    <ul class="archivos-list">
+      @for (archivo of archivos; track archivo.id) {
+        <li class="archivo-item" [class.archivo-inmutable]="archivo.inmutable">
+          <mat-icon class="archivo-icon">insert_drive_file</mat-icon>
+          <div class="archivo-info">
+            <div class="archivo-nombre">
+              {{ archivo.nombre }}
+              @if (archivo.version > 1) {
+                <span class="archivo-version">v{{ archivo.version }}</span>
+              }
+              @if (archivo.inmutable) {
+                <mat-icon class="lock-icon"
+                          matTooltip="Archivo inmutable, no se puede modificar">
+                  lock
+                </mat-icon>
+              }
+            </div>
+            <div class="archivo-meta">
+              {{ archivo.subidoPorNombre }} ·
+              {{ archivo.fechaSubida | date:'dd/MM/yyyy' }} ·
+              {{ archivo.formato | uppercase }} ·
+              {{ formatTamano(archivo.tamanoBytes) }}
+            </div>
+          </div>
+          <div class="archivo-actions">
+            <button mat-icon-button type="button"
+                    matTooltip="Descargar"
+                    (click)="descargar(archivo)">
+              <mat-icon>download</mat-icon>
+            </button>
+            <button mat-icon-button type="button"
+                    matTooltip="Historial de versiones"
+                    (click)="abrirHistorial(archivo)">
+              <mat-icon>history</mat-icon>
+            </button>
+            @if (puedeVerAuditoria()) {
+              <button mat-icon-button type="button"
+                      matTooltip="Auditoría"
+                      (click)="abrirAuditoria(archivo)">
+                <mat-icon>receipt_long</mat-icon>
+              </button>
+            }
+            @if (puedeEditarOnline(archivo)) {
+              <button mat-icon-button type="button"
+                      matTooltip="Editar en línea"
+                      (click)="abrirEditorOnline(archivo)">
+                <mat-icon>edit</mat-icon>
+              </button>
+            }
+            @if (puedeGestionar()) {
+              <button mat-icon-button type="button"
+                      [disabled]="archivo.inmutable"
+                      [matTooltip]="archivo.inmutable ? 'Archivo inmutable' : 'Subir nueva versión'"
+                      (click)="nuevaVersionInput.click()">
+                <mat-icon>cloud_upload</mat-icon>
+              </button>
+              <input #nuevaVersionInput type="file" hidden
+                     (change)="onNuevaVersion(archivo, $event)">
+              <button mat-icon-button type="button" color="warn"
+                      [disabled]="archivo.inmutable"
+                      [matTooltip]="archivo.inmutable ? 'Archivo inmutable' : 'Eliminar'"
+                      (click)="eliminar(archivo)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (showSubirExtra && puedeGestionar()) {
+    <div class="archivos-panel-footer">
+      <button mat-stroked-button type="button"
+              [disabled]="uploadingExtra"
+              (click)="extraInput.click()">
+        @if (uploadingExtra) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          <mat-icon>add</mat-icon>
+        }
+        <span>{{ uploadingExtra ? 'Subiendo...' : 'Subir archivo extra' }}</span>
+      </button>
+      <input #extraInput type="file" hidden (change)="onSubirExtra($event)">
+    </div>
+  }
+</div>

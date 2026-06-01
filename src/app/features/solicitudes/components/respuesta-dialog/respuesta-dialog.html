@@ -17,7 +17,12 @@
         <p class="dept-info">
           <mat-icon>business</mat-icon>
           Departamento: <strong>{{ tarea.departamentoNombre }}</strong>
+          @if (tarea.carrilNombre) {
+            <span class="dept-carril">· Carril: {{ tarea.carrilNombre }}</span>
+          }
         </p>
+
+        <app-archivos-panel [solicitudId]="solicitud.id"></app-archivos-panel>
 
         <div class="field-row">
           <mat-form-field appearance="outline" class="full-width">
@@ -117,10 +122,14 @@
                   </div>
                 }
                 @case ('FILE') {
-                  <div class="file-field">
-                    <label>{{ campo.etiqueta }} {{ campo.requerido ? '*' : '' }}</label>
-                    <input type="text" [formControlName]="campo.nombre" placeholder="URL del archivo">
-                  </div>
+                  <app-archivo-field
+                    [formControlName]="campo.nombre"
+                    [solicitudId]="solicitud.id"
+                    [campoFormulario]="campo.nombre"
+                    [departamentoOrigenId]="departamentoId"
+                    [label]="campo.etiqueta"
+                    [requerido]="campo.requerido">
+                  </app-archivo-field>
                 }
               }
             }

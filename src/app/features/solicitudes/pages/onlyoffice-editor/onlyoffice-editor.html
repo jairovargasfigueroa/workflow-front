@@ -1,0 +1,29 @@
+<div class="editor-container">
+  @if (estado() === 'cargando') {
+    <div class="status">
+      <mat-spinner diameter="48"></mat-spinner>
+      <h3>Cargando editor...</h3>
+      @if (nombreArchivo()) {
+        <p class="archivo">{{ nombreArchivo() }}</p>
+      }
+    </div>
+  }
+
+  @if (estado() === 'error') {
+    <div class="status status-error">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <h3>No se pudo abrir el editor</h3>
+      <p>{{ mensajeError() }}</p>
+      <div class="actions">
+        <button mat-stroked-button (click)="reintentar()">
+          <mat-icon>refresh</mat-icon>
+          Reintentar
+        </button>
+        <button mat-button (click)="cerrarPestana()">Cerrar pestaña</button>
+      </div>
+    </div>
+  }
+
+  <div #placeholder class="editor-placeholder"
+       [class.editor-placeholder--hidden]="estado() !== 'listo'"></div>
+</div>

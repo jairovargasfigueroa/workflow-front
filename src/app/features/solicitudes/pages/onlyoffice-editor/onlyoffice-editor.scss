@@ -1,0 +1,78 @@
+:host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.editor-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--surface-card);
+}
+
+.status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  .archivo {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    max-width: 480px;
+  }
+}
+
+.status-error {
+  .error-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--color-error);
+  }
+
+  h3 {
+    color: var(--color-error);
+  }
+
+  .actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    button {
+      gap: 6px;
+    }
+  }
+}
+
+.editor-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.editor-placeholder--hidden {
+  visibility: hidden;
+}

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,10 +18,14 @@ import { firstValueFrom } from 'rxjs';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
 import { SolicitudTramite, TareaActiva, RespuestaCampo } from '../../models/solicitud.model';
+import { ArchivoResponse } from '../../models/archivo.model';
 import { CampoFormulario } from '../../../formularios/models/formulario.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SpeechService } from '../../../../core/services/speech.service';
+import { ArchivosPanelComponent } from '../archivos-panel/archivos-panel';
+import { ArchivoFieldComponent } from '../archivo-field/archivo-field';
+import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 
 export interface RespuestaDialogData {
   solicitud: SolicitudTramite;
@@ -42,7 +47,9 @@ export interface RespuestaDialogData {
     MatProgressSpinnerModule,
     MatDividerModule,
     MatDatepickerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ArchivosPanelComponent,
+    ArchivoFieldComponent
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './respuesta-dialog.html',
@@ -67,6 +74,8 @@ export class RespuestaDialogComponent implements OnInit {
   campos: CampoFormulario[] = [];
   accionSeleccionada: string | null = null;
 
+  departamentoId = this.authService.currentUser()?.departamentoId ?? null;
+
   form = this.fb.nonNullable.group({
     comentario: ['']
   });
@@ -74,13 +83,12 @@ export class RespuestaDialogComponent implements OnInit {
   dynamicForm: FormGroup = this.fb.group({});
 
   ngOnInit(): void {
-    const departamentoId = this.authService.currentUser()?.departamentoId;
-    if (!departamentoId) {
+    if (!this.departamentoId) {
       this.loadingData = false;
       return;
     }
 
-    this.solicitudesService.getTareasActivas(this.solicitud.id, departamentoId).subscribe({
+    this.solicitudesService.getTareasActivas(this.solicitud.id, this.departamentoId).subscribe({
       next: tareas => {
         this.tarea = tareas[0] ?? null;
         if (this.tarea) {
@@ -96,7 +104,9 @@ export class RespuestaDialogComponent implements OnInit {
   private buildDynamicForm(campos: CampoFormulario[]): void {
     const group: Record<string, any> = {};
     for (const campo of campos) {
-      group[campo.nombre] = campo.requerido ? ['', Validators.required] : [''];
+      const validators = campo.requerido ? [Validators.required] : [];
+      // Para FILE el valor del control es ArchivoResponse | null; required funciona igual.
+      group[campo.nombre] = [campo.tipo === 'FILE' ? null : '', validators];
     }
     this.dynamicForm = this.fb.group(group);
   }
@@ -145,8 +155,13 @@ export class RespuestaDialogComponent implements OnInit {
     const formValue = this.form.getRawValue();
     const dynamicValues = this.dynamicForm.getRawValue();
 
+    // Excluimos campos FILE de las respuestas (el archivo se vincula vía campoFormularioOrigen)
     const respuestas: RespuestaCampo[] = Object.entries(dynamicValues)
-      .filter(([, valor]) => valor != null && valor !== '')
+      .filter(([nombreCampo, valor]) => {
+        const campo = this.campos.find(c => c.nombre === nombreCampo);
+        if (campo?.tipo === 'FILE') return false;
+        return valor != null && valor !== '';
+      })
       .map(([nombreCampo, valor]) => ({ nombreCampo, valor: String(valor) }));
 
     const accion = this.tarea.acciones.length > 0
@@ -167,7 +182,12 @@ export class RespuestaDialogComponent implements OnInit {
         type: 'success'
       });
       this.dialogRef.close(true);
-    } catch {
+    } catch (err) {
+      this.notificationService.add({
+        title: 'Error al enviar respuesta',
+        message: mapHttpErrorToUserMessage(err as HttpErrorResponse),
+        type: 'error'
+      });
       this.saving = false;
     }
   }

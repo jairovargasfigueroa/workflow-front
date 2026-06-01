@@ -65,6 +65,27 @@ class CustomContextPadProvider {
       }
     };
 
+    // ===== Lane y Participant: solo agregar carriles + eliminar (NO conectar) =====
+    if (type === 'bpmn:Lane' || type === 'bpmn:Participant') {
+      actions['lane-insert-above'] = {
+        group: 'lane-insert',
+        className: 'bpmn-icon-lane-insert-above',
+        title: translate('Agregar carril arriba'),
+        action: {
+          click: (_event: any, el: any) => modeling.addLane(el, 'top')
+        }
+      };
+      actions['lane-insert-below'] = {
+        group: 'lane-insert',
+        className: 'bpmn-icon-lane-insert-below',
+        title: translate('Agregar carril abajo'),
+        action: {
+          click: (_event: any, el: any) => modeling.addLane(el, 'bottom')
+        }
+      };
+      return actions;
+    }
+
     // End Events y Sequence Flows solo tienen delete
     if (type === 'bpmn:EndEvent' || type === 'bpmn:SequenceFlow') {
       return actions;

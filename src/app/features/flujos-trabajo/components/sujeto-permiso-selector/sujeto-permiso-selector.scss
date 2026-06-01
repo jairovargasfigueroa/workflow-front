@@ -1,0 +1,58 @@
+.selector-content {
+  min-width: 400px;
+  max-width: 520px;
+}
+
+.tipos-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tipo-option {
+  padding: 8px 10px;
+  border-radius: 6px;
+
+  &:hover {
+    background: var(--color-hover-row);
+  }
+}
+
+.tipo-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.tipo-desc {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.sujeto-id-input {
+  margin-top: 8px;
+  margin-left: 32px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: var(--color-error-light);
+  color: var(--color-error);
+  border-radius: 6px;
+  font-size: 13px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}

@@ -1,0 +1,60 @@
+<div class="file-field">
+  @if (label) {
+    <label class="file-label">
+      {{ label }}
+      @if (requerido) { <span class="required-mark">*</span> }
+    </label>
+  }
+
+  <input #fileInput type="file" hidden [accept]="accept" [disabled]="disabled"
+         (change)="onFileSelected($event)">
+
+  @switch (status) {
+    @case ('idle') {
+      <button mat-stroked-button type="button" class="file-trigger"
+              [disabled]="disabled"
+              (click)="fileInput.click()">
+        <mat-icon>attach_file</mat-icon>
+        <span>Seleccionar archivo</span>
+      </button>
+    }
+    @case ('uploading') {
+      <div class="file-uploading">
+        <mat-icon class="spin">hourglass_top</mat-icon>
+        <span>Subiendo...</span>
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      </div>
+    }
+    @case ('uploaded') {
+      <div class="file-uploaded">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <span class="file-name">
+          {{ archivo?.nombre }}
+          @if (archivo) {
+            <span class="file-size">· {{ formatTamano(archivo.tamanoBytes) }}</span>
+          }
+        </span>
+        @if (!disabled) {
+          <button mat-button type="button" color="primary"
+                  (click)="cambiar(fileInput)">
+            Cambiar
+          </button>
+        }
+      </div>
+    }
+    @case ('error') {
+      <div class="file-error">
+        <mat-icon class="error-icon">error</mat-icon>
+        <span class="error-msg">{{ errorMessage }}</span>
+        <button mat-button type="button" color="primary"
+                (click)="reintentar(fileInput)">
+          Reintentar
+        </button>
+      </div>
+    }
+  }
+
+  @if (requerido && status !== 'uploaded') {
+    <span class="file-hint">Este archivo es requerido</span>
+  }
+</div>

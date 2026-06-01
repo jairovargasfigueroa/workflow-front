@@ -1,0 +1,185 @@
+<mat-expansion-panel class="config-panel">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <mat-icon class="title-icon">description</mat-icon>
+      Configuración Documental
+    </mat-panel-title>
+    <mat-panel-description>
+      {{ config.documentosProducidos.length }} producidos ·
+      {{ config.documentosEsperados.length }} esperados
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+
+  <!-- Documentos esperados -->
+  <section class="config-section">
+    <div class="config-section-header">
+      <h4>Documentos esperados (input)</h4>
+      <button mat-stroked-button color="primary"
+              (click)="agregarDocumento('documentosEsperados')">
+        <mat-icon>add</mat-icon>
+        Agregar
+      </button>
+    </div>
+    @if (config.documentosEsperados.length === 0) {
+      <p class="empty-list">Este nodo no espera documentos de pasos anteriores.</p>
+    } @else {
+      <ul class="docs-list">
+        @for (doc of config.documentosEsperados; track $index) {
+          <li class="doc-card">
+            <div class="doc-info">
+              <div class="doc-nombre">
+                {{ doc.nombre }}
+                @if (doc.obligatorio) {
+                  <span class="badge badge-required">Obligatorio</span>
+                }
+              </div>
+              @if (describirDocumento(doc)) {
+                <div class="doc-meta">{{ describirDocumento(doc) }}</div>
+              }
+            </div>
+            <div class="doc-actions">
+              <button mat-icon-button matTooltip="Editar"
+                      (click)="editarDocumento('documentosEsperados', $index)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" matTooltip="Quitar"
+                      (click)="quitarDocumento('documentosEsperados', $index)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Documentos producidos -->
+  <section class="config-section">
+    <div class="config-section-header">
+      <h4>Documentos producidos (output)</h4>
+      <button mat-stroked-button color="primary"
+              (click)="agregarDocumento('documentosProducidos')">
+        <mat-icon>add</mat-icon>
+        Agregar
+      </button>
+    </div>
+    @if (config.documentosProducidos.length === 0) {
+      <p class="empty-list">Este nodo no produce documentos declarados.</p>
+    } @else {
+      <ul class="docs-list">
+        @for (doc of config.documentosProducidos; track $index) {
+          <li class="doc-card">
+            <div class="doc-info">
+              <div class="doc-nombre">
+                {{ doc.nombre }}
+                @if (doc.obligatorio) {
+                  <span class="badge badge-required">Obligatorio</span>
+                }
+                @if (doc.inmutablePostCierre) {
+                  <span class="badge badge-lock">
+                    <mat-icon>lock</mat-icon>
+                    Inmutable
+                  </span>
+                }
+              </div>
+              @if (describirDocumento(doc)) {
+                <div class="doc-meta">{{ describirDocumento(doc) }}</div>
+              }
+            </div>
+            <div class="doc-actions">
+              <button mat-icon-button matTooltip="Editar"
+                      (click)="editarDocumento('documentosProducidos', $index)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" matTooltip="Quitar"
+                      (click)="quitarDocumento('documentosProducidos', $index)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <!-- Permisos default ad-hoc -->
+  <section class="config-section">
+    <h4 class="permisos-titulo">
+      <mat-icon>lock</mat-icon>
+      Permisos default para archivos ad-hoc
+    </h4>
+    <p class="permisos-desc">
+      Se aplican cuando alguien sube un archivo extra en este nodo, sin asociarlo a un documento declarado.
+    </p>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">Pueden ver</span>
+        <button mat-stroked-button color="primary"
+                (click)="agregarSujetoAdHoc('lectores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (config.permisosDefaultAdHoc.lectores.length === 0) {
+          <span class="vacio">Vacío — nadie</span>
+        }
+        @for (s of config.permisosDefaultAdHoc.lectores; track $index) {
+          <mat-chip-row (removed)="quitarSujetoAdHoc('lectores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">Pueden editar</span>
+        <button mat-stroked-button color="primary"
+                (click)="agregarSujetoAdHoc('editores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (config.permisosDefaultAdHoc.editores.length === 0) {
+          <span class="vacio">Vacío — nadie</span>
+        }
+        @for (s of config.permisosDefaultAdHoc.editores; track $index) {
+          <mat-chip-row (removed)="quitarSujetoAdHoc('editores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">Pueden eliminar</span>
+        <button mat-stroked-button color="primary"
+                (click)="agregarSujetoAdHoc('eliminadores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (config.permisosDefaultAdHoc.eliminadores.length === 0) {
+          <span class="vacio">Vacío — nadie</span>
+        }
+        @for (s of config.permisosDefaultAdHoc.eliminadores; track $index) {
+          <mat-chip-row (removed)="quitarSujetoAdHoc('eliminadores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+  </section>
+</mat-expansion-panel>

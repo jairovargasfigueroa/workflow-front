@@ -74,26 +74,12 @@
       </mat-card>
     }
 
-    <!-- Adjuntos -->
-    @if (sol.adjuntos && sol.adjuntos.length > 0) {
-      <mat-card class="section-card">
-        <mat-card-header>
-          <mat-icon mat-card-avatar>attach_file</mat-icon>
-          <mat-card-title>Adjuntos</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-list>
-            @for (adjunto of sol.adjuntos; track adjunto.nombre) {
-              <mat-list-item>
-                <mat-icon matListItemIcon>insert_drive_file</mat-icon>
-                <div matListItemTitle>{{ adjunto.nombre }}</div>
-                <div matListItemLine>{{ adjunto.tipo }}</div>
-              </mat-list-item>
-            }
-          </mat-list>
-        </mat-card-content>
-      </mat-card>
-    }
+    <!-- Archivos del expediente -->
+    <mat-card class="section-card">
+      <mat-card-content>
+        <app-archivos-panel [solicitudId]="sol.id"></app-archivos-panel>
+      </mat-card-content>
+    </mat-card>
 
     <!-- Historial por Departamento -->
     @if (sol.respuestasPorDepartamento && sol.respuestasPorDepartamento.length > 0) {

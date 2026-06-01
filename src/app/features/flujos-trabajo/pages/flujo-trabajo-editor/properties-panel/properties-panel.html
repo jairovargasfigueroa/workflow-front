@@ -18,7 +18,7 @@
     </div>
 
     <div class="properties-form">
-      <!-- Nombre (para todos los elementos excepto el proceso raíz) -->
+      <!-- Nombre (para todos excepto el proceso raíz) -->
       @if (elementType() !== 'bpmn:Process') {
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
@@ -33,20 +33,87 @@
         </mat-form-field>
       }
 
-      <!-- User Task: Departamento y Formulario asignados -->
-      @if (elementType() === 'bpmn:UserTask') {
+      <!-- Pool (Participant) -->
+      @if (elementType() === 'bpmn:Participant') {
+        <div class="info-box neutral">
+          <mat-icon>view_module</mat-icon>
+          <span>El Pool agrupa los carriles del proceso. Agrega carriles dentro y asigna un departamento a cada uno.</span>
+        </div>
+      }
+
+      <!-- Lane -->
+      @if (elementType() === 'bpmn:Lane') {
         <mat-form-field appearance="outline">
-          <mat-label>Departamento asignado</mat-label>
+          <mat-label>Departamento del carril</mat-label>
           <mat-select
-            [value]="candidateGroups()"
-            (selectionChange)="onCandidateGroupsChange($event.value)">
+            [value]="laneDepartamentoId()"
+            (selectionChange)="onLaneDepartamentoChange($event.value)">
             <mat-option value="">— Sin asignar —</mat-option>
             @for (dep of departamentos(); track dep.id) {
               <mat-option [value]="dep.id">{{ dep.nombre }}</mat-option>
             }
           </mat-select>
-          <mat-hint>camunda:candidateGroups</mat-hint>
+          <mat-hint>Todas las tareas dentro de este carril heredarán este departamento.</mat-hint>
         </mat-form-field>
+
+        @if (!laneDepartamentoId()) {
+          <div class="info-box warn">
+            <mat-icon>warning</mat-icon>
+            <span>Este carril no tiene departamento asignado. Las tareas que lo contengan no podrán publicarse.</span>
+          </div>
+        } @else {
+          <div class="info-box">
+            <mat-icon>info</mat-icon>
+            <span>Tareas en este carril → departamento <strong>{{ laneDepartamentoNombre() }}</strong>.</span>
+          </div>
+        }
+      }
+
+      <!-- User Task: Departamento heredado/legacy + Formulario + Configuración Documental -->
+      @if (elementType() === 'bpmn:UserTask') {
+
+        <!-- Banner del departamento heredado -->
+        @switch (userTaskDepartamento().fuente) {
+          @case ('lane') {
+            <div class="info-box">
+              <mat-icon>view_stream</mat-icon>
+              <div>
+                <div>Departamento heredado del carril:</div>
+                <strong>{{ userTaskDepartamento().departamentoNombre }}</strong>
+                <div class="muted">Carril: {{ userTaskDepartamento().carrilNombre }}</div>
+              </div>
+            </div>
+          }
+          @case ('lane-sin-dpto') {
+            <div class="info-box warn">
+              <mat-icon>warning</mat-icon>
+              <div>
+                <div>Esta tarea está en el carril <strong>{{ userTaskDepartamento().carrilNombre }}</strong>,
+                  pero el carril no tiene departamento asignado.</div>
+                <div class="muted">Selecciona el carril en el canvas y asígnale un departamento.</div>
+              </div>
+            </div>
+          }
+          @case ('legacy') {
+            <div class="info-box warn">
+              <mat-icon>history</mat-icon>
+              <div>
+                <div>Departamento asignado directamente (formato antiguo):</div>
+                <strong>{{ userTaskDepartamento().departamentoNombre }}</strong>
+                <div class="muted">Considera mover esta tarea dentro de un carril.</div>
+              </div>
+            </div>
+          }
+          @case ('ninguno') {
+            <div class="info-box warn">
+              <mat-icon>error_outline</mat-icon>
+              <div>
+                <div><strong>Sin departamento</strong></div>
+                <div class="muted">Coloca esta tarea dentro de un carril con departamento, o usa el formato antiguo.</div>
+              </div>
+            </div>
+          }
+        }
 
         <mat-form-field appearance="outline">
           <mat-label>Formulario de la tarea</mat-label>
@@ -61,10 +128,10 @@
           <mat-hint>camunda:formKey</mat-hint>
         </mat-form-field>
 
-        <div class="info-box">
-          <mat-icon>info</mat-icon>
-          <span>El departamento y el formulario determinan qué funcionarios atienden esta tarea y qué datos capturan.</span>
-        </div>
+        <app-nodo-config-documental
+          [modeler]="modeler()"
+          [element]="selectedElement()">
+        </app-nodo-config-documental>
       }
 
       <!-- Sequence Flow -->
@@ -83,7 +150,7 @@
         </div>
       }
 
-      <!-- Variables del flujo -->
+      <!-- Gateway exclusivo -->
       @if (elementType() === 'bpmn:ExclusiveGateway') {
         <div class="info-box">
           <mat-icon>info</mat-icon>

@@ -1,0 +1,94 @@
+.file-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+}
+
+.file-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+
+  .required-mark {
+    color: var(--color-error);
+    margin-left: 2px;
+  }
+}
+
+.file-trigger {
+  align-self: flex-start;
+  gap: 6px;
+}
+
+.file-uploading,
+.file-uploaded,
+.file-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.file-uploading {
+  background: var(--bg-primary-light);
+  color: var(--chip-process-text);
+  flex-wrap: wrap;
+
+  mat-progress-bar {
+    flex-basis: 100%;
+    margin-top: 4px;
+  }
+
+  .spin {
+    animation: spin 1.5s linear infinite;
+  }
+}
+
+.file-uploaded {
+  background: var(--chip-approved-bg);
+  color: var(--chip-approved-text);
+
+  .file-name {
+    flex: 1;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-size {
+    font-weight: 400;
+    opacity: 0.8;
+    margin-left: 4px;
+  }
+
+  .success-icon {
+    color: var(--color-success);
+  }
+}
+
+.file-error {
+  background: var(--color-error-light);
+  color: var(--color-error);
+
+  .error-msg {
+    flex: 1;
+  }
+
+  .error-icon {
+    color: var(--color-error);
+  }
+}
+
+.file-hint {
+  font-size: 12px;
+  color: var(--color-text-hint);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

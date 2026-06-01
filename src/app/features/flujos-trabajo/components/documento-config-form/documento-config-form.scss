@@ -1,0 +1,88 @@
+.doc-form-content {
+  min-width: 520px;
+  max-width: 640px;
+}
+
+.form-section {
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: var(--color-primary);
+    }
+  }
+}
+
+.opciones-section {
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.formatos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 4px 12px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-hint);
+  font-style: italic;
+}
+
+.permiso-grupo {
+  background: var(--surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.permiso-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  button {
+    gap: 4px;
+  }
+}
+
+.permiso-titulo {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.sujetos-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+  align-items: center;
+}
+
+.vacio {
+  font-size: 12px;
+  color: var(--color-text-hint);
+  font-style: italic;
+}

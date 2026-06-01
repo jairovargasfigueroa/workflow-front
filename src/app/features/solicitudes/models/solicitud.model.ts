@@ -74,6 +74,8 @@ export interface TareaActiva {
   elementId: string;
   departamentoId: string;
   departamentoNombre: string;
+  carrilId?: string | null;
+  carrilNombre?: string | null;
   campos: CampoFormulario[];
   acciones: AccionDisponible[];
 }

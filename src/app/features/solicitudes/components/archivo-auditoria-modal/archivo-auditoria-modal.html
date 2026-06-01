@@ -1,0 +1,58 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">receipt_long</mat-icon>
+  Auditoría — {{ nombreArchivo }}
+</h2>
+
+<mat-dialog-content class="auditoria-content">
+  @if (loading) {
+    <div class="loading">
+      <mat-spinner diameter="32"></mat-spinner>
+      <span>Cargando eventos...</span>
+    </div>
+  } @else if (eventos.length === 0) {
+    <div class="empty">
+      <mat-icon>event_busy</mat-icon>
+      <span>No hay eventos registrados para este archivo.</span>
+    </div>
+  } @else {
+    <ul class="eventos-list">
+      @for (e of eventos; track e.id) {
+        <li class="evento-item" [class]="claseTipo(e.tipo)">
+          <mat-icon class="evento-icon">{{ iconoTipo(e.tipo) }}</mat-icon>
+          <div class="evento-info">
+            <div class="evento-header">
+              <span class="evento-tipo">{{ tipoLabels[e.tipo] }}</span>
+              <span class="evento-fecha">{{ e.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+            </div>
+            <div class="evento-meta">
+              {{ e.usuarioNombre }} ·
+              <span class="evento-rol">{{ e.usuarioRol }}</span>
+            </div>
+            @if (e.detalle) {
+              <p class="evento-detalle">{{ e.detalle }}</p>
+            }
+            @if (e.motivoDenegacion) {
+              <p class="evento-denegacion">
+                <mat-icon>warning</mat-icon>
+                {{ e.motivoDenegacion }}
+              </p>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+
+    <mat-paginator
+      [length]="total"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cerrar</button>
+</mat-dialog-actions>

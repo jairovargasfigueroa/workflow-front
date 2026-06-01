@@ -1,0 +1,65 @@
+<h2 mat-dialog-title>
+  <mat-icon class="title-icon">history</mat-icon>
+  Historial de versiones — {{ archivo.nombre }}
+</h2>
+
+<mat-dialog-content class="historial-content">
+  @if (loading) {
+    <div class="loading">
+      <mat-spinner diameter="32"></mat-spinner>
+      <span>Cargando versiones...</span>
+    </div>
+  } @else if (versiones.length === 0) {
+    <div class="empty">
+      <mat-icon>history_toggle_off</mat-icon>
+      <span>No hay versiones registradas para este archivo.</span>
+    </div>
+  } @else {
+    <ul class="versiones-list">
+      @for (v of versiones; track v.id) {
+        <li class="version-item" [class.version-actual]="versionActual(v)">
+          <div class="version-badge">v{{ v.version }}</div>
+          <div class="version-info">
+            <div class="version-nombre">
+              {{ v.nombre }}
+              @if (versionActual(v)) {
+                <span class="actual-chip">Actual</span>
+              }
+              @if (v.inmutable) {
+                <mat-icon class="inmutable-icon" matTooltip="Inmutable">lock</mat-icon>
+              }
+            </div>
+            <div class="version-meta">
+              {{ v.subidoPorNombre }} ·
+              {{ v.fechaSubida | date:'dd/MM/yyyy HH:mm' }} ·
+              {{ formatTamano(v.tamanoBytes) }}
+            </div>
+          </div>
+          <div class="version-actions">
+            <button mat-icon-button type="button"
+                    matTooltip="Descargar esta versión"
+                    (click)="descargar(v)">
+              <mat-icon>download</mat-icon>
+            </button>
+            @if (!versionActual(v) && !archivo.inmutable) {
+              <button mat-stroked-button type="button" color="primary"
+                      [disabled]="reverting !== null"
+                      (click)="revertir(v)">
+                @if (reverting === v.version) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <mat-icon>restore</mat-icon>
+                }
+                <span>Revertir</span>
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cerrar</button>
+</mat-dialog-actions>

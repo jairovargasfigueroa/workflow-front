@@ -1,0 +1,57 @@
+<h2 mat-dialog-title>Agregar sujeto de permiso</h2>
+
+<mat-dialog-content class="selector-content">
+  <mat-radio-group [value]="tipoSeleccionado"
+                   (change)="onTipoChange($event.value)"
+                   class="tipos-group">
+    @for (tipo of tipos; track tipo) {
+      <div class="tipo-option">
+        <mat-radio-button [value]="tipo">
+          <div class="tipo-label">{{ tipoLabels[tipo] }}</div>
+          <div class="tipo-desc">{{ tipoDescripciones[tipo] }}</div>
+        </mat-radio-button>
+
+        @if (tipoSeleccionado === tipo && requiereId(tipo)) {
+          <div class="sujeto-id-input">
+            @if (tipo === 'ROL') {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Rol</mat-label>
+                <mat-select [(ngModel)]="sujetoId">
+                  @for (rol of roles; track rol) {
+                    <mat-option [value]="rol">{{ rolLabels[rol] }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+            @if (tipo === 'DEPARTAMENTO') {
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Departamento</mat-label>
+                <mat-select [(ngModel)]="sujetoId">
+                  @for (d of departamentos(); track d.id) {
+                    <mat-option [value]="d.id">{{ d.nombre }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          </div>
+        }
+      </div>
+    }
+  </mat-radio-group>
+
+  @if (yaExiste()) {
+    <p class="warning">
+      <mat-icon>warning</mat-icon>
+      Este sujeto ya está en la lista.
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary"
+          [disabled]="!puedeAgregar"
+          (click)="onAdd()">
+    Agregar
+  </button>
+</mat-dialog-actions>

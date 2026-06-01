@@ -17,6 +17,7 @@ import { RespuestaDialogComponent } from '../../components/respuesta-dialog/resp
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { ArchivosPanelComponent } from '../../components/archivos-panel/archivos-panel';
 
 @Component({
   selector: 'app-solicitud-detail',
@@ -29,7 +30,8 @@ import { AuthService } from '../../../../core/services/auth.service';
     MatChipsModule,
     MatProgressSpinnerModule,
     MatDividerModule,
-    MatListModule
+    MatListModule,
+    ArchivosPanelComponent
   ],
   templateUrl: './solicitud-detail.html',
   styleUrl: './solicitud-detail.scss'

@@ -109,4 +109,27 @@
       color: var(--color-text-hint);
     }
   }
+
+  &.warn {
+    background: var(--color-error-light);
+    color: var(--color-error);
+
+    mat-icon {
+      color: var(--color-error);
+    }
+
+    strong {
+      color: var(--color-error);
+    }
+  }
+
+  div {
+    min-width: 0;
+  }
+
+  .muted {
+    color: var(--color-text-hint);
+    font-size: 11px;
+    margin-top: 2px;
+  }
 }

@@ -1,0 +1,146 @@
+<h2 mat-dialog-title>{{ titulo }}</h2>
+
+<mat-dialog-content class="doc-form-content">
+  <section class="form-section">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nombre del documento</mat-label>
+      <input matInput [(ngModel)]="documento.nombre" placeholder="Ej. Acta del comité" required>
+    </mat-form-field>
+
+    @if (camposFormularioDisponibles.length > 0) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Campo del formulario asociado</mat-label>
+        <mat-select [(ngModel)]="documento.campoFormularioAsociado">
+          <mat-option [value]="null">— Ninguno (documento ad-hoc) —</mat-option>
+          @for (campo of camposFormularioDisponibles; track campo) {
+            <mat-option [value]="campo">{{ campo }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    } @else {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Campo del formulario asociado (opcional)</mat-label>
+        <input matInput [(ngModel)]="documento.campoFormularioAsociado"
+               placeholder="Ej. actaComite">
+      </mat-form-field>
+    }
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <section class="form-section">
+    <h3>Formatos aceptados</h3>
+    <div class="formatos-grid">
+      @for (formato of formatosDisponibles; track formato) {
+        <mat-checkbox [checked]="formatoSeleccionado(formato)"
+                      (change)="toggleFormato(formato, $event.checked)">
+          {{ formato | uppercase }}
+        </mat-checkbox>
+      }
+    </div>
+    @if (documento.formatosAceptados.length === 0) {
+      <p class="hint">Sin restricción: se aceptará cualquier formato.</p>
+    }
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <section class="form-section opciones-section">
+    <mat-checkbox [(ngModel)]="documento.obligatorio">
+      Obligatorio para cerrar este paso
+    </mat-checkbox>
+    <mat-checkbox [(ngModel)]="documento.inmutablePostCierre">
+      Inmutable al cerrar el nodo (no se podrá modificar ni eliminar después)
+    </mat-checkbox>
+  </section>
+
+  <mat-divider></mat-divider>
+
+  <section class="form-section">
+    <h3>
+      <mat-icon>lock</mat-icon>
+      Permisos
+    </h3>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">Pueden ver</span>
+        <button mat-stroked-button type="button" color="primary"
+                (click)="agregarSujeto('lectores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (permisos.lectores.length === 0) {
+          <span class="vacio">Vacío — nadie puede ver</span>
+        }
+        @for (s of permisos.lectores; track $index) {
+          <mat-chip-row (removed)="quitarSujeto('lectores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">Pueden editar / subir versión</span>
+        <button mat-stroked-button type="button" color="primary"
+                (click)="agregarSujeto('editores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (permisos.editores.length === 0) {
+          <span class="vacio">Vacío — nadie puede editar</span>
+        }
+        @for (s of permisos.editores; track $index) {
+          <mat-chip-row (removed)="quitarSujeto('editores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">Pueden eliminar</span>
+        <button mat-stroked-button type="button" color="primary"
+                (click)="agregarSujeto('eliminadores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (permisos.eliminadores.length === 0) {
+          <span class="vacio">Vacío — nadie puede eliminar</span>
+        }
+        @for (s of permisos.eliminadores; track $index) {
+          <mat-chip-row (removed)="quitarSujeto('eliminadores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+  </section>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary"
+          [disabled]="!esValido"
+          (click)="onSave()">
+    Guardar
+  </button>
+</mat-dialog-actions>

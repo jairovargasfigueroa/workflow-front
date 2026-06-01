@@ -1,4 +1,4 @@
-import { Component, input, effect, signal, inject, OnDestroy } from '@angular/core';
+import { Component, input, effect, signal, inject, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,6 +11,22 @@ import { DepartamentosService } from '../../../../departamentos/services/departa
 import { FormulariosService } from '../../../../formularios/services/formularios.service';
 import { Departamento } from '../../../../departamentos/models/departamento.model';
 import { FormularioTemplate } from '../../../../formularios/models/formulario.model';
+import { NodoConfigDocumentalComponent } from '../../../components/nodo-config-documental/nodo-config-documental';
+import {
+  encontrarLaneDeFlowNode,
+  escribirDepartamentoIdEnLane,
+  leerCandidateGroupsDirecto,
+  leerDepartamentoIdDeLane
+} from '../../../services/lane-departamento-bpmn.helper';
+
+type UserTaskDepartamentoFuente = 'lane' | 'lane-sin-dpto' | 'legacy' | 'ninguno';
+
+interface UserTaskDepartamentoInfo {
+  fuente: UserTaskDepartamentoFuente;
+  carrilNombre: string | null;
+  departamentoId: string | null;
+  departamentoNombre: string | null;
+}
 
 @Component({
   selector: 'app-properties-panel',
@@ -22,7 +38,8 @@ import { FormularioTemplate } from '../../../../formularios/models/formulario.mo
     MatInputModule,
     MatSelectModule,
     MatIconModule,
-    MatDividerModule
+    MatDividerModule,
+    NodoConfigDocumentalComponent
   ],
   templateUrl: './properties-panel.html',
   styleUrl: './properties-panel.scss'
@@ -38,10 +55,62 @@ export class PropertiesPanelComponent implements OnDestroy {
   selectedElement = signal<any>(null);
   elementType = signal<string>('');
   elementName = signal<string>('');
-  candidateGroups = signal<string>('');
   formularioId = signal<string>('');
+  laneDepartamentoId = signal<string>('');
 
   private eventBus: any;
+
+  // Derivado: cuando un UserTask está seleccionado, calcular de dónde viene su departamento.
+  readonly userTaskDepartamento = computed<UserTaskDepartamentoInfo>(() => {
+    if (this.elementType() !== 'bpmn:UserTask') {
+      return { fuente: 'ninguno', carrilNombre: null, departamentoId: null, departamentoNombre: null };
+    }
+    const el = this.selectedElement();
+    const modeler = this.modeler();
+    if (!el || !modeler) {
+      return { fuente: 'ninguno', carrilNombre: null, departamentoId: null, departamentoNombre: null };
+    }
+
+    const lane = encontrarLaneDeFlowNode(modeler, el);
+    if (lane) {
+      const dptoId = leerDepartamentoIdDeLane(lane);
+      if (dptoId) {
+        const dpto = this.departamentos().find(d => d.id === dptoId);
+        return {
+          fuente: 'lane',
+          carrilNombre: lane.businessObject?.name || lane.id,
+          departamentoId: dptoId,
+          departamentoNombre: dpto?.nombre ?? `(desconocido: ${dptoId})`
+        };
+      }
+      return {
+        fuente: 'lane-sin-dpto',
+        carrilNombre: lane.businessObject?.name || lane.id,
+        departamentoId: null,
+        departamentoNombre: null
+      };
+    }
+
+    const legacy = leerCandidateGroupsDirecto(el);
+    if (legacy) {
+      const dpto = this.departamentos().find(d => d.id === legacy);
+      return {
+        fuente: 'legacy',
+        carrilNombre: null,
+        departamentoId: legacy,
+        departamentoNombre: dpto?.nombre ?? legacy
+      };
+    }
+
+    return { fuente: 'ninguno', carrilNombre: null, departamentoId: null, departamentoNombre: null };
+  });
+
+  // Para mostrar el nombre del dpto en el dropdown del Lane.
+  readonly laneDepartamentoNombre = computed(() => {
+    const id = this.laneDepartamentoId();
+    if (!id) return '';
+    return this.departamentos().find(d => d.id === id)?.nombre ?? id;
+  });
 
   constructor() {
     this.departamentosService.getAll().subscribe({
@@ -109,21 +178,24 @@ export class PropertiesPanelComponent implements OnDestroy {
     this.elementName.set(bo.name || '');
 
     if (bo.$type === 'bpmn:UserTask') {
-      this.candidateGroups.set(bo.get('camunda:candidateGroups') || '');
       this.formularioId.set(bo.get('camunda:formKey') || '');
     } else {
-      this.candidateGroups.set('');
       this.formularioId.set('');
     }
 
+    if (bo.$type === 'bpmn:Lane') {
+      this.laneDepartamentoId.set(leerDepartamentoIdDeLane(element) ?? '');
+    } else {
+      this.laneDepartamentoId.set('');
+    }
   }
 
   private clearSelection(): void {
     this.selectedElement.set(null);
     this.elementType.set('');
     this.elementName.set('');
-    this.candidateGroups.set('');
     this.formularioId.set('');
+    this.laneDepartamentoId.set('');
   }
 
   onNameChange(event: Event): void {
@@ -132,14 +204,28 @@ export class PropertiesPanelComponent implements OnDestroy {
     this.updateProperty('name', value || undefined);
   }
 
-  onCandidateGroupsChange(value: string): void {
-    this.candidateGroups.set(value);
-    this.updateProperty('camunda:candidateGroups', value || undefined);
-  }
-
   onFormularioChange(value: string): void {
     this.formularioId.set(value);
     this.updateProperty('camunda:formKey', value || undefined);
+  }
+
+  onLaneDepartamentoChange(value: string): void {
+    this.laneDepartamentoId.set(value);
+    const modeler = this.modeler();
+    const element = this.selectedElement();
+    if (!modeler || !element) return;
+
+    escribirDepartamentoIdEnLane(modeler, element, value || null);
+
+    // Sincronizar el nombre del carril con el nombre del departamento elegido.
+    // Si el admin quiere un nombre custom, puede editarlo después.
+    if (value) {
+      const dpto = this.departamentos().find(d => d.id === value);
+      if (dpto) {
+        this.elementName.set(dpto.nombre);
+        this.updateProperty('name', dpto.nombre);
+      }
+    }
   }
 
   private updateProperty(property: string, value: any): void {
@@ -159,6 +245,8 @@ export class PropertiesPanelComponent implements OnDestroy {
       case 'bpmn:ExclusiveGateway': return 'call_split';
       case 'bpmn:ParallelGateway': return 'add_box';
       case 'bpmn:SequenceFlow': return 'arrow_forward';
+      case 'bpmn:Lane': return 'view_stream';
+      case 'bpmn:Participant': return 'view_module';
       default: return 'widgets';
     }
   }
@@ -171,6 +259,8 @@ export class PropertiesPanelComponent implements OnDestroy {
       case 'bpmn:ExclusiveGateway': return 'Compuerta Exclusiva';
       case 'bpmn:ParallelGateway': return 'Compuerta Paralela';
       case 'bpmn:SequenceFlow': return 'Flujo de Secuencia';
+      case 'bpmn:Lane': return 'Carril';
+      case 'bpmn:Participant': return 'Pool (Proceso)';
       case 'bpmn:Process': return 'Proceso';
       default: return this.elementType();
     }

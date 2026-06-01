@@ -7,6 +7,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/pages/login/login').then(m => m.LoginComponent)
   },
   {
+    path: 'archivos/:id/editar',
+    loadComponent: () =>
+      import('./features/solicitudes/pages/onlyoffice-editor/onlyoffice-editor')
+        .then(m => m.OnlyOfficeEditorComponent)
+  },
+  {
     path: '',
     component: MainLayoutComponent,
     children: [
