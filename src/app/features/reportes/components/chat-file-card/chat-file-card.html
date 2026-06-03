@@ -1,0 +1,17 @@
+<div class="file-card" [class]="claseTipo()">
+  <mat-icon class="file-icon">{{ iconoTipo() }}</mat-icon>
+  <div class="file-info">
+    <div class="file-name">{{ archivo.nombre }}</div>
+    <div class="file-type">{{ etiquetaTipo() }}</div>
+  </div>
+  <button mat-stroked-button color="primary"
+          [disabled]="descargando()"
+          (click)="descargar()">
+    @if (descargando()) {
+      <mat-spinner diameter="16"></mat-spinner>
+    } @else {
+      <mat-icon>download</mat-icon>
+    }
+    <span>{{ descargando() ? 'Descargando...' : 'Descargar' }}</span>
+  </button>
+</div>

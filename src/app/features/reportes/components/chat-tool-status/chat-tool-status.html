@@ -1,0 +1,14 @@
+<div class="tool-status" [class.tool-status--done]="herramienta.estado === 'completada'">
+  @if (herramienta.estado === 'ejecutando') {
+    <mat-spinner diameter="14"></mat-spinner>
+    <span class="tool-label">Consultando: <strong>{{ herramienta.nombre }}</strong></span>
+  } @else {
+    <mat-icon class="check-icon">check_circle</mat-icon>
+    <span class="tool-label">
+      <strong>{{ herramienta.nombre }}</strong>
+      @if (herramienta.resumen) {
+        <span class="tool-resumen">— {{ herramienta.resumen }}</span>
+      }
+    </span>
+  }
+</div>

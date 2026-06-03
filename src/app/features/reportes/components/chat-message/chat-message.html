@@ -1,0 +1,49 @@
+<div class="chat-message" [class.chat-message--usuario]="esUsuario" [class.chat-message--agente]="!esUsuario">
+  <div class="avatar">
+    @if (esUsuario) {
+      <mat-icon>person</mat-icon>
+    } @else {
+      <mat-icon>auto_awesome</mat-icon>
+    }
+  </div>
+
+  <div class="bubble" [class.bubble--error]="mensaje.estado === 'error'">
+    @if (mostrarPensando) {
+      <div class="pensando">
+        <mat-spinner diameter="14"></mat-spinner>
+        <span>El agente está pensando...</span>
+      </div>
+    }
+
+    @if (mensaje.herramientas.length > 0) {
+      <div class="herramientas">
+        @for (h of mensaje.herramientas; track h.nombre + $index) {
+          <app-chat-tool-status [herramienta]="h"></app-chat-tool-status>
+        }
+      </div>
+    }
+
+    @if (mensaje.texto) {
+      @if (esUsuario) {
+        <p class="texto-plano">{{ mensaje.texto }}</p>
+      } @else {
+        <div class="texto-md" [innerHTML]="mensaje.texto | markdown"></div>
+      }
+    }
+
+    @if (mensaje.archivos.length > 0) {
+      <div class="archivos">
+        @for (archivo of mensaje.archivos; track archivo.url) {
+          <app-chat-file-card [archivo]="archivo"></app-chat-file-card>
+        }
+      </div>
+    }
+
+    @if (mensaje.estado === 'error' && mensaje.errorMensaje) {
+      <div class="error-row">
+        <mat-icon>error</mat-icon>
+        <span>{{ mensaje.errorMensaje }}</span>
+      </div>
+    }
+  </div>
+</div>
