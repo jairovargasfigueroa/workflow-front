@@ -40,7 +40,22 @@ export class TramitesListComponent implements OnInit {
 
   tramites = signal<Tramite[]>([]);
   loading = signal(true);
-  displayedColumns = ['nombre', 'descripcion', 'requisitos', 'activo', 'acciones'];
+  displayedColumns = ['nombre', 'descripcion', 'requisitos', 'etiquetas', 'activo', 'acciones'];
+
+  readonly MAX_ETIQUETAS_VISIBLES = 3;
+
+  etiquetasVisibles(tramite: Tramite): string[] {
+    return (tramite.etiquetas ?? []).slice(0, this.MAX_ETIQUETAS_VISIBLES);
+  }
+
+  etiquetasOcultas(tramite: Tramite): number {
+    const total = tramite.etiquetas?.length ?? 0;
+    return Math.max(0, total - this.MAX_ETIQUETAS_VISIBLES);
+  }
+
+  tooltipEtiquetas(tramite: Tramite): string {
+    return (tramite.etiquetas ?? []).join(', ');
+  }
 
   ngOnInit(): void {
     this.loadTramites();

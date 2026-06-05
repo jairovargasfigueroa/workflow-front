@@ -10,6 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 import { TramitesService } from '../../services/tramites.service';
 import { Tramite } from '../../models/tramite.model';
@@ -24,6 +26,9 @@ export interface TramiteDialogData {
   tramite?: Tramite;
 }
 
+const ETIQUETAS_RECOMENDADAS_MIN = 8;
+const ETIQUETAS_ADVERTENCIA_MAX = 20;
+
 @Component({
   selector: 'app-tramite-dialog',
   standalone: true,
@@ -37,7 +42,8 @@ export interface TramiteDialogData {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDividerModule
+    MatDividerModule,
+    MatChipsModule
   ],
   templateUrl: './tramite-dialog.html',
   styleUrl: './tramite-dialog.scss'
@@ -51,10 +57,16 @@ export class TramiteDialogComponent implements OnInit {
   private readonly flujosTrabajoService = inject(FlujosTrabajoService);
   private readonly notificationService = inject(NotificationService);
 
+  readonly separatorKeysCodes = [ENTER, COMMA] as const;
+  readonly maxRecomendado = ETIQUETAS_ADVERTENCIA_MAX;
+  readonly minRecomendado = ETIQUETAS_RECOMENDADAS_MIN;
+
   isEditMode = this.data.mode === 'edit';
   saving = false;
   formularios: FormularioTemplate[] = [];
   flujos: FlujoTrabajo[] = [];
+
+  etiquetas: string[] = [];
 
   form = this.fb.nonNullable.group({
     nombre: [this.data.tramite?.nombre || '', [Validators.required, Validators.maxLength(200)]],
@@ -84,6 +96,9 @@ export class TramiteDialogComponent implements OnInit {
         this.requisitosArray.push(this.fb.control(req, Validators.required));
       });
     }
+
+    // Cargar etiquetas existentes (puede venir null/undefined en trámites viejos).
+    this.etiquetas = [...(this.data.tramite?.etiquetas ?? [])];
   }
 
   addRequisito(): void {
@@ -92,6 +107,26 @@ export class TramiteDialogComponent implements OnInit {
 
   removeRequisito(index: number): void {
     this.requisitosArray.removeAt(index);
+  }
+
+  agregarEtiqueta(event: MatChipInputEvent): void {
+    const raw = (event.value || '').trim().toLowerCase();
+    event.chipInput?.clear();
+    if (!raw) return;
+    if (this.etiquetas.includes(raw)) return; // sin duplicados
+    this.etiquetas = [...this.etiquetas, raw];
+  }
+
+  quitarEtiqueta(etiqueta: string): void {
+    this.etiquetas = this.etiquetas.filter(e => e !== etiqueta);
+  }
+
+  get superaMaxRecomendado(): boolean {
+    return this.etiquetas.length > ETIQUETAS_ADVERTENCIA_MAX;
+  }
+
+  get pocoEtiquetado(): boolean {
+    return this.etiquetas.length > 0 && this.etiquetas.length < ETIQUETAS_RECOMENDADAS_MIN;
   }
 
   onCancel(): void {
@@ -109,7 +144,8 @@ export class TramiteDialogComponent implements OnInit {
       descripcion: formValue.descripcion,
       formularioSolicitanteId: formValue.formularioSolicitanteId || undefined,
       flujoTrabajoId: formValue.flujoTrabajoId || undefined,
-      requisitos: formValue.requisitos.filter((r): r is string => r != null && r.trim() !== '')
+      requisitos: formValue.requisitos.filter((r): r is string => r != null && r.trim() !== ''),
+      etiquetas: this.etiquetas
     };
 
     const request$ = this.isEditMode

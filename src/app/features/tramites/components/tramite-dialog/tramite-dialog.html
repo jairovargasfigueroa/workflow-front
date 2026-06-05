@@ -71,6 +71,57 @@
         </div>
       }
     </section>
+
+    <mat-divider></mat-divider>
+
+    <section class="form-section etiquetas-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon class="section-icon">label</mat-icon>
+          Etiquetas
+        </h3>
+        <span class="contador" [class.contador-warn]="superaMaxRecomendado">
+          {{ etiquetas.length }} / {{ maxRecomendado }} recomendado
+        </span>
+      </div>
+      <p class="section-help">
+        Palabras clave que un solicitante usaría para describir su problema
+        (sinónimos, contextos de uso, lenguaje coloquial). Ayudan al asistente IA
+        a recomendar este trámite.
+      </p>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Etiquetas</mat-label>
+        <mat-chip-grid #chipGrid aria-label="Etiquetas del trámite">
+          @for (etiqueta of etiquetas; track etiqueta) {
+            <mat-chip-row (removed)="quitarEtiqueta(etiqueta)">
+              {{ etiqueta }}
+              <button matChipRemove [attr.aria-label]="'Quitar ' + etiqueta">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip-row>
+          }
+          <input placeholder="Escribí una etiqueta y presioná Enter"
+                 [matChipInputFor]="chipGrid"
+                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                 (matChipInputTokenEnd)="agregarEtiqueta($event)">
+        </mat-chip-grid>
+        <mat-hint>Ej: constancia, banco, préstamo, estudiante, demostrar... — Enter o coma para agregar.</mat-hint>
+      </mat-form-field>
+
+      @if (pocoEtiquetado) {
+        <p class="hint-warn">
+          <mat-icon>info</mat-icon>
+          Se recomienda al menos {{ minRecomendado }} etiquetas para que el asistente recomiende este trámite con precisión.
+        </p>
+      }
+      @if (superaMaxRecomendado) {
+        <p class="hint-warn">
+          <mat-icon>warning</mat-icon>
+          Demasiadas etiquetas pueden confundir al asistente. Mantenelas focalizadas.
+        </p>
+      }
+    </section>
   </form>
 </mat-dialog-content>
 

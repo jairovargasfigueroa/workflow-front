@@ -18,3 +18,33 @@
     color: var(--color-primary);
   }
 }
+
+.etiquetas-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 280px;
+}
+
+.etiqueta-chip {
+  font-size: 11px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 8px !important;
+  background: var(--bg-primary-light) !important;
+  color: var(--chip-process-text) !important;
+}
+
+.etiqueta-mas {
+  font-size: 11px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 8px !important;
+  background: var(--surface-page) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.sin-etiquetas {
+  color: var(--color-text-hint);
+  font-size: 13px;
+}

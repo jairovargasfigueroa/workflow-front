@@ -44,6 +44,24 @@
           </td>
         </ng-container>
 
+<ng-container matColumnDef="etiquetas">
+          <th mat-header-cell *matHeaderCellDef>Etiquetas</th>
+          <td mat-cell *matCellDef="let tramite">
+            @if ((tramite.etiquetas?.length ?? 0) === 0) {
+              <span class="sin-etiquetas">—</span>
+            } @else {
+              <div class="etiquetas-cell" [matTooltip]="tooltipEtiquetas(tramite)">
+                @for (etiqueta of etiquetasVisibles(tramite); track etiqueta) {
+                  <mat-chip class="etiqueta-chip" disableRipple>{{ etiqueta }}</mat-chip>
+                }
+                @if (etiquetasOcultas(tramite) > 0) {
+                  <mat-chip class="etiqueta-mas" disableRipple>+{{ etiquetasOcultas(tramite) }}</mat-chip>
+                }
+              </div>
+            }
+          </td>
+        </ng-container>
+
 <ng-container matColumnDef="activo">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let tramite">

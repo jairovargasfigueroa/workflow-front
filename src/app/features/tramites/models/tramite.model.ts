@@ -5,6 +5,7 @@ export interface Tramite {
   formularioSolicitanteId: string;
   flujoTrabajoId?: string;
   requisitos: string[];
+  etiquetas?: string[];
   activo: boolean;
   fechaCreacion: string;
 }
@@ -15,4 +16,5 @@ export interface TramiteRequest {
   formularioSolicitanteId?: string;
   flujoTrabajoId?: string;
   requisitos?: string[];
+  etiquetas?: string[];
 }
