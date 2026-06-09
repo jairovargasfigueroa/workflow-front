@@ -1,0 +1,29 @@
+.criticidad-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.criticidad-rutinario  { background: var(--criticidad-rutinario-bg);  color: var(--criticidad-rutinario-text); }
+  &.criticidad-importante { background: var(--criticidad-importante-bg); color: var(--criticidad-importante-text); }
+  &.criticidad-critico    { background: var(--criticidad-critico-bg);    color: var(--criticidad-critico-text); }
+  &.criticidad-emergencia { background: var(--criticidad-emergencia-bg); color: var(--criticidad-emergencia-text); }
+}
+
+.criticidad-icon {
+  font-size: 14px !important;
+  width: 14px;
+  height: 14px;
+}
+
+.criticidad-label {
+  white-space: nowrap;
+}
+
+.criticidad-empty {
+  color: var(--color-text-hint);
+  font-size: 13px;
+}

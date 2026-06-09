@@ -1,0 +1,8 @@
+@if (criticidad) {
+  <span class="criticidad-badge" [class]="clase">
+    <mat-icon class="criticidad-icon">{{ icono }}</mat-icon>
+    <span class="criticidad-label">{{ label }}</span>
+  </span>
+} @else {
+  <span class="criticidad-empty">—</span>
+}

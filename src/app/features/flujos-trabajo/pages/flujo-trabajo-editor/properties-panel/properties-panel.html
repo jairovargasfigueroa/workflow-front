@@ -128,9 +128,32 @@
           <mat-hint>camunda:formKey</mat-hint>
         </mat-form-field>
 
+        <mat-form-field appearance="outline">
+          <mat-label>SLA del nodo (horas)</mat-label>
+          <input matInput type="number" min="1" step="1"
+                 [value]="slaNodoHoras() ?? ''"
+                 (input)="onSlaNodoChange($event)"
+                 placeholder="Ej. 24">
+          <mat-hint>Cuánto debería tardar este paso. Vacío = sin SLA por nodo.</mat-hint>
+        </mat-form-field>
+
         <app-nodo-config-documental
           [modeler]="modeler()"
           [element]="selectedElement()">
+        </app-nodo-config-documental>
+      }
+
+      <!-- Start Event: Configuración del kit de documentos del solicitante -->
+      @if (elementType() === 'bpmn:StartEvent') {
+        <div class="info-box neutral">
+          <mat-icon>play_circle</mat-icon>
+          <span>Inicio del flujo. Configura abajo los documentos que el solicitante debe entregar al crear la solicitud.</span>
+        </div>
+
+        <app-nodo-config-documental
+          [modeler]="modeler()"
+          [element]="selectedElement()"
+          [contexto]="'inicio'">
         </app-nodo-config-documental>
       }
 

@@ -49,10 +49,14 @@ export class OnlyOfficeEditorComponent implements OnInit, OnDestroy {
   readonly nombreArchivo = signal<string>('');
 
   private archivoId: string | null = null;
+  private soloVista = true;
   private editor: OnlyOfficeEditor | null = null;
 
   ngOnInit(): void {
     this.archivoId = this.route.snapshot.paramMap.get('id');
+    // ?soloVista=false → modo edición. Cualquier otro valor (o ausencia) → lectura.
+    const qp = this.route.snapshot.queryParamMap.get('soloVista');
+    this.soloVista = qp !== 'false';
     if (!this.archivoId) {
       this.estado.set('error');
       this.mensajeError.set('No se recibió el ID del archivo.');
@@ -79,7 +83,7 @@ export class OnlyOfficeEditorComponent implements OnInit, OnDestroy {
   private iniciar(): void {
     if (!this.archivoId) return;
 
-    this.archivosService.abrirEnOnlyOffice(this.archivoId).subscribe({
+    this.archivosService.abrirEnOnlyOffice(this.archivoId, this.soloVista).subscribe({
       next: response => {
         this.nombreArchivo.set(response.config.document.title);
         this.cargarScript(response.documentServerUrl)

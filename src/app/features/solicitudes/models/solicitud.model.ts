@@ -1,5 +1,6 @@
 import { EstadoTramite } from '../../../core/models';
 import { CampoFormulario } from '../../formularios/models/formulario.model';
+import { EstadoSla } from '../../../core/models/sla';
 
 export interface SolicitudTramiteResumen {
   id: string;
@@ -12,6 +13,8 @@ export interface SolicitudTramiteResumen {
   fechaCreacion: string;
   fechaFinalizacion: string | null;
   fechaEntradaDepartamentoActual?: string | null;
+  fechaLimite?: string | null;
+  estadoSla?: EstadoSla | null;
 }
 
 export interface RespuestaCampo {
@@ -34,6 +37,8 @@ export interface RespuestaDepartamento {
   funcionarioAsignadoId: string | null;
   funcionarioAsignadoNombre: string | null;
   fechaAsignacion: string | null;
+  fechaLimiteNodo?: string | null;
+  estadoSlaNodo?: EstadoSla | null;
 }
 
 export interface Adjunto {
@@ -57,6 +62,8 @@ export interface SolicitudTramite {
   respuestasSolicitante: RespuestaCampo[];
   respuestasPorDepartamento: RespuestaDepartamento[];
   adjuntos: Adjunto[];
+  fechaLimite?: string | null;
+  estadoSla?: EstadoSla | null;
 }
 
 export interface SolicitudTramiteRequest {
@@ -70,6 +77,13 @@ export interface AccionDisponible {
   valor: string;
 }
 
+export interface DocumentoProducidoSlot {
+  nombre: string;                  // identificador del documento (ej "Informe académico")
+  formatosAceptados: string[];     // vacío = cualquiera
+  obligatorio: boolean;
+  inmutablePostCierre: boolean;
+}
+
 export interface TareaActiva {
   elementId: string;
   departamentoId: string;
@@ -78,6 +92,7 @@ export interface TareaActiva {
   carrilNombre?: string | null;
   campos: CampoFormulario[];
   acciones: AccionDisponible[];
+  documentosProducidos?: DocumentoProducidoSlot[];
 }
 
 export interface RespuestaDepartamentoRequest {

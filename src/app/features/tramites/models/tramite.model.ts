@@ -1,3 +1,5 @@
+import { Criticidad } from '../../../core/models/sla';
+
 export interface Tramite {
   id: string;
   nombre: string;
@@ -8,6 +10,10 @@ export interface Tramite {
   etiquetas?: string[];
   activo: boolean;
   fechaCreacion: string;
+  plazoObjetivoHoras?: number | null;
+  plazoMaximoHoras?: number | null;
+  umbralAlertaPorcentaje?: number | null;
+  criticidad?: Criticidad | null;
 }
 
 export interface TramiteRequest {
@@ -17,4 +23,8 @@ export interface TramiteRequest {
   flujoTrabajoId?: string;
   requisitos?: string[];
   etiquetas?: string[];
+  plazoObjetivoHoras?: number | null;
+  plazoMaximoHoras?: number | null;
+  umbralAlertaPorcentaje?: number | null;
+  criticidad?: Criticidad | null;
 }

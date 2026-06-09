@@ -14,7 +14,9 @@ import { TramiteDialogComponent } from '../../components/tramite-dialog/tramite-
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
+import { CriticidadBadgeComponent } from '../../../../shared/components/ui/criticidad-badge/criticidad-badge';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { formatPlazoHoras } from '../../../../core/utils/sla.util';
 
 @Component({
   selector: 'app-tramites-list',
@@ -28,7 +30,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatTooltipModule,
     MatChipsModule,
     EmptyStateComponent,
-    PageHeaderComponent
+    PageHeaderComponent,
+    CriticidadBadgeComponent
   ],
   templateUrl: './tramites-list.html',
   styleUrl: './tramites-list.scss'
@@ -40,9 +43,13 @@ export class TramitesListComponent implements OnInit {
 
   tramites = signal<Tramite[]>([]);
   loading = signal(true);
-  displayedColumns = ['nombre', 'descripcion', 'requisitos', 'etiquetas', 'activo', 'acciones'];
+  displayedColumns = ['nombre', 'descripcion', 'requisitos', 'etiquetas', 'sla', 'criticidad', 'activo', 'acciones'];
 
   readonly MAX_ETIQUETAS_VISIBLES = 3;
+
+  formatPlazo(horas: number | null | undefined): string {
+    return formatPlazoHoras(horas);
+  }
 
   etiquetasVisibles(tramite: Tramite): string[] {
     return (tramite.etiquetas ?? []).slice(0, this.MAX_ETIQUETAS_VISIBLES);

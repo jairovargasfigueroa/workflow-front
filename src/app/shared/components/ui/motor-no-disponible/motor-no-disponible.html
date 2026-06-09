@@ -1,0 +1,10 @@
+<div class="motor-down" [class.compact]="compact">
+  <mat-icon class="icon">smart_toy</mat-icon>
+  <p class="mensaje">{{ mensaje }}</p>
+  @if (conReintento) {
+    <button mat-stroked-button color="primary" (click)="reintentar.emit()">
+      <mat-icon>refresh</mat-icon>
+      Reintentar
+    </button>
+  }
+</div>

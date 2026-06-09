@@ -14,10 +14,16 @@
           <mat-error>El trámite es requerido</mat-error>
         }
       </mat-form-field>
-
     </section>
 
-    <!-- Formulario dinámico -->
+    @if (cargandoTramite) {
+      <div class="cargando-tramite">
+        <mat-spinner diameter="24"></mat-spinner>
+        <span>Cargando configuración del trámite...</span>
+      </div>
+    }
+
+    <!-- Formulario dinámico (datos) -->
     @if (formulario && campos.length > 0) {
       <mat-divider></mat-divider>
 
@@ -81,15 +87,51 @@
                   }
                 </mat-form-field>
               }
-              @case ('FILE') {
-                <div class="file-field">
-                  <label>{{ campo.etiqueta }} {{ campo.requerido ? '*' : '' }}</label>
-                  <input type="text" [formControlName]="campo.nombre" placeholder="URL del archivo">
-                </div>
-              }
             }
           }
         </div>
+      </section>
+    }
+
+    <!-- Documentos del kit (slots) -->
+    @if (slots.length > 0) {
+      <mat-divider></mat-divider>
+
+      <section class="form-section">
+        <div class="kit-header">
+          <h3>
+            <mat-icon>folder_open</mat-icon>
+            Documentos a entregar
+          </h3>
+          @if (obligatoriosTotal > 0) {
+            <span class="kit-progreso"
+                  [class.kit-progreso-falta]="obligatoriosFaltantes > 0">
+              {{ obligatoriosTotal - obligatoriosFaltantes }} de {{ obligatoriosTotal }} obligatorios
+            </span>
+          }
+        </div>
+        <p class="section-desc">Adjuntá los documentos requeridos. Se subirán al enviar la solicitud.</p>
+
+        <div class="slots-list">
+          @for (slot of slots; track slot.nombre) {
+            <app-doc-kit-slot
+              [nombre]="slot.nombre"
+              [formatosAceptados]="slot.formatosAceptados"
+              [obligatorio]="slot.obligatorio"
+              [subiendo]="estadoSlot(slot).subiendo"
+              [subido]="estadoSlot(slot).subido"
+              [errorMensaje]="estadoSlot(slot).error"
+              (archivoSeleccionado)="onArchivoSlot(slot, $event)">
+            </app-doc-kit-slot>
+          }
+        </div>
+
+        @if (obligatoriosFaltantes > 0) {
+          <p class="kit-warn">
+            <mat-icon>info</mat-icon>
+            Faltan {{ obligatoriosFaltantes }} documento(s) obligatorio(s) para poder enviar.
+          </p>
+        }
       </section>
     }
   </form>
@@ -98,9 +140,10 @@
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" [disabled]="saving">Cancelar</button>
   <button mat-flat-button color="primary" type="submit" form="solicitudForm"
-          [disabled]="form.invalid || dynamicForm.invalid || saving">
+          [disabled]="!puedeEnviar">
     @if (saving) {
       <mat-spinner diameter="20"></mat-spinner>
+      <span>Creando solicitud...</span>
     } @else {
       Crear Solicitud
     }

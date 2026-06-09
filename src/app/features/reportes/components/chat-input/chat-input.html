@@ -24,6 +24,14 @@
                 placeholder="Ej. Dame el top 10 trámites más lentos del mes"></textarea>
     </mat-form-field>
 
+    <button mat-stroked-button class="mic-btn"
+            [class.mic-btn-active]="dictando()"
+            [disabled]="bloqueado || !soportaVoz"
+            [matTooltip]="micTooltip()"
+            (click)="toggleDictado()">
+      <mat-icon>{{ dictando() ? 'mic_off' : 'mic' }}</mat-icon>
+    </button>
+
     <button mat-flat-button color="primary" class="send-btn"
             [disabled]="!puedeEnviar"
             matTooltip="Enviar (Enter)"

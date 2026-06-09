@@ -1,0 +1,28 @@
+.sev-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &.severidad-critica {
+    background: var(--sla-rojo-bg);
+    color: var(--sla-rojo-text);
+  }
+  &.severidad-media {
+    background: var(--sla-amarillo-bg);
+    color: var(--sla-amarillo-text);
+  }
+  &.severidad-baja {
+    background: var(--sla-null-bg);
+    color: var(--sla-null-text);
+  }
+  &.severidad-null {
+    background: var(--surface-page);
+    color: var(--color-text-hint);
+  }
+}

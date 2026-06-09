@@ -1,3 +1,123 @@
+.sla-card {
+  .sla-resumen {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .sla-fecha-limite {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .label {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+    .value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+  }
+
+  .sla-progreso {
+    margin-top: 4px;
+  }
+
+  .sla-progreso-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+
+    .sla-porcentaje {
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+  }
+
+  .sla-tiempo {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+
+    strong {
+      color: var(--color-text-primary);
+    }
+
+    .muted {
+      color: var(--color-text-hint);
+    }
+  }
+
+  .sla-divider {
+    margin: 20px 0;
+  }
+
+  .sla-nodos-titulo {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+
+  .sla-nodos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sla-nodo-item {
+    padding: 12px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+  }
+
+  .sla-nodo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  .sla-nodo-nombre {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: var(--color-primary);
+    }
+  }
+
+  .sla-nodo-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+
+    strong {
+      color: var(--color-text-primary);
+    }
+  }
+}
+
 .loading-container {
   display: flex;
   justify-content: center;

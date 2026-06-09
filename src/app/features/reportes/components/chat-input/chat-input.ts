@@ -1,4 +1,15 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  SimpleChanges,
+  computed,
+  inject,
+  signal
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,7 +17,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subscription } from 'rxjs';
+
 import { SUGERENCIAS_RAPIDAS } from '../../models/chat.model';
+import { SpeechService } from '../../../../core/services/speech.service';
+
+const VOICE_TARGET = 'chat-reportes';
 
 @Component({
   selector: 'app-chat-input',
@@ -23,13 +39,43 @@ import { SUGERENCIAS_RAPIDAS } from '../../models/chat.model';
   templateUrl: './chat-input.html',
   styleUrl: './chat-input.scss'
 })
-export class ChatInputComponent {
+export class ChatInputComponent implements OnChanges, OnDestroy {
   @Input() bloqueado = false;
   @Input() mostrarSugerencias = false;
   @Output() enviar = new EventEmitter<string>();
 
+  private readonly speechService = inject(SpeechService);
+
   readonly sugerencias = SUGERENCIAS_RAPIDAS;
   readonly texto = signal('');
+  readonly soportaVoz = this.speechService.soportado;
+
+  /** True solo cuando este chat es el que está dictando (no si otro componente usa el service). */
+  readonly dictando = computed(() => this.speechService.escuchando() === VOICE_TARGET);
+
+  readonly micTooltip = computed(() => {
+    if (!this.soportaVoz) return 'Tu navegador no soporta dictado por voz';
+    if (this.bloqueado) return 'Esperá a que el agente responda';
+    if (this.dictando()) return 'Detener dictado';
+    return 'Dictar mensaje';
+  });
+
+  private voiceSub: Subscription | null = null;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Si el chat empieza a procesar mientras estamos dictando, cortamos la escucha.
+    if (changes['bloqueado'] && this.bloqueado && this.dictando()) {
+      this.speechService.stop();
+      this.voiceSub?.unsubscribe();
+      this.voiceSub = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Si el usuario navega de /reportes mientras dicta, frenamos la escucha.
+    if (this.dictando()) this.speechService.stop();
+    this.voiceSub?.unsubscribe();
+  }
 
   get puedeEnviar(): boolean {
     return !this.bloqueado && this.texto().trim().length > 0;
@@ -57,5 +103,25 @@ export class ChatInputComponent {
     if (this.bloqueado) return;
     this.enviar.emit(s);
     this.texto.set('');
+  }
+
+  toggleDictado(): void {
+    if (this.bloqueado || !this.soportaVoz) return;
+
+    // Si ya está dictando, listen() con el mismo target lo apaga (toggle interno del service).
+    if (this.dictando()) {
+      this.speechService.stop();
+      this.voiceSub?.unsubscribe();
+      this.voiceSub = null;
+      return;
+    }
+
+    // Arranca escucha; concatena el transcript al texto existente.
+    this.voiceSub?.unsubscribe();
+    this.voiceSub = this.speechService.listen(VOICE_TARGET).subscribe(transcript => {
+      const actual = this.texto();
+      const nuevo = actual ? `${actual} ${transcript}` : transcript;
+      this.texto.set(nuevo);
+    });
   }
 }

@@ -36,12 +36,26 @@
             </div>
           </div>
           <div class="version-actions">
+            @if (puedeVer(v)) {
+              <button mat-icon-button type="button"
+                      matTooltip="Ver esta versión"
+                      (click)="ver(v)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            }
             <button mat-icon-button type="button"
                     matTooltip="Descargar esta versión"
                     (click)="descargar(v)">
               <mat-icon>download</mat-icon>
             </button>
-            @if (!versionActual(v) && !archivo.inmutable) {
+            @if (puedeVerAuditoria()) {
+              <button mat-icon-button type="button"
+                      matTooltip="Auditoría de esta versión"
+                      (click)="abrirAuditoria(v)">
+                <mat-icon>receipt_long</mat-icon>
+              </button>
+            }
+            @if (!soloLectura && !versionActual(v) && !archivo.inmutable) {
               <button mat-stroked-button type="button" color="primary"
                       [disabled]="reverting !== null"
                       (click)="revertir(v)">

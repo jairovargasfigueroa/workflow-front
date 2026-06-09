@@ -5,60 +5,14 @@
       Configuración Documental
     </mat-panel-title>
     <mat-panel-description>
-      {{ config.documentosProducidos.length }} producidos ·
-      {{ config.documentosEsperados.length }} esperados
+      {{ resumenHeader }}
     </mat-panel-description>
   </mat-expansion-panel-header>
 
-  <!-- Documentos esperados -->
+  <!-- Documentos producidos / del kit -->
   <section class="config-section">
     <div class="config-section-header">
-      <h4>Documentos esperados (input)</h4>
-      <button mat-stroked-button color="primary"
-              (click)="agregarDocumento('documentosEsperados')">
-        <mat-icon>add</mat-icon>
-        Agregar
-      </button>
-    </div>
-    @if (config.documentosEsperados.length === 0) {
-      <p class="empty-list">Este nodo no espera documentos de pasos anteriores.</p>
-    } @else {
-      <ul class="docs-list">
-        @for (doc of config.documentosEsperados; track $index) {
-          <li class="doc-card">
-            <div class="doc-info">
-              <div class="doc-nombre">
-                {{ doc.nombre }}
-                @if (doc.obligatorio) {
-                  <span class="badge badge-required">Obligatorio</span>
-                }
-              </div>
-              @if (describirDocumento(doc)) {
-                <div class="doc-meta">{{ describirDocumento(doc) }}</div>
-              }
-            </div>
-            <div class="doc-actions">
-              <button mat-icon-button matTooltip="Editar"
-                      (click)="editarDocumento('documentosEsperados', $index)">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" matTooltip="Quitar"
-                      (click)="quitarDocumento('documentosEsperados', $index)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </li>
-        }
-      </ul>
-    }
-  </section>
-
-  <mat-divider></mat-divider>
-
-  <!-- Documentos producidos -->
-  <section class="config-section">
-    <div class="config-section-header">
-      <h4>Documentos producidos (output)</h4>
+      <h4>{{ tituloSeccion }}</h4>
       <button mat-stroked-button color="primary"
               (click)="agregarDocumento('documentosProducidos')">
         <mat-icon>add</mat-icon>
@@ -66,7 +20,7 @@
       </button>
     </div>
     @if (config.documentosProducidos.length === 0) {
-      <p class="empty-list">Este nodo no produce documentos declarados.</p>
+      <p class="empty-list">{{ emptyText }}</p>
     } @else {
       <ul class="docs-list">
         @for (doc of config.documentosProducidos; track $index) {
@@ -112,9 +66,7 @@
       <mat-icon>lock</mat-icon>
       Permisos default para archivos ad-hoc
     </h4>
-    <p class="permisos-desc">
-      Se aplican cuando alguien sube un archivo extra en este nodo, sin asociarlo a un documento declarado.
-    </p>
+    <p class="permisos-desc">{{ adHocDesc }}</p>
 
     <div class="permiso-grupo">
       <div class="permiso-header">

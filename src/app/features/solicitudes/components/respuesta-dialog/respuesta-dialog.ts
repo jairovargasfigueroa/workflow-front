@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -14,17 +14,23 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { firstValueFrom } from 'rxjs';
+import { Subject, firstValueFrom, takeUntil } from 'rxjs';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
-import { SolicitudTramite, TareaActiva, RespuestaCampo } from '../../models/solicitud.model';
+import { ArchivosService } from '../../services/archivos.service';
+import {
+  DocumentoProducidoSlot,
+  RespuestaCampo,
+  SolicitudTramite,
+  TareaActiva
+} from '../../models/solicitud.model';
 import { ArchivoResponse } from '../../models/archivo.model';
 import { CampoFormulario } from '../../../formularios/models/formulario.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SpeechService } from '../../../../core/services/speech.service';
 import { ArchivosPanelComponent } from '../archivos-panel/archivos-panel';
-import { ArchivoFieldComponent } from '../archivo-field/archivo-field';
+import { DocProducidoSlotComponent } from '../doc-producido-slot/doc-producido-slot';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 
 export interface RespuestaDialogData {
@@ -49,17 +55,18 @@ export interface RespuestaDialogData {
     MatDatepickerModule,
     MatTooltipModule,
     ArchivosPanelComponent,
-    ArchivoFieldComponent
+    DocProducidoSlotComponent
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './respuesta-dialog.html',
   styleUrl: './respuesta-dialog.scss'
 })
-export class RespuestaDialogComponent implements OnInit {
+export class RespuestaDialogComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly dialogRef = inject(MatDialogRef<RespuestaDialogComponent>);
   private readonly data = inject<RespuestaDialogData>(MAT_DIALOG_DATA);
   private readonly solicitudesService = inject(SolicitudesService);
+  private readonly archivosService = inject(ArchivosService);
   private readonly authService = inject(AuthService);
   private readonly notificationService = inject(NotificationService);
   private readonly speechService = inject(SpeechService);
@@ -71,16 +78,23 @@ export class RespuestaDialogComponent implements OnInit {
   solicitud = this.data.solicitud;
 
   tarea: TareaActiva | null = null;
+  /** Campos del formulario del nodo, FILTRADOS para excluir tipo FILE (ahora son slots). */
   campos: CampoFormulario[] = [];
+  slots: DocumentoProducidoSlot[] = [];
   accionSeleccionada: string | null = null;
 
   departamentoId = this.authService.currentUser()?.departamentoId ?? null;
+
+  /** Map nombre del slot → archivo subido (si existe). */
+  archivosProducidos = new Map<string, ArchivoResponse>();
 
   form = this.fb.nonNullable.group({
     comentario: ['']
   });
 
   dynamicForm: FormGroup = this.fb.group({});
+
+  private readonly destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     if (!this.departamentoId) {
@@ -92,21 +106,68 @@ export class RespuestaDialogComponent implements OnInit {
       next: tareas => {
         this.tarea = tareas[0] ?? null;
         if (this.tarea) {
-          this.campos = this.tarea.campos;
-          this.buildDynamicForm(this.tarea.campos);
+          // Excluimos FILE: los archivos ahora se gestionan por slots de producidos.
+          this.campos = (this.tarea.campos ?? []).filter(c => c.tipo !== 'FILE');
+          this.slots = this.tarea.documentosProducidos ?? [];
+          this.buildDynamicForm(this.campos);
+          this.cargarArchivosProducidos();
         }
         this.loadingData = false;
       },
       error: () => { this.loadingData = false; }
     });
+
+    // Refrescar el mapa de producidos cuando el panel emita cambios.
+    this.archivosService.changes$.pipe(takeUntil(this.destroy$)).subscribe(id => {
+      if (id === this.solicitud.id) this.cargarArchivosProducidos();
+    });
   }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /** Carga los archivos del expediente y arma el map por nombre de producido. */
+  private cargarArchivosProducidos(): void {
+    this.archivosService.listarPorSolicitud(this.solicitud.id).subscribe({
+      next: archivos => {
+        const map = new Map<string, ArchivoResponse>();
+        for (const a of archivos) {
+          if (a.estado === 'ACTIVO' && a.campoFormularioOrigen) {
+            map.set(a.campoFormularioOrigen, a);
+          }
+        }
+        this.archivosProducidos = map;
+      }
+    });
+  }
+
+  archivoDelSlot(slot: DocumentoProducidoSlot): ArchivoResponse | null {
+    return this.archivosProducidos.get(slot.nombre) ?? null;
+  }
+
+  // ---- progreso de obligatorios ----
+
+  get obligatoriosTotal(): number {
+    return this.slots.filter(s => s.obligatorio).length;
+  }
+
+  get obligatoriosSubidos(): number {
+    return this.slots.filter(s => s.obligatorio && this.archivosProducidos.has(s.nombre)).length;
+  }
+
+  get faltanObligatorios(): boolean {
+    return this.obligatoriosSubidos < this.obligatoriosTotal;
+  }
+
+  // ---- form dinámico (sin FILE) ----
 
   private buildDynamicForm(campos: CampoFormulario[]): void {
     const group: Record<string, any> = {};
     for (const campo of campos) {
       const validators = campo.requerido ? [Validators.required] : [];
-      // Para FILE el valor del control es ArchivoResponse | null; required funciona igual.
-      group[campo.nombre] = [campo.tipo === 'FILE' ? null : '', validators];
+      group[campo.nombre] = ['', validators];
     }
     this.dynamicForm = this.fb.group(group);
   }
@@ -155,13 +216,8 @@ export class RespuestaDialogComponent implements OnInit {
     const formValue = this.form.getRawValue();
     const dynamicValues = this.dynamicForm.getRawValue();
 
-    // Excluimos campos FILE de las respuestas (el archivo se vincula vía campoFormularioOrigen)
     const respuestas: RespuestaCampo[] = Object.entries(dynamicValues)
-      .filter(([nombreCampo, valor]) => {
-        const campo = this.campos.find(c => c.nombre === nombreCampo);
-        if (campo?.tipo === 'FILE') return false;
-        return valor != null && valor !== '';
-      })
+      .filter(([, valor]) => valor != null && valor !== '')
       .map(([nombreCampo, valor]) => ({ nombreCampo, valor: String(valor) }));
 
     const accion = this.tarea.acciones.length > 0

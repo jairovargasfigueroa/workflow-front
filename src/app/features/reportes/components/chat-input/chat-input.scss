@@ -51,6 +51,33 @@
   margin-top: 4px;
 }
 
+.mic-btn {
+  height: 48px;
+  width: 48px;
+  min-width: 48px;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+
+  &.mic-btn-active {
+    background: var(--color-error-light);
+    color: var(--color-error);
+    border-color: var(--color-error);
+
+    mat-icon {
+      color: var(--color-error);
+      animation: mic-pulse 1.2s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes mic-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .hint {
   margin: 0;
   font-size: 11px;

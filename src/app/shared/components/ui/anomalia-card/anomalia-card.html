@@ -1,0 +1,43 @@
+@if (compact) {
+  <div class="anomalia-row">
+    <app-severidad-badge [severidad]="anomalia.severidad"></app-severidad-badge>
+    <span class="row-text" [matTooltip]="fechaAbsoluta">{{ anomalia.descripcion }}</span>
+    @if (muestraVer) {
+      <button mat-button color="primary" (click)="onVer()">Ver</button>
+    }
+  </div>
+} @else {
+  <div class="anomalia-card">
+    <div class="card-header">
+      <app-severidad-badge [severidad]="anomalia.severidad"></app-severidad-badge>
+      <span class="card-meta">
+        <span [matTooltip]="fechaAbsoluta">{{ cuandoRelativo }}</span>
+        · score {{ score }}
+      </span>
+    </div>
+
+    <p class="card-descripcion">{{ anomalia.descripcion }}</p>
+
+    @if (anomalia.contextoSla) {
+      <p class="card-contexto">
+        <mat-icon>timer</mat-icon>
+        SLA: {{ anomalia.contextoSla }}
+      </p>
+    }
+
+    <div class="card-actions">
+      @if (muestraVer) {
+        <button mat-stroked-button color="primary" (click)="onVer()">
+          <mat-icon>open_in_new</mat-icon>
+          Ver solicitud
+        </button>
+      }
+      @if (permiteDescartar) {
+        <button mat-stroked-button (click)="onDescartar()">
+          <mat-icon>block</mat-icon>
+          Marcar falso positivo
+        </button>
+      }
+    </div>
+  </div>
+}

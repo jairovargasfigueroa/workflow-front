@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpEvent } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { Observable, Subject, tap } from 'rxjs';
 import {
   ArchivoDescargaResponse,
@@ -32,8 +32,17 @@ export class ArchivosService {
     return this.http.get<ArchivoResponse>(`${this.endpoint}/${archivoId}/metadata`);
   }
 
-  descargar(archivoId: string): Observable<ArchivoDescargaResponse> {
-    return this.http.get<ArchivoDescargaResponse>(`${this.endpoint}/${archivoId}/descargar`);
+  /**
+   * Obtiene la URL prefirmada para descargar/ver un archivo.
+   * @param attachment true → Content-Disposition: attachment (baja). false → inline (muestra).
+   *                   Default true (compat con el back).
+   */
+  descargar(archivoId: string, attachment = true): Observable<ArchivoDescargaResponse> {
+    const params = new HttpParams().set('attachment', String(attachment));
+    return this.http.get<ArchivoDescargaResponse>(
+      `${this.endpoint}/${archivoId}/descargar`,
+      { params }
+    );
   }
 
   upload(req: ArchivoUploadRequest): Observable<ArchivoResponse> {
@@ -75,8 +84,17 @@ export class ArchivosService {
     );
   }
 
-  abrirEnOnlyOffice(archivoId: string): Observable<OnlyOfficeEditorConfigResponse> {
-    return this.http.get<OnlyOfficeEditorConfigResponse>(`/onlyoffice/abrir/${archivoId}`);
+  /**
+   * Pide la config de OnlyOffice para abrir un archivo.
+   * @param soloVista true → modo lectura. false → modo edición (el back decide
+   *                  el modo real según permisos / inmutabilidad).
+   */
+  abrirEnOnlyOffice(archivoId: string, soloVista: boolean): Observable<OnlyOfficeEditorConfigResponse> {
+    const params = new HttpParams().set('soloVista', String(soloVista));
+    return this.http.get<OnlyOfficeEditorConfigResponse>(
+      `/onlyoffice/abrir/${archivoId}`,
+      { params }
+    );
   }
 
   private buildFormData(req: ArchivoUploadRequest): FormData {

@@ -1,61 +1,165 @@
 <div class="dashboard">
-  <h1>Dashboard</h1>
 
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    @for (stat of stats; track stat.label) {
-      <mat-card class="stat-card">
-        <mat-card-content>
-          <div class="stat-content">
-            <div class="stat-info">
-              <span class="stat-value">{{ stat.value }}</span>
-              <span class="stat-label">{{ stat.label }}</span>
-            </div>
-            <mat-icon [style.color]="stat.color" class="stat-icon">
-              {{ stat.icon }}
-            </mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
+  <!-- Header: saludo + fecha + refrescar -->
+  <header class="dashboard-header">
+    <div class="header-info">
+      <h1>
+        @if (nombreUsuario()) {
+          Hola, {{ nombreUsuario() }}
+        } @else {
+          Bienvenido
+        }
+      </h1>
+      <p class="fecha">{{ fechaHoy }}</p>
+    </div>
+
+    @if (esAdmin()) {
+      <button mat-stroked-button
+              [disabled]="cargandoPrioridad() || cargandoAnomalias()"
+              (click)="cargarMotor()">
+        <mat-icon>refresh</mat-icon>
+        Actualizar
+      </button>
     }
-  </div>
+  </header>
 
-  <div class="dashboard-content">
-    <!-- Recent Activity -->
-    <mat-card class="activity-card">
-      <mat-card-header>
-        <mat-card-title>Actividad Reciente</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-list>
-          @for (item of recentActivity; track item.title) {
-            <mat-list-item>
-              <mat-icon matListItemIcon [style.color]="item.color">
-                {{ item.icon }}
-              </mat-icon>
-              <span matListItemTitle>{{ item.title }}</span>
-              <span matListItemLine class="activity-time">{{ item.time }}</span>
-            </mat-list-item>
-          }
-        </mat-list>
-      </mat-card-content>
-    </mat-card>
+  <!-- Sección Motor (solo ADMIN) -->
+  @if (esAdmin()) {
+    <section class="motor-section">
+      <h2 class="motor-title">
+        <mat-icon class="motor-icon">smart_toy</mat-icon>
+        Motor Inteligente
+      </h2>
+      <p class="motor-subtitle">Lo que requiere tu atención hoy.</p>
 
-    <!-- Quick Actions -->
-    <mat-card class="actions-card">
-      <mat-card-header>
-        <mat-card-title>Acciones Rápidas</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="quick-actions">
-          @for (action of quickActions; track action.label) {
-            <button mat-raised-button [color]="action.color">
-              <mat-icon>{{ action.icon }}</mat-icon>
-              {{ action.label }}
-            </button>
-          }
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+      <!-- KPIs -->
+      <div class="motor-kpis">
+        <mat-card class="kpi-card kpi-rojo">
+          <mat-card-content>
+            <mat-icon class="kpi-icon">crisis_alert</mat-icon>
+            <div class="kpi-info">
+              <span class="kpi-value">
+                @if (cargandoAnomalias()) { … } @else { {{ anomaliasRecientes().length }} }
+              </span>
+              <span class="kpi-label">Anomalías recientes</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-card kpi-rojo">
+          <mat-card-content>
+            <mat-icon class="kpi-icon">priority_high</mat-icon>
+            <div class="kpi-info">
+              <span class="kpi-value">
+                @if (cargandoPrioridad()) { … } @else { {{ prioridad()?.totalConPrioridadAlta ?? 0 }} }
+              </span>
+              <span class="kpi-label">Prioridad alta</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-card kpi-amarillo">
+          <mat-card-content>
+            <mat-icon class="kpi-icon">flag</mat-icon>
+            <div class="kpi-info">
+              <span class="kpi-value">
+                @if (cargandoPrioridad()) { … } @else { {{ prioridad()?.totalConPrioridadMedia ?? 0 }} }
+              </span>
+              <span class="kpi-label">Prioridad media</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="kpi-card kpi-gris">
+          <mat-card-content>
+            <mat-icon class="kpi-icon">circle</mat-icon>
+            <div class="kpi-info">
+              <span class="kpi-value">
+                @if (cargandoPrioridad()) { … } @else { {{ prioridad()?.totalConPrioridadBaja ?? 0 }} }
+              </span>
+              <span class="kpi-label">Prioridad baja</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Top urgentes + Anomalías recientes -->
+      <div class="motor-grid">
+        <mat-card class="motor-block">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>star</mat-icon>
+            <mat-card-title>Top urgentes</mat-card-title>
+            <mat-card-subtitle>Predicción del motor</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (cargandoPrioridad()) {
+              <div class="motor-loading"><mat-spinner diameter="28"></mat-spinner></div>
+            } @else if (prioridad() && !prioridad()!.disponible) {
+              <app-motor-no-disponible [compact]="true" (reintentar)="cargarPrioridad()"></app-motor-no-disponible>
+            } @else if ((prioridad()?.topUrgentes?.length ?? 0) === 0) {
+              <p class="motor-vacio">No hay solicitudes urgentes detectadas.</p>
+            } @else {
+              <ul class="urgentes-list">
+                @for (t of prioridad()!.topUrgentes; track t.solicitudId) {
+                  <li class="urgente-row">
+                    <span class="urgente-id">#{{ t.solicitudId | slice:0:6 }}</span>
+                    <span class="urgente-tramite">{{ t.tramiteNombre }}</span>
+                    <div class="urgente-badges">
+                      <app-severidad-badge [prioridad]="t.prioridad"></app-severidad-badge>
+                      @if (t.estadoSla) {
+                        <app-sla-badge [estado]="t.estadoSla"></app-sla-badge>
+                      }
+                    </div>
+                    <div class="urgente-info">
+                      <span class="urgente-razon">{{ t.razon }}</span>
+                      @if (t.horasHastaLimite != null) {
+                        <span class="urgente-vence">{{ formatHorasHastaLimite(t.horasHastaLimite) }}</span>
+                      }
+                    </div>
+                    <button mat-button color="primary" (click)="irASolicitud(t)">Ver</button>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="motor-block">
+          <mat-card-header>
+            <mat-icon mat-card-avatar>warning</mat-icon>
+            <mat-card-title>Anomalías recientes</mat-card-title>
+            <mat-card-subtitle>Últimas 3 detectadas</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (cargandoAnomalias()) {
+              <div class="motor-loading"><mat-spinner diameter="28"></mat-spinner></div>
+            } @else if (!anomaliasDisponible()) {
+              <app-motor-no-disponible [compact]="true" (reintentar)="cargarAnomaliasRecientes()"></app-motor-no-disponible>
+            } @else if (anomaliasRecientes().length === 0) {
+              <p class="motor-vacio">Sin anomalías recientes.</p>
+            } @else {
+              <div class="anomalias-compact">
+                @for (a of anomaliasRecientes(); track a.id) {
+                  <app-anomalia-card [anomalia]="a" [compact]="true"></app-anomalia-card>
+                }
+              </div>
+              <button mat-button color="primary" (click)="irAAnomalias()" class="ver-todas">
+                Ver todas las anomalías
+                <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+              </button>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
+  }
+
+  <!-- Vista para no-ADMIN -->
+  @if (!esAdmin()) {
+    <div class="welcome-card">
+      <mat-icon class="welcome-icon">waving_hand</mat-icon>
+      <p>Usá el menú lateral para acceder a tus tareas y solicitudes.</p>
+    </div>
+  }
+
 </div>

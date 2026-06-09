@@ -22,7 +22,10 @@
           }
         </p>
 
-        <app-archivos-panel [solicitudId]="solicitud.id"></app-archivos-panel>
+        <app-archivos-panel
+          [solicitudId]="solicitud.id"
+          [departamentoOrigenId]="tarea.departamentoId">
+        </app-archivos-panel>
 
         <div class="field-row">
           <mat-form-field appearance="outline" class="full-width">
@@ -121,19 +124,49 @@
                     </button>
                   </div>
                 }
-                @case ('FILE') {
-                  <app-archivo-field
-                    [formControlName]="campo.nombre"
-                    [solicitudId]="solicitud.id"
-                    [campoFormulario]="campo.nombre"
-                    [departamentoOrigenId]="departamentoId"
-                    [label]="campo.etiqueta"
-                    [requerido]="campo.requerido">
-                  </app-archivo-field>
-                }
               }
             }
           </div>
+        </section>
+      }
+
+      @if (slots.length > 0) {
+        <mat-divider></mat-divider>
+
+        <section class="form-section">
+          <div class="slots-header">
+            <h3>
+              <mat-icon>attach_file</mat-icon>
+              Documentos a generar
+            </h3>
+            @if (obligatoriosTotal > 0) {
+              <span class="slots-progreso"
+                    [class.slots-progreso-falta]="faltanObligatorios">
+                {{ obligatoriosSubidos }} de {{ obligatoriosTotal }} obligatorios subidos
+              </span>
+            }
+          </div>
+
+          <div class="slots-list">
+            @for (slot of slots; track slot.nombre) {
+              <app-doc-producido-slot
+                [nombre]="slot.nombre"
+                [solicitudId]="solicitud.id"
+                [departamentoOrigenId]="tarea.departamentoId"
+                [formatosAceptados]="slot.formatosAceptados"
+                [obligatorio]="slot.obligatorio"
+                [archivoExistente]="archivoDelSlot(slot)">
+              </app-doc-producido-slot>
+            }
+          </div>
+
+          @if (faltanObligatorios) {
+            <p class="slots-warn">
+              <mat-icon>info</mat-icon>
+              Te faltan documentos obligatorios. Podés enviar igual; el backend
+              te bloqueará si realmente son requeridos.
+            </p>
+          }
         </section>
       }
 

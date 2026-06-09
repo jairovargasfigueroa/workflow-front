@@ -54,6 +54,8 @@ import { Departamento } from '../../../departamentos/models/departamento.model';
 export class NodoConfigDocumentalComponent implements OnChanges {
   modeler = input<any>(null);
   element = input<any>(null);
+  /** 'tarea' (UserTask del funcionario) o 'inicio' (StartEvent del solicitante). */
+  contexto = input<'tarea' | 'inicio'>('tarea');
 
   private readonly matDialog = inject(MatDialog);
   private readonly departamentosService = inject(DepartamentosService);
@@ -63,6 +65,29 @@ export class NodoConfigDocumentalComponent implements OnChanges {
 
   config: ConfiguracionDocumental = emptyConfiguracionDocumental();
   private departamentosCache: Departamento[] = [];
+
+  // Textos adaptados al contexto (tarea / inicio).
+  get tituloSeccion(): string {
+    return this.contexto() === 'inicio'
+      ? 'Documentos del kit del solicitante'
+      : 'Documentos producidos (output)';
+  }
+  get resumenHeader(): string {
+    const n = this.config.documentosProducidos.length;
+    return this.contexto() === 'inicio'
+      ? `${n} documentos del kit`
+      : `${n} documentos producidos`;
+  }
+  get emptyText(): string {
+    return this.contexto() === 'inicio'
+      ? 'Este trámite no requiere documentos del solicitante.'
+      : 'Este nodo no produce documentos declarados.';
+  }
+  get adHocDesc(): string {
+    return this.contexto() === 'inicio'
+      ? 'Se aplican cuando el solicitante adjunta un archivo extra al crear el trámite.'
+      : 'Se aplican cuando alguien sube un archivo extra en este nodo, sin asociarlo a un documento declarado.';
+  }
 
   constructor() {
     this.departamentosService.getAll().subscribe({

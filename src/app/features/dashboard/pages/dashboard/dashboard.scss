@@ -1,73 +1,243 @@
 .dashboard {
-  h1 {
-    margin: 0 0 24px;
-    color: var(--color-text-primary);
-  }
+  padding: 24px;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+// ============ Header ============
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
-}
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
 
-.stat-card {
-  .stat-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .stat-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .stat-value {
-    font-size: 32px;
+  h1 {
+    margin: 0;
+    font-size: 24px;
     font-weight: 600;
     color: var(--color-text-primary);
   }
 
-  .stat-label {
-    font-size: 14px;
+  .fecha {
+    margin: 4px 0 0;
+    font-size: 13px;
     color: var(--color-text-secondary);
+    text-transform: capitalize;
   }
 
-  .stat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    opacity: 0.8;
+  button {
+    gap: 4px;
+    flex-shrink: 0;
   }
 }
 
-.dashboard-content {
+// ============ Vista no-ADMIN ============
+
+.welcome-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: var(--surface-subtle);
+  border-radius: var(--radius-card);
+
+  .welcome-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: var(--color-primary);
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    max-width: 380px;
+    line-height: 1.5;
+  }
+}
+
+// ============ Sección Motor ============
+
+.motor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.motor-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.motor-icon {
+  color: var(--color-primary);
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.motor-subtitle {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.motor-kpis {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  mat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px !important;
+  }
+}
+
+.kpi-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.kpi-rojo .kpi-icon { color: var(--sla-rojo-solid); }
+.kpi-amarillo .kpi-icon { color: var(--sla-amarillo-solid); }
+.kpi-gris .kpi-icon { color: var(--sla-null-solid); }
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.motor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
 }
 
-.activity-time {
-  color: var(--color-text-hint);
-  font-size: 12px;
+.motor-block {
+  mat-card-header {
+    margin-bottom: 8px;
+  }
 }
 
-.quick-actions {
+.motor-loading,
+.motor-vacio {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-hint);
+  margin: 0;
+  font-size: 13px;
+  display: flex;
+  justify-content: center;
+}
+
+.urgentes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
+}
 
-  button {
-    justify-content: flex-start;
+.urgente-row {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1.2fr) auto minmax(0, 1.5fr) 60px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 6px;
 
-    mat-icon {
-      margin-right: 8px;
-    }
+  &:hover {
+    background: var(--color-hover-row);
   }
+}
+
+.urgente-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.urgente-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.urgente-id {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-family: monospace;
+}
+
+.urgente-tramite {
+  font-size: 13px;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.urgente-razon {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.urgente-vence {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  margin-top: 2px;
+}
+
+.anomalias-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ver-todas {
+  margin-top: 12px;
+  width: 100%;
+  justify-content: center;
+  gap: 4px;
 }

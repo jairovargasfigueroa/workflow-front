@@ -101,5 +101,128 @@
       </section>
     }
 
+    <!-- ============ Motor: Mejor Ruta ============ -->
+    <section class="section motor-section">
+      <h2 class="section-title">
+        <mat-icon class="motor-icon">route</mat-icon>
+        Predicción de mejor ruta
+        <span class="motor-tag">Motor IA</span>
+      </h2>
+
+      @if (cargandoMejorRuta()) {
+        <div class="motor-loading"><mat-spinner diameter="32"></mat-spinner></div>
+      } @else if (mejorRuta() && !mejorRuta()!.disponible) {
+        <app-motor-no-disponible (reintentar)="cargarMejorRuta()"></app-motor-no-disponible>
+      } @else if ((mejorRuta()?.rutas?.length ?? 0) === 0) {
+        <p class="motor-vacio">No hay rutas predichas para este flujo todavía.</p>
+      } @else {
+        <div class="rutas-grid">
+          @for (ruta of mejorRuta()!.rutas; track ruta.nombre) {
+            <mat-card class="ruta-card" [class.ruta-recomendada]="ruta.recomendada">
+              <mat-card-content>
+                <div class="ruta-header">
+                  <span class="ruta-nombre">{{ ruta.nombre }}</span>
+                  @if (ruta.recomendada) {
+                    <span class="ruta-recomendada-tag">
+                      <mat-icon>star</mat-icon>
+                      Recomendada
+                    </span>
+                  }
+                </div>
+                <div class="ruta-info">
+                  <div class="ruta-item">
+                    <mat-icon>schedule</mat-icon>
+                    Tiempo predicho: <strong>{{ ruta.tiempoPredichoHoras | number:'1.0-1' }} h</strong>
+                  </div>
+                  <div class="ruta-item">
+                    <mat-icon>verified</mat-icon>
+                    Cumplimiento SLA: <strong>{{ formatPct(ruta.cumplimientoSlaPorcentaje) }}</strong>
+                  </div>
+                </div>
+                <mat-progress-bar mode="determinate"
+                                  [value]="ruta.cumplimientoSlaPorcentaje"
+                                  [color]="ruta.cumplimientoSlaPorcentaje >= 80 ? 'primary' :
+                                           ruta.cumplimientoSlaPorcentaje >= 50 ? 'accent' : 'warn'">
+                </mat-progress-bar>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ============ Motor: Riesgo ============ -->
+    <section class="section motor-section">
+      <h2 class="section-title">
+        <mat-icon class="motor-icon">online_prediction</mat-icon>
+        Predicción de riesgo
+        <span class="motor-tag">Motor IA</span>
+      </h2>
+
+      @if (cargandoRiesgo()) {
+        <div class="motor-loading"><mat-spinner diameter="32"></mat-spinner></div>
+      } @else if (riesgo() && !riesgo()!.disponible) {
+        <app-motor-no-disponible (reintentar)="cargarRiesgo()"></app-motor-no-disponible>
+      } @else if (riesgo()) {
+        <div class="riesgo-grid">
+          <mat-card class="riesgo-block">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>warning_amber</mat-icon>
+              <mat-card-title>Cuellos predichos</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              @if (riesgo()!.cuellosPredichos.length === 0) {
+                <p class="motor-vacio">Sin cuellos previstos.</p>
+              } @else {
+                <ul class="riesgo-list">
+                  @for (c of riesgo()!.cuellosPredichos; track c.nodoNombre) {
+                    <li>
+                      <mat-icon>place</mat-icon>
+                      <span class="riesgo-nombre">{{ c.nodoNombre }}</span>
+                      <span class="riesgo-prob">{{ formatProb(c.probabilidad) }} prob.</span>
+                      <span class="riesgo-cuando">· {{ c.cuando }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="riesgo-block">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>calendar_month</mat-icon>
+              <mat-card-title>Demoras predichas</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              @if (riesgo()!.demorasPredichas.length === 0) {
+                <p class="motor-vacio">Sin demoras previstas.</p>
+              } @else {
+                <ul class="riesgo-list">
+                  @for (d of riesgo()!.demorasPredichas; track d.tipo) {
+                    <li>
+                      <mat-icon>event_busy</mat-icon>
+                      <span class="riesgo-nombre">{{ d.tipo }}</span>
+                      <span class="riesgo-impacto">impacto {{ d.impacto }}</span>
+                      <span class="riesgo-prob">· {{ formatProb(d.probabilidad) }} prob.</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        @if (riesgo()!.cumplimientoSlaEsperado != null) {
+          <div class="riesgo-resumen">
+            <span>Cumplimiento SLA esperado próximo período:</span>
+            <strong>{{ formatPct(riesgo()!.cumplimientoSlaEsperado) }}</strong>
+            @if ((riesgo()!.cumplimientoSlaEsperado ?? 100) < 70) {
+              <mat-icon class="warn">warning</mat-icon>
+            }
+          </div>
+        }
+      }
+    </section>
+
   }
 </div>

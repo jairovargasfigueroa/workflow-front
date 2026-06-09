@@ -54,6 +54,79 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Estado SLA -->
+    @if (mostrarSlaCard()) {
+      <mat-card class="section-card sla-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar>timer</mat-icon>
+          <mat-card-title>Estado SLA</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="sla-resumen">
+            <div class="sla-fecha-limite">
+              <span class="label">Fecha límite</span>
+              <span class="value">{{ fechaLimiteAbsoluta(sol.fechaLimite) }}</span>
+            </div>
+            <app-sla-badge variante="pill"
+                           [estado]="sol.estadoSla"
+                           [fechaLimite]="sol.fechaLimite">
+            </app-sla-badge>
+          </div>
+
+          @if (porcentajeSlaSolicitud() != null) {
+            <div class="sla-progreso">
+              <div class="sla-progreso-header">
+                <span>Progreso SLA</span>
+                <span class="sla-porcentaje">{{ porcentajeSlaSolicitud() }}%</span>
+              </div>
+              <mat-progress-bar mode="determinate"
+                                [value]="porcentajeSlaBarra()"
+                                [color]="sol.estadoSla === 'VERDE' ? 'primary' :
+                                         sol.estadoSla === 'AMARILLO' ? 'accent' : 'warn'">
+              </mat-progress-bar>
+              <p class="sla-tiempo">Tiempo restante: <strong>{{ tiempoRestanteSolicitud() }}</strong></p>
+            </div>
+          }
+
+          @if (nodosActivosConSla().length > 0) {
+            <mat-divider class="sla-divider"></mat-divider>
+            <h3 class="sla-nodos-titulo">SLA por nodo activo</h3>
+            <div class="sla-nodos-list">
+              @for (resp of nodosActivosConSla(); track resp.elementId) {
+                <div class="sla-nodo-item">
+                  <div class="sla-nodo-header">
+                    <span class="sla-nodo-nombre">
+                      <mat-icon>business</mat-icon>
+                      {{ resp.departamentoNombre }} (nodo actual)
+                    </span>
+                    <app-sla-badge variante="pill"
+                                   [estado]="resp.estadoSlaNodo"
+                                   [fechaLimite]="resp.fechaLimiteNodo">
+                    </app-sla-badge>
+                  </div>
+                  <div class="sla-nodo-meta">
+                    <span><strong>Entrada:</strong> {{ resp.fechaEntrada | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span><strong>Límite:</strong> {{ fechaLimiteAbsoluta(resp.fechaLimiteNodo) }}</span>
+                  </div>
+                  @if (porcentajeNodo(resp) != null) {
+                    <mat-progress-bar mode="determinate"
+                                      [value]="porcentajeNodoBarra(resp)"
+                                      [color]="resp.estadoSlaNodo === 'VERDE' ? 'primary' :
+                                               resp.estadoSlaNodo === 'AMARILLO' ? 'accent' : 'warn'">
+                    </mat-progress-bar>
+                    <p class="sla-tiempo">
+                      <span class="muted">{{ porcentajeNodo(resp) }}% consumido</span>
+                      · Tiempo restante: <strong>{{ tiempoRestanteNodo(resp) }}</strong>
+                    </p>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
     <!-- Respuestas del Solicitante -->
     @if (sol.respuestasSolicitante && sol.respuestasSolicitante.length > 0) {
       <mat-card class="section-card">
@@ -77,7 +150,10 @@
     <!-- Archivos del expediente -->
     <mat-card class="section-card">
       <mat-card-content>
-        <app-archivos-panel [solicitudId]="sol.id"></app-archivos-panel>
+        <app-archivos-panel
+          [solicitudId]="sol.id"
+          [mostrarSubirExtra]="false">
+        </app-archivos-panel>
       </mat-card-content>
     </mat-card>
 

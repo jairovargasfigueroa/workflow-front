@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -11,11 +11,16 @@ import { firstValueFrom } from 'rxjs';
 import { ArchivosService } from '../../services/archivos.service';
 import { ArchivoResponse } from '../../models/archivo.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
+import { ArchivoAuditoriaModalComponent } from '../archivo-auditoria-modal/archivo-auditoria-modal';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
+import { caminoVer, puedeVerse } from '../../../../core/utils/formato-archivo.util';
 
 export interface ArchivoHistorialModalData {
   archivo: ArchivoResponse;
+  /** Si true, oculta el botón "Revertir" (vista de consulta, ej. repositorio). */
+  soloLectura?: boolean;
 }
 
 @Component({
@@ -37,12 +42,20 @@ export class ArchivoHistorialModalComponent implements OnInit {
   private readonly data = inject<ArchivoHistorialModalData>(MAT_DIALOG_DATA);
   private readonly archivosService = inject(ArchivosService);
   private readonly notification = inject(NotificationService);
+  private readonly authService = inject(AuthService);
   private readonly matDialog = inject(MatDialog);
 
   archivo = this.data.archivo;
+  soloLectura = this.data.soloLectura ?? false;
   versiones: ArchivoResponse[] = [];
   loading = true;
   reverting: number | null = null;
+
+  // Mismo criterio que en archivos-panel: ADMIN o FUNCIONARIO ven auditoría.
+  readonly puedeVerAuditoria = computed(() => {
+    const rol = this.authService.currentUser()?.rol;
+    return rol === 'ADMIN' || rol === 'FUNCIONARIO';
+  });
 
   ngOnInit(): void {
     this.cargar();
@@ -66,10 +79,41 @@ export class ArchivoHistorialModalComponent implements OnInit {
     return v.estado === 'ACTIVO';
   }
 
+  puedeVer(v: ArchivoResponse): boolean {
+    return puedeVerse(v.formato);
+  }
+
+  async ver(v: ArchivoResponse): Promise<void> {
+    const camino = caminoVer(v.formato);
+    if (camino === 'onlyoffice') {
+      // Cualquier versión (incluso vieja) se puede abrir en lectura.
+      window.open(`/archivos/${v.id}/abrir?soloVista=true`, '_blank');
+      return;
+    }
+    if (camino === 'navegador') {
+      try {
+        const res = await firstValueFrom(this.archivosService.descargar(v.id, false));
+        window.open(res.urlDescarga, '_blank');
+      } catch (err) {
+        this.handleError(err as HttpErrorResponse, 'No se pudo abrir la versión');
+      }
+      return;
+    }
+    // 'descargar' (binarios) — fallback al método de descarga
+    this.descargar(v);
+  }
+
   async descargar(v: ArchivoResponse): Promise<void> {
     try {
-      const res = await firstValueFrom(this.archivosService.descargar(v.id));
-      window.open(res.urlDescarga, '_blank');
+      const res = await firstValueFrom(this.archivosService.descargar(v.id, true));
+      const link = document.createElement('a');
+      link.href = res.urlDescarga;
+      link.download = v.nombre;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (err) {
       this.handleError(err as HttpErrorResponse, 'No se pudo descargar la versión');
     }
@@ -111,6 +155,19 @@ export class ArchivoHistorialModalComponent implements OnInit {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  abrirAuditoria(v: ArchivoResponse): void {
+    // Misma modal de auditoría, pero pasándole el id de la versión específica.
+    // El endpoint GET /auditoria/archivos acepta cualquier archivoId (incluso versiones REEMPLAZADAS).
+    this.matDialog.open(ArchivoAuditoriaModalComponent, {
+      data: {
+        archivoId: v.id,
+        nombreArchivo: `${v.nombre} (v${v.version})`
+      },
+      width: '720px',
+      maxHeight: '85vh'
+    });
   }
 
   close(): void {

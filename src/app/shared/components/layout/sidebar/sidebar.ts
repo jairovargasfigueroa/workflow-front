@@ -31,7 +31,9 @@ export class SidebarComponent {
     { label: 'Formularios', icon: 'dynamic_form', route: '/formularios' },
     { label: 'Usuarios', icon: 'people', route: '/usuarios' },
     { label: 'Analytics', icon: 'analytics', route: '/analytics' },
-    { label: 'Reportes IA', icon: 'auto_awesome', route: '/reportes', roles: ['ADMIN', 'FUNCIONARIO'] }
+    { label: 'Reportes IA', icon: 'auto_awesome', route: '/reportes', roles: ['ADMIN', 'FUNCIONARIO'] },
+    { label: 'Anomalías', icon: 'crisis_alert', route: '/anomalias', roles: ['ADMIN'] },
+    { label: 'Repositorio Documental', icon: 'inventory_2', route: '/repositorio', roles: ['ADMIN'] }
   ];
 
   readonly menuItems = computed<MenuItem[]>(() => {

@@ -7,7 +7,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/pages/login/login').then(m => m.LoginComponent)
   },
   {
-    path: 'archivos/:id/editar',
+    path: 'archivos/:id/abrir',
     loadComponent: () =>
       import('./features/solicitudes/pages/onlyoffice-editor/onlyoffice-editor')
         .then(m => m.OnlyOfficeEditorComponent)
@@ -52,6 +52,14 @@ export const routes: Routes = [
       {
         path: 'reportes',
         loadChildren: () => import('./features/reportes/reportes.routes').then(m => m.REPORTES_ROUTES)
+      },
+      {
+        path: 'anomalias',
+        loadChildren: () => import('./features/anomalias/anomalias.routes').then(m => m.ANOMALIAS_ROUTES)
+      },
+      {
+        path: 'repositorio',
+        loadChildren: () => import('./features/repositorio/repositorio.routes').then(m => m.REPOSITORIO_ROUTES)
       }
     ]
   }

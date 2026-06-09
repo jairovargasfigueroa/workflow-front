@@ -96,3 +96,46 @@
     height: 16px;
   }
 }
+
+.sla-section {
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+  }
+
+  .section-icon {
+    color: var(--color-primary);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .section-help {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+  }
+}
+
+.sla-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}

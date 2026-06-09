@@ -1,0 +1,67 @@
+<div class="kit-slot"
+     [class.kit-slot-pendiente]="!archivo() && obligatorio"
+     [class.kit-slot-ok]="archivo() || subido"
+     [class.kit-slot-error]="errorMensaje">
+  <div class="slot-header">
+    <mat-icon class="slot-status-icon"
+              [class.uploaded]="subido"
+              [class.error]="errorMensaje"
+              [class.pendiente-ob]="!archivo() && obligatorio && !errorMensaje">
+      {{ subido ? 'check_circle' :
+         errorMensaje ? 'error' :
+         archivo() ? 'check_circle_outline' :
+         'radio_button_unchecked' }}
+    </mat-icon>
+    <div class="slot-meta">
+      <div class="slot-nombre">
+        {{ nombre }}
+        @if (obligatorio) { <span class="req-mark" matTooltip="Obligatorio">*</span> }
+      </div>
+      <div class="slot-formato">
+        {{ formatosLabel }}
+        @if (obligatorio) { · Obligatorio } @else { · Opcional }
+      </div>
+    </div>
+  </div>
+
+  <input #fileInput type="file" hidden [accept]="accept" (change)="onFileSelected($event)">
+
+  @if (subiendo) {
+    <div class="slot-uploading">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      <span>Subiendo...</span>
+    </div>
+  } @else if (archivo(); as f) {
+    <div class="slot-archivo-row">
+      <span class="slot-archivo-info">
+        <mat-icon>insert_drive_file</mat-icon>
+        {{ f.name }}
+        <span class="slot-tamano">· {{ formatTamano(f.size) }}</span>
+      </span>
+      <div class="slot-archivo-acciones">
+        <button mat-button color="primary"
+                [disabled]="subiendo"
+                (click)="cambiar(fileInput)">
+          Cambiar
+        </button>
+        <button mat-button color="warn"
+                [disabled]="subiendo"
+                (click)="quitar()">
+          Quitar
+        </button>
+      </div>
+    </div>
+  } @else {
+    <button mat-stroked-button color="primary" (click)="fileInput.click()">
+      <mat-icon>upload</mat-icon>
+      Seleccionar archivo
+    </button>
+  }
+
+  @if (errorMensaje) {
+    <div class="slot-error-msg">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMensaje }}</span>
+    </div>
+  }
+</div>

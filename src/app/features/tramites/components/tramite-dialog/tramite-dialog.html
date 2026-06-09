@@ -122,6 +122,74 @@
         </p>
       }
     </section>
+
+    <mat-divider></mat-divider>
+
+    <section class="form-section sla-section">
+      <div class="section-header">
+        <h3>
+          <mat-icon class="section-icon">timer</mat-icon>
+          Configuración SLA y Criticidad
+        </h3>
+      </div>
+      <p class="section-help">
+        Define los plazos de cumplimiento y la criticidad del trámite. Todos los campos son opcionales.
+      </p>
+
+      <div class="sla-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Plazo objetivo (horas)</mat-label>
+          <input matInput type="number" min="1" step="1"
+                 formControlName="plazoObjetivoHoras"
+                 placeholder="Ej. 120">
+          <mat-hint>Tiempo ideal para resolver</mat-hint>
+          @if (form.controls.plazoObjetivoHoras.hasError('min')) {
+            <mat-error>Debe ser mayor a 0</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Plazo máximo (horas)</mat-label>
+          <input matInput type="number" min="1" step="1"
+                 formControlName="plazoMaximoHoras"
+                 placeholder="Ej. 168">
+          <mat-hint>Límite absoluto</mat-hint>
+          @if (form.controls.plazoMaximoHoras.hasError('min')) {
+            <mat-error>Debe ser mayor a 0</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Umbral de alerta (%)</mat-label>
+          <input matInput type="number" min="1" max="100" step="1"
+                 formControlName="umbralAlertaPorcentaje"
+                 placeholder="Ej. 70">
+          <mat-hint>A partir de qué % se marca en riesgo</mat-hint>
+          @if (form.controls.umbralAlertaPorcentaje.hasError('min')
+            || form.controls.umbralAlertaPorcentaje.hasError('max')) {
+            <mat-error>Debe estar entre 1 y 100</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Criticidad</mat-label>
+          <mat-select formControlName="criticidad">
+            <mat-option [value]="null">— Sin clasificar —</mat-option>
+            @for (c of criticidades; track c) {
+              <mat-option [value]="c">{{ criticidadLabels[c] }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Categoría de prioridad</mat-hint>
+        </mat-form-field>
+      </div>
+
+      @if (form.hasError('plazoIncoherente')) {
+        <p class="hint-warn">
+          <mat-icon>warning</mat-icon>
+          El plazo máximo debe ser mayor o igual al plazo objetivo.
+        </p>
+      }
+    </section>
   </form>
 </mat-dialog-content>
 

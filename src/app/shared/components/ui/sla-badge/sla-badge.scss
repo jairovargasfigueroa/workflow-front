@@ -1,0 +1,48 @@
+// Cada variante usa las CSS vars de _tokens.scss según la clase del estado.
+
+.sla-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-hint);
+  flex-shrink: 0;
+
+  &.sla-verde    { background: var(--sla-verde-solid); }
+  &.sla-amarillo { background: var(--sla-amarillo-solid); }
+  &.sla-rojo     { background: var(--sla-rojo-solid); }
+  &.sla-vencido  { background: var(--sla-vencido-solid); }
+  &.sla-null     { background: transparent; color: var(--color-text-hint); width: auto; }
+}
+
+.sla-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.sla-verde    { background: var(--sla-verde-bg);    color: var(--sla-verde-text); }
+  &.sla-amarillo { background: var(--sla-amarillo-bg); color: var(--sla-amarillo-text); }
+  &.sla-rojo     { background: var(--sla-rojo-bg);     color: var(--sla-rojo-text); }
+  &.sla-vencido  { background: var(--sla-vencido-bg);  color: var(--sla-vencido-text); }
+  &.sla-null     { background: var(--sla-null-bg);     color: var(--sla-null-text); }
+}
+
+.sla-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  .sla-verde &    { background: var(--sla-verde-solid); }
+  .sla-amarillo & { background: var(--sla-amarillo-solid); }
+  .sla-rojo &     { background: var(--sla-rojo-solid); }
+  .sla-vencido &  { background: var(--sla-vencido-solid); }
+  .sla-null &     { background: var(--sla-null-solid); }
+}

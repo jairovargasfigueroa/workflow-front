@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormArray, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,6 +15,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 
 import { TramitesService } from '../../services/tramites.service';
 import { Tramite } from '../../models/tramite.model';
+import { Criticidad, CRITICIDAD_LABELS } from '../../../../core/models/sla';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { FormulariosService } from '../../../formularios/services/formularios.service';
 import { FormularioTemplate } from '../../../formularios/models/formulario.model';
@@ -28,6 +29,18 @@ export interface TramiteDialogData {
 
 const ETIQUETAS_RECOMENDADAS_MIN = 8;
 const ETIQUETAS_ADVERTENCIA_MAX = 20;
+
+const CRITICIDADES: Criticidad[] = ['RUTINARIO', 'IMPORTANTE', 'CRITICO', 'EMERGENCIA'];
+
+/** Valida que plazoMaximoHoras >= plazoObjetivoHoras cuando ambos están presentes. */
+const plazoCoherenteValidator: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const objetivo = group.get('plazoObjetivoHoras')?.value;
+  const maximo = group.get('plazoMaximoHoras')?.value;
+  if (objetivo != null && maximo != null && Number(maximo) < Number(objetivo)) {
+    return { plazoIncoherente: true };
+  }
+  return null;
+};
 
 @Component({
   selector: 'app-tramite-dialog',
@@ -60,6 +73,8 @@ export class TramiteDialogComponent implements OnInit {
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
   readonly maxRecomendado = ETIQUETAS_ADVERTENCIA_MAX;
   readonly minRecomendado = ETIQUETAS_RECOMENDADAS_MIN;
+  readonly criticidades = CRITICIDADES;
+  readonly criticidadLabels = CRITICIDAD_LABELS;
 
   isEditMode = this.data.mode === 'edit';
   saving = false;
@@ -68,13 +83,17 @@ export class TramiteDialogComponent implements OnInit {
 
   etiquetas: string[] = [];
 
-  form = this.fb.nonNullable.group({
-    nombre: [this.data.tramite?.nombre || '', [Validators.required, Validators.maxLength(200)]],
-    descripcion: [this.data.tramite?.descripcion || ''],
-    formularioSolicitanteId: [this.data.tramite?.formularioSolicitanteId || ''],
-    flujoTrabajoId: [this.data.tramite?.flujoTrabajoId || ''],
-    requisitos: this.fb.array<string>([])
-  });
+  form = this.fb.group({
+    nombre: this.fb.control(this.data.tramite?.nombre || '', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] }),
+    descripcion: this.fb.control(this.data.tramite?.descripcion || '', { nonNullable: true }),
+    formularioSolicitanteId: this.fb.control(this.data.tramite?.formularioSolicitanteId || '', { nonNullable: true }),
+    flujoTrabajoId: this.fb.control(this.data.tramite?.flujoTrabajoId || '', { nonNullable: true }),
+    requisitos: this.fb.array<string>([]),
+    plazoObjetivoHoras: this.fb.control<number | null>(this.data.tramite?.plazoObjetivoHoras ?? null, { validators: [Validators.min(1)] }),
+    plazoMaximoHoras: this.fb.control<number | null>(this.data.tramite?.plazoMaximoHoras ?? null, { validators: [Validators.min(1)] }),
+    umbralAlertaPorcentaje: this.fb.control<number | null>(this.data.tramite?.umbralAlertaPorcentaje ?? null, { validators: [Validators.min(1), Validators.max(100)] }),
+    criticidad: this.fb.control<Criticidad | null>(this.data.tramite?.criticidad ?? null)
+  }, { validators: plazoCoherenteValidator });
 
   get requisitosArray(): FormArray {
     return this.form.controls.requisitos;
@@ -140,12 +159,16 @@ export class TramiteDialogComponent implements OnInit {
     const formValue = this.form.getRawValue();
 
     const requestData = {
-      nombre: formValue.nombre,
+      nombre: formValue.nombre!,
       descripcion: formValue.descripcion,
       formularioSolicitanteId: formValue.formularioSolicitanteId || undefined,
       flujoTrabajoId: formValue.flujoTrabajoId || undefined,
-      requisitos: formValue.requisitos.filter((r): r is string => r != null && r.trim() !== ''),
-      etiquetas: this.etiquetas
+      requisitos: (formValue.requisitos ?? []).filter((r): r is string => r != null && r.trim() !== ''),
+      etiquetas: this.etiquetas,
+      plazoObjetivoHoras: formValue.plazoObjetivoHoras ?? null,
+      plazoMaximoHoras: formValue.plazoMaximoHoras ?? null,
+      umbralAlertaPorcentaje: formValue.umbralAlertaPorcentaje ?? null,
+      criticidad: formValue.criticidad ?? null
     };
 
     const request$ = this.isEditMode

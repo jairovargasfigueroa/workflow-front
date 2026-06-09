@@ -7,14 +7,23 @@
     (buttonClick)="openCreateDialog()">
   </app-page-header>
 
+  <div class="sla-filtros">
+    <span class="filtros-label">Filtrar por SLA:</span>
+    <mat-chip-listbox [value]="filtroSla()" (change)="setFiltroSla($event.value)">
+      <mat-chip-option value="todos">Todos</mat-chip-option>
+      <mat-chip-option value="critico">Crítico (rojo + vencido)</mat-chip-option>
+      <mat-chip-option value="a-vencer">A punto de vencer (amarillo+)</mat-chip-option>
+    </mat-chip-listbox>
+  </div>
+
   <mat-tab-group animationDuration="200ms" (selectedIndexChange)="onTabChange($event)">
 
     <!-- TAB 1: BANDEJA DEL DEPARTAMENTO -->
     <mat-tab>
       <ng-template mat-tab-label>
         Bandeja
-        @if (bandejaDepto().length > 0) {
-          <span class="tab-badge">{{ bandejaDepto().length }}</span>
+        @if (bandejaFiltrada().length > 0) {
+          <span class="tab-badge">{{ bandejaFiltrada().length }}</span>
         }
       </ng-template>
 
@@ -22,15 +31,15 @@
         <div class="tab-loading">
           <mat-spinner diameter="40"></mat-spinner>
         </div>
-      } @else if (bandejaDepto().length === 0) {
+      } @else if (bandejaFiltrada().length === 0) {
         <app-empty-state
           icon="inbox"
           title="Bandeja vacía"
-          message="No hay solicitudes pendientes de tomar en tu departamento.">
+          message="No hay solicitudes pendientes que coincidan con el filtro.">
         </app-empty-state>
       } @else {
         <div class="table-container">
-          <table mat-table [dataSource]="bandejaDepto()" class="solicitudes-table">
+          <table mat-table [dataSource]="bandejaFiltrada()" class="solicitudes-table">
 
             <ng-container matColumnDef="urgencia">
               <th mat-header-cell *matHeaderCellDef></th>
@@ -49,6 +58,21 @@
             <ng-container matColumnDef="solicitante">
               <th mat-header-cell *matHeaderCellDef>Solicitante</th>
               <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="sla">
+              <th mat-header-cell *matHeaderCellDef>SLA</th>
+              <td mat-cell *matCellDef="let sol">
+                <app-sla-badge [estado]="sol.estadoSla" [fechaLimite]="sol.fechaLimite"></app-sla-badge>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="vence">
+              <th mat-header-cell *matHeaderCellDef>Vence en</th>
+              <td mat-cell *matCellDef="let sol" class="vence-cell"
+                  [matTooltip]="tooltipFechaLimite(sol)">
+                {{ venceEn(sol) }}
+              </td>
             </ng-container>
 
             <ng-container matColumnDef="fecha">
@@ -79,8 +103,8 @@
     <mat-tab>
       <ng-template mat-tab-label>
         Mis tareas
-        @if (misTareas().length > 0) {
-          <span class="tab-badge tab-badge--accent">{{ misTareas().length }}</span>
+        @if (misTareasFiltradas().length > 0) {
+          <span class="tab-badge tab-badge--accent">{{ misTareasFiltradas().length }}</span>
         }
       </ng-template>
 
@@ -88,15 +112,15 @@
         <div class="tab-loading">
           <mat-spinner diameter="40"></mat-spinner>
         </div>
-      } @else if (misTareas().length === 0) {
+      } @else if (misTareasFiltradas().length === 0) {
         <app-empty-state
           icon="assignment_turned_in"
           title="Sin tareas asignadas"
-          message="No tienes tareas tomadas en este momento.">
+          message="No tienes tareas tomadas que coincidan con el filtro.">
         </app-empty-state>
       } @else {
         <div class="table-container">
-          <table mat-table [dataSource]="misTareas()" class="solicitudes-table">
+          <table mat-table [dataSource]="misTareasFiltradas()" class="solicitudes-table">
 
             <ng-container matColumnDef="tramite">
               <th mat-header-cell *matHeaderCellDef>Trámite</th>
@@ -106,6 +130,21 @@
             <ng-container matColumnDef="solicitante">
               <th mat-header-cell *matHeaderCellDef>Solicitante</th>
               <td mat-cell *matCellDef="let sol">{{ sol.solicitanteNombre }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="sla">
+              <th mat-header-cell *matHeaderCellDef>SLA</th>
+              <td mat-cell *matCellDef="let sol">
+                <app-sla-badge [estado]="sol.estadoSla" [fechaLimite]="sol.fechaLimite"></app-sla-badge>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="vence">
+              <th mat-header-cell *matHeaderCellDef>Vence en</th>
+              <td mat-cell *matCellDef="let sol" class="vence-cell"
+                  [matTooltip]="tooltipFechaLimite(sol)">
+                {{ venceEn(sol) }}
+              </td>
             </ng-container>
 
             <ng-container matColumnDef="fecha">
@@ -142,15 +181,15 @@
         <div class="tab-loading">
           <mat-spinner diameter="40"></mat-spinner>
         </div>
-      } @else if (historialDepto().length === 0 && historialCargado) {
+      } @else if (historialFiltrado().length === 0 && historialCargado) {
         <app-empty-state
           icon="history"
           title="Sin historial"
-          message="No hay solicitudes procesadas por tu departamento.">
+          message="No hay solicitudes procesadas que coincidan con el filtro.">
         </app-empty-state>
-      } @else if (historialDepto().length > 0) {
+      } @else if (historialFiltrado().length > 0) {
         <div class="table-container">
-          <table mat-table [dataSource]="historialDepto()" class="solicitudes-table">
+          <table mat-table [dataSource]="historialFiltrado()" class="solicitudes-table">
 
             <ng-container matColumnDef="tramite">
               <th mat-header-cell *matHeaderCellDef>Trámite</th>
@@ -168,6 +207,13 @@
                 <mat-chip [class]="getEstadoClass(sol.estado)">
                   {{ getEstadoLabel(sol.estado) }}
                 </mat-chip>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="sla">
+              <th mat-header-cell *matHeaderCellDef>SLA final</th>
+              <td mat-cell *matCellDef="let sol">
+                <app-sla-badge [estado]="sol.estadoSla" [fechaLimite]="sol.fechaLimite"></app-sla-badge>
               </td>
             </ng-container>
 

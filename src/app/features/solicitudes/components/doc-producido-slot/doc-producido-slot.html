@@ -1,0 +1,62 @@
+<div class="slot" [class.slot-uploaded]="status() === 'uploaded'">
+  <div class="slot-header">
+    <mat-icon class="slot-status-icon"
+              [class.uploaded]="status() === 'uploaded'"
+              [class.error]="status() === 'error'">
+      {{ status() === 'uploaded' ? 'check_circle' :
+         status() === 'error' ? 'error' :
+         'radio_button_unchecked' }}
+    </mat-icon>
+    <div class="slot-meta">
+      <div class="slot-nombre">
+        {{ nombre }}
+        @if (obligatorio) { <span class="req-mark" matTooltip="Obligatorio">*</span> }
+      </div>
+      <div class="slot-formato">
+        @if (formatosLabel) { {{ formatosLabel }} } @else { Cualquier formato }
+        @if (obligatorio) { · Obligatorio } @else { · Opcional }
+      </div>
+    </div>
+  </div>
+
+  <input #fileInput type="file" hidden [accept]="accept" (change)="onFileSelected($event)">
+
+  @switch (status()) {
+    @case ('idle') {
+      <button mat-stroked-button color="primary" (click)="fileInput.click()">
+        <mat-icon>upload</mat-icon>
+        Subir
+      </button>
+    }
+    @case ('uploading') {
+      <div class="slot-uploading">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <span>Subiendo...</span>
+      </div>
+    }
+    @case ('uploaded') {
+      <div class="slot-uploaded-row">
+        <span class="slot-archivo-info">
+          <mat-icon>insert_drive_file</mat-icon>
+          {{ archivo?.nombre }}
+          @if (archivo?.tamanoBytes) {
+            <span class="slot-tamano">· {{ formatTamano(archivo?.tamanoBytes) }}</span>
+          }
+        </span>
+        <button mat-button color="primary"
+                [disabled]="archivo?.inmutable"
+                [matTooltip]="archivo?.inmutable ? 'Archivo inmutable' : ''"
+                (click)="cambiar(fileInput)">
+          Cambiar
+        </button>
+      </div>
+    }
+    @case ('error') {
+      <div class="slot-error">
+        <mat-icon>error_outline</mat-icon>
+        <span class="error-msg">{{ errorMessage() }}</span>
+        <button mat-button color="primary" (click)="reintentar(fileInput)">Reintentar</button>
+      </div>
+    }
+  }
+</div>

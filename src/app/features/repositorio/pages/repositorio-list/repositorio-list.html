@@ -1,0 +1,207 @@
+<div class="repositorio-page">
+  <app-page-header
+    title="Repositorio Documental"
+    subtitle="Explorá toda la documentación por trámite, usuario y solicitud.">
+  </app-page-header>
+
+  <section class="filtros-card">
+    <div class="filtros-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Trámite</mat-label>
+        <mat-select [(ngModel)]="filtros.tramiteId">
+          <mat-option value="">Todos</mat-option>
+          @for (t of tramites(); track t.id) {
+            <mat-option [value]="t.id">{{ t.nombre }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Usuario</mat-label>
+        <mat-select [(ngModel)]="filtros.clienteId">
+          <mat-option value="">Todos</mat-option>
+          @for (c of clientes(); track c.id) {
+            <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Formato</mat-label>
+        <mat-select [(ngModel)]="filtros.formato">
+          <mat-option value="">Todos</mat-option>
+          @for (f of formatos; track f) {
+            <mat-option [value]="f">{{ f | uppercase }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Desde</mat-label>
+        <input matInput [matDatepicker]="dpDesde" [(ngModel)]="filtros.fechaDesde">
+        <mat-datepicker-toggle matIconSuffix [for]="dpDesde"></mat-datepicker-toggle>
+        <mat-datepicker #dpDesde></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Hasta</mat-label>
+        <input matInput [matDatepicker]="dpHasta" [(ngModel)]="filtros.fechaHasta">
+        <mat-datepicker-toggle matIconSuffix [for]="dpHasta"></mat-datepicker-toggle>
+        <mat-datepicker #dpHasta></mat-datepicker>
+      </mat-form-field>
+
+      <div class="filtros-actions">
+        <button mat-flat-button color="primary" (click)="buscar()">
+          <mat-icon>search</mat-icon>
+          Buscar
+        </button>
+        @if (hayFiltros()) {
+          <button mat-stroked-button (click)="limpiarFiltros()">
+            <mat-icon>filter_alt_off</mat-icon>
+            Limpiar
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (truncado()) {
+      <div class="banner-trunc">
+        <mat-icon>info</mat-icon>
+        <span>Viendo {{ mostrandoCount() }} de {{ totalBackend() }} archivos. Refiná los filtros para ver el resto.</span>
+      </div>
+    }
+  </section>
+
+  @if (cargando()) {
+    <div class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (arbol().length === 0) {
+    <div class="empty">
+      <mat-icon>folder_off</mat-icon>
+      <p>No se encontraron archivos con los filtros aplicados.</p>
+    </div>
+  } @else {
+    <div class="explorador">
+      <!-- Panel izquierdo: árbol -->
+      <aside class="panel-arbol">
+        <div class="panel-header">
+          <mat-icon>account_tree</mat-icon>
+          <span>Navegación</span>
+        </div>
+        <div class="arbol-scroll">
+          @for (t of arbol(); track t.id) {
+            <div class="nodo nodo-tramite">
+              <button class="nodo-row" (click)="toggleTramite(t)">
+                <mat-icon class="chevron">
+                  {{ t.expandido ? 'expand_more' : 'chevron_right' }}
+                </mat-icon>
+                <mat-icon class="nodo-icon ic-tramite">folder</mat-icon>
+                <span class="nodo-label">{{ t.nombre }}</span>
+                <span class="nodo-count">{{ t.total }}</span>
+              </button>
+              @if (t.expandido) {
+                @for (u of t.usuarios; track u.id) {
+                  <div class="nodo nodo-usuario">
+                    <button class="nodo-row" (click)="toggleUsuario(u)">
+                      <mat-icon class="chevron">
+                        {{ u.expandido ? 'expand_more' : 'chevron_right' }}
+                      </mat-icon>
+                      <mat-icon class="nodo-icon ic-usuario">person</mat-icon>
+                      <span class="nodo-label">{{ u.nombre }}</span>
+                      <span class="nodo-count">{{ u.total }}</span>
+                    </button>
+                    @if (u.expandido) {
+                      @for (s of u.solicitudes; track s.id) {
+                        <button class="nodo nodo-solicitud nodo-row"
+                                [class.seleccionada]="solicitudSeleccionada()?.id === s.id"
+                                (click)="seleccionarSolicitud(t, u, s)">
+                          <mat-icon class="nodo-icon ic-solicitud">assignment</mat-icon>
+                          <span class="nodo-label">
+                            #{{ s.idCorto }} — {{ fechaCorta(s.fechaMin) }}
+                          </span>
+                          <span class="nodo-count">{{ s.archivos.length }}</span>
+                        </button>
+                      }
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </aside>
+
+      <!-- Panel derecho: detalle de la solicitud seleccionada -->
+      <section class="panel-detalle">
+        @if (!solicitudSeleccionada()) {
+          <div class="detalle-vacio">
+            <mat-icon>touch_app</mat-icon>
+            <p>Seleccioná una solicitud del árbol para ver sus documentos.</p>
+          </div>
+        } @else {
+          <div class="detalle-header">
+            <div>
+              <h2>{{ contextoSeleccion()?.usuario }} · Solicitud #{{ solicitudSeleccionada()!.idCorto }}</h2>
+              <p class="detalle-sub">
+                {{ contextoSeleccion()?.tramite }} ·
+                {{ solicitudSeleccionada()!.archivos.length }} documento(s)
+              </p>
+            </div>
+          </div>
+
+          <ul class="archivo-list">
+            @for (a of solicitudSeleccionada()!.archivos; track a.id) {
+              <li class="archivo-item">
+                <mat-icon class="archivo-icon" [style.color]="colorArchivo(a)">
+                  {{ iconoArchivo(a) }}
+                </mat-icon>
+                <div class="archivo-info">
+                  <div class="archivo-nombre">
+                    {{ a.nombre }}
+                    @if (a.campoFormularioOrigen) {
+                      <span class="origen-chip origen-producido"
+                            [matTooltip]="'Documento: ' + a.campoFormularioOrigen">
+                        {{ a.campoFormularioOrigen }}
+                      </span>
+                    } @else {
+                      <span class="origen-chip origen-suelto"
+                            matTooltip="Archivo extra, no atado a un documento declarado">
+                        extra
+                      </span>
+                    }
+                    @if (a.version > 1) {
+                      <span class="archivo-version">v{{ a.version }}</span>
+                    }
+                    @if (a.inmutable) {
+                      <mat-icon class="lock-icon" matTooltip="Inmutable">lock</mat-icon>
+                    }
+                  </div>
+                  <div class="archivo-meta">
+                    {{ a.subidoPorNombre }} ·
+                    {{ a.fechaSubida | date:'dd/MM/yyyy HH:mm' }} ·
+                    {{ a.formato | uppercase }} ·
+                    {{ formatTamano(a.tamanoBytes) }}
+                  </div>
+                </div>
+                <div class="archivo-actions">
+                  @if (puedeVer(a)) {
+                    <button mat-icon-button matTooltip="Ver" (click)="ver(a)">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  }
+                  <button mat-icon-button matTooltip="Descargar" (click)="descargar(a)">
+                    <mat-icon>download</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Auditoría" (click)="abrirAuditoria(a)">
+                    <mat-icon>receipt_long</mat-icon>
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+  }
+</div>

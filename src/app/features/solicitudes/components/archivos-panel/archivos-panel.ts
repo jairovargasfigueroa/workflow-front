@@ -18,7 +18,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { Subject, filter, firstValueFrom, takeUntil } from 'rxjs';
 
 import { ArchivosService } from '../../services/archivos.service';
-import { ArchivoResponse, FORMATOS_EDITABLES_ONLYOFFICE } from '../../models/archivo.model';
+import { ArchivoResponse } from '../../models/archivo.model';
+import {
+  caminoVer,
+  esEditableOnline,
+  puedeVerse
+} from '../../../../core/utils/formato-archivo.util';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
@@ -42,6 +47,14 @@ import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.uti
 export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) solicitudId!: string;
   @Input() showSubirExtra = true;
+  /**
+   * Cuando hay una tarea activa identificable (respuesta-dialog), pasar acá su
+   * departamentoId. El archivo extra hereda permisos ad-hoc de ESE nodo.
+   * Si no se pasa, fallback al depto del usuario actual (con riesgo de permisos vacíos).
+   */
+  @Input() departamentoOrigenId: string | null = null;
+  /** Si false, oculta "Subir archivo extra" aunque el rol lo permita. */
+  @Input() mostrarSubirExtra = true;
 
   private readonly archivosService = inject(ArchivosService);
   private readonly authService = inject(AuthService);
@@ -99,10 +112,52 @@ export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  // ----- Ver / Editar / Descargar (decisión por formato) -----
+
+  puedeVer(archivo: ArchivoResponse): boolean {
+    return puedeVerse(archivo.formato);
+  }
+
+  puedeEditarOnline(archivo: ArchivoResponse): boolean {
+    if (!this.puedeGestionar()) return false;
+    if (archivo.inmutable) return false;
+    return esEditableOnline(archivo.formato);
+  }
+
+  async ver(archivo: ArchivoResponse): Promise<void> {
+    const camino = caminoVer(archivo.formato);
+    if (camino === 'onlyoffice') {
+      window.open(`/archivos/${archivo.id}/abrir?soloVista=true`, '_blank');
+      return;
+    }
+    if (camino === 'navegador') {
+      try {
+        const res = await firstValueFrom(this.archivosService.descargar(archivo.id, false));
+        window.open(res.urlDescarga, '_blank');
+      } catch (err) {
+        this.handleError(err as HttpErrorResponse, 'No se pudo abrir el archivo');
+      }
+      return;
+    }
+    // 'descargar' (binarios) — fallback al método de descarga
+    this.descargar(archivo);
+  }
+
+  editarOnline(archivo: ArchivoResponse): void {
+    window.open(`/archivos/${archivo.id}/abrir?soloVista=false`, '_blank');
+  }
+
   async descargar(archivo: ArchivoResponse): Promise<void> {
     try {
-      const res = await firstValueFrom(this.archivosService.descargar(archivo.id));
-      window.open(res.urlDescarga, '_blank');
+      const res = await firstValueFrom(this.archivosService.descargar(archivo.id, true));
+      const link = document.createElement('a');
+      link.href = res.urlDescarga;
+      link.download = archivo.nombre;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     } catch (err) {
       this.handleError(err as HttpErrorResponse, 'No se pudo descargar el archivo');
     }
@@ -168,24 +223,16 @@ export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  puedeEditarOnline(archivo: ArchivoResponse): boolean {
-    if (!this.puedeGestionar()) return false;
-    if (archivo.inmutable) return false;
-    const formato = archivo.formato?.toLowerCase();
-    return (FORMATOS_EDITABLES_ONLYOFFICE as readonly string[]).includes(formato);
-  }
-
-  abrirEditorOnline(archivo: ArchivoResponse): void {
-    window.open(`/archivos/${archivo.id}/editar`, '_blank');
-  }
-
   onSubirExtra(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
 
-    const departamentoId = this.authService.currentUser()?.departamentoId ?? undefined;
+    // Prioridad: depto de la tarea activa > depto del usuario.
+    const departamentoId = this.departamentoOrigenId
+      ?? this.authService.currentUser()?.departamentoId
+      ?? undefined;
     this.uploadingExtra = true;
     this.archivosService.upload({
       archivo: file,

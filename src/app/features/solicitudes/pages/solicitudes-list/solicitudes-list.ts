@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -18,9 +18,13 @@ import { RespuestaDialogComponent } from '../../components/respuesta-dialog/resp
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
+import { SlaBadgeComponent } from '../../../../shared/components/ui/sla-badge/sla-badge';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
+import { formatFechaAbsoluta, formatTiempoRestante } from '../../../../core/utils/sla.util';
+
+type FiltroSla = 'todos' | 'critico' | 'a-vencer';
 
 @Component({
   selector: 'app-solicitudes-list',
@@ -36,7 +40,8 @@ import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
     MatTooltipModule,
     MatChipsModule,
     EmptyStateComponent,
-    PageHeaderComponent
+    PageHeaderComponent,
+    SlaBadgeComponent
   ],
   templateUrl: './solicitudes-list.html',
   styleUrl: './solicitudes-list.scss'
@@ -56,13 +61,24 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
   loadingMisTareas = signal(true);
   loadingHistorial = signal(false);
 
-  columnasBandeja = ['urgencia', 'tramite', 'solicitante', 'fecha', 'acciones'];
-  columnasMisTareas = ['tramite', 'solicitante', 'fecha', 'acciones'];
-  columnasHistorial = ['tramite', 'solicitante', 'estado', 'fecha', 'acciones'];
+  // Tick que se incrementa cada 60s para que las celdas "Vence en X" se recalculen
+  // sin volver a llamar al endpoint.
+  readonly tick = signal(0);
+
+  readonly filtroSla = signal<FiltroSla>('todos');
+
+  columnasBandeja = ['urgencia', 'tramite', 'solicitante', 'sla', 'vence', 'fecha', 'acciones'];
+  columnasMisTareas = ['tramite', 'solicitante', 'sla', 'vence', 'fecha', 'acciones'];
+  columnasHistorial = ['tramite', 'solicitante', 'estado', 'sla', 'fecha', 'acciones'];
 
   estadoLabels = ESTADO_TRAMITE_LABELS;
 
+  readonly bandejaFiltrada = computed(() => this.aplicarFiltroSla(this.bandejaDepto()));
+  readonly misTareasFiltradas = computed(() => this.aplicarFiltroSla(this.misTareas()));
+  readonly historialFiltrado = computed(() => this.aplicarFiltroSla(this.historialDepto()));
+
   private pollInterval?: ReturnType<typeof setInterval>;
+  private tickInterval?: ReturnType<typeof setInterval>;
   historialCargado = false;
 
   get currentUser() { return this.authService.currentUser(); }
@@ -74,10 +90,37 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
       this.loadBandeja();
       this.loadMisTareas();
     }, 30000);
+    // Recalcular "Vence en X" en vivo (local — sin pegarle al endpoint).
+    this.tickInterval = setInterval(() => this.tick.update(t => t + 1), 60000);
   }
 
   ngOnDestroy(): void {
     clearInterval(this.pollInterval);
+    clearInterval(this.tickInterval);
+  }
+
+  setFiltroSla(filtro: FiltroSla): void {
+    this.filtroSla.set(filtro);
+  }
+
+  private aplicarFiltroSla(lista: SolicitudTramiteResumen[]): SolicitudTramiteResumen[] {
+    const f = this.filtroSla();
+    if (f === 'todos') return lista;
+    if (f === 'critico') {
+      return lista.filter(s => s.estadoSla === 'ROJO' || s.estadoSla === 'VENCIDO');
+    }
+    return lista.filter(s => s.estadoSla === 'AMARILLO' || s.estadoSla === 'ROJO' || s.estadoSla === 'VENCIDO');
+  }
+
+  /** Llamado desde el template para que la celda recalcule cada vez que cambia `tick`. */
+  venceEn(sol: SolicitudTramiteResumen): string {
+    this.tick(); // crea dependencia con el tick para forzar re-evaluación
+    return formatTiempoRestante(sol.fechaLimite);
+  }
+
+  tooltipFechaLimite(sol: SolicitudTramiteResumen): string {
+    const f = formatFechaAbsoluta(sol.fechaLimite);
+    return f ? `Vence el ${f}` : '';
   }
 
   loadBandeja(): void {

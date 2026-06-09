@@ -1,0 +1,51 @@
+<div class="anomalias-page">
+  <app-page-header
+    title="Anomalías detectadas"
+    subtitle="El motor revisa el sistema y reporta patrones inusuales. Marcá los falsos positivos para que aprenda."
+    buttonLabel="Recargar"
+    buttonIcon="refresh"
+    (buttonClick)="cargar()">
+  </app-page-header>
+
+  <div class="filtros">
+    <span class="filtros-label">Severidad:</span>
+    <mat-chip-listbox [value]="filtro()" (change)="setFiltro($event.value)">
+      <mat-chip-option value="TODAS">Todas</mat-chip-option>
+      <mat-chip-option value="CRITICA">Críticas</mat-chip-option>
+      <mat-chip-option value="MEDIA">Medias</mat-chip-option>
+      <mat-chip-option value="BAJA">Bajas</mat-chip-option>
+    </mat-chip-listbox>
+  </div>
+
+  @if (cargando()) {
+    <div class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (!disponible()) {
+    <app-motor-no-disponible (reintentar)="cargar()"></app-motor-no-disponible>
+  } @else if (anomalias().length === 0) {
+    <app-empty-state
+      icon="verified"
+      title="Sin anomalías detectadas"
+      message="El motor revisó el sistema y todo se ve OK.">
+    </app-empty-state>
+  } @else {
+    <div class="anomalias-list">
+      @for (a of anomalias(); track a.id) {
+        <app-anomalia-card
+          [anomalia]="a"
+          (descartar)="onDescartar($event)">
+        </app-anomalia-card>
+      }
+    </div>
+
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pagina()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  }
+</div>

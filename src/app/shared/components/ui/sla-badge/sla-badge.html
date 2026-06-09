@@ -1,0 +1,11 @@
+@if (variante === 'dot') {
+  <span class="sla-dot" [class]="clase()" [matTooltip]="tooltip" matTooltipPosition="above"
+        [attr.aria-label]="label">
+    @if (!estado) { — }
+  </span>
+} @else {
+  <span class="sla-pill" [class]="clase()" [matTooltip]="tooltip" matTooltipPosition="above">
+    <span class="sla-pill-dot"></span>
+    {{ label }}
+  </span>
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +18,14 @@ import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm
 import { NotificationService } from '../../../../core/services/notification.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ArchivosPanelComponent } from '../../components/archivos-panel/archivos-panel';
+import { SlaBadgeComponent } from '../../../../shared/components/ui/sla-badge/sla-badge';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { RespuestaDepartamento as RespDeptoModel } from '../../models/solicitud.model';
+import {
+  formatFechaAbsoluta,
+  formatTiempoRestante,
+  porcentajeSlaConsumido
+} from '../../../../core/utils/sla.util';
 
 @Component({
   selector: 'app-solicitud-detail',
@@ -29,14 +37,16 @@ import { ArchivosPanelComponent } from '../../components/archivos-panel/archivos
     MatIconModule,
     MatChipsModule,
     MatProgressSpinnerModule,
+    MatProgressBarModule,
     MatDividerModule,
     MatListModule,
-    ArchivosPanelComponent
+    ArchivosPanelComponent,
+    SlaBadgeComponent
   ],
   templateUrl: './solicitud-detail.html',
   styleUrl: './solicitud-detail.scss'
 })
-export class SolicitudDetailComponent implements OnInit {
+export class SolicitudDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
@@ -48,11 +58,73 @@ export class SolicitudDetailComponent implements OnInit {
   loading = signal(true);
   estadoLabels = ESTADO_TRAMITE_LABELS;
 
+  // Tick para recalcular "vence en X" cada 60s sin re-llamar al endpoint.
+  readonly tick = signal(0);
+  private tickInterval?: ReturnType<typeof setInterval>;
+
   get currentUserId() { return this.authService.currentUser()?.id; }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) this.loadSolicitud(id);
+    this.tickInterval = setInterval(() => this.tick.update(t => t + 1), 60000);
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.tickInterval);
+  }
+
+  // ---- SLA ----
+
+  mostrarSlaCard(): boolean {
+    const sol = this.solicitud();
+    return !!sol?.fechaLimite;
+  }
+
+  porcentajeSlaSolicitud(): number | null {
+    const sol = this.solicitud();
+    if (!sol?.fechaLimite) return null;
+    this.tick(); // dependencia con el tick
+    return porcentajeSlaConsumido(sol.fechaCreacion, sol.fechaLimite);
+  }
+
+  porcentajeSlaBarra(): number {
+    const p = this.porcentajeSlaSolicitud();
+    if (p == null) return 0;
+    return Math.min(100, p);
+  }
+
+  tiempoRestanteSolicitud(): string {
+    const sol = this.solicitud();
+    this.tick();
+    return formatTiempoRestante(sol?.fechaLimite);
+  }
+
+  fechaLimiteAbsoluta(fecha: string | null | undefined): string {
+    return formatFechaAbsoluta(fecha);
+  }
+
+  nodosActivosConSla(): RespDeptoModel[] {
+    const sol = this.solicitud();
+    if (!sol) return [];
+    return sol.respuestasPorDepartamento.filter(r => !r.fechaRespuesta && r.fechaLimiteNodo);
+  }
+
+  porcentajeNodo(resp: RespDeptoModel): number | null {
+    if (!resp.fechaLimiteNodo) return null;
+    this.tick();
+    return porcentajeSlaConsumido(resp.fechaEntrada, resp.fechaLimiteNodo);
+  }
+
+  porcentajeNodoBarra(resp: RespDeptoModel): number {
+    const p = this.porcentajeNodo(resp);
+    if (p == null) return 0;
+    return Math.min(100, p);
+  }
+
+  tiempoRestanteNodo(resp: RespDeptoModel): string {
+    this.tick();
+    return formatTiempoRestante(resp.fechaLimiteNodo);
   }
 
   loadSolicitud(id: string): void {

@@ -2,6 +2,198 @@
   padding: 24px;
 }
 
+// ============ Secciones del Motor (Mejor Ruta + Riesgo) ============
+
+.motor-section {
+  margin-top: 32px;
+}
+
+.motor-icon {
+  color: var(--color-primary);
+}
+
+.motor-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-primary-light);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.motor-loading {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}
+
+.motor-vacio {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  color: var(--color-text-hint);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.rutas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ruta-card {
+  &.ruta-recomendada {
+    border: 2px solid var(--sla-verde-solid);
+    background: var(--sla-verde-bg);
+  }
+}
+
+.ruta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.ruta-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.ruta-recomendada-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--sla-verde-solid);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.ruta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ruta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  strong {
+    color: var(--color-text-primary);
+  }
+}
+
+.riesgo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 12px;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.riesgo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+    font-size: 13px;
+    flex-wrap: wrap;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: var(--color-text-hint);
+    }
+  }
+}
+
+.riesgo-nombre {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.riesgo-prob {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-family: monospace;
+}
+
+.riesgo-impacto {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.riesgo-cuando {
+  font-size: 12px;
+  color: var(--color-text-hint);
+  font-style: italic;
+}
+
+.riesgo-resumen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--surface-page);
+  border-radius: var(--radius-card);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+
+  strong {
+    font-size: 18px;
+    color: var(--color-text-primary);
+  }
+
+  .warn {
+    color: var(--color-warning);
+  }
+}
+
 .page-header {
   margin-bottom: 24px;
 

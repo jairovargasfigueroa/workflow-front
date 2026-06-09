@@ -104,4 +104,38 @@
 
   // --- Timeline ---
   --timeline-line: #e0e0e0;
+
+  // --- SLA: Estados (VERDE / AMARILLO / ROJO / VENCIDO / null) ---
+  --sla-verde-bg: #d1fae5;
+  --sla-verde-text: #065f46;
+  --sla-verde-solid: #10b981;
+
+  --sla-amarillo-bg: #fef3c7;
+  --sla-amarillo-text: #92400e;
+  --sla-amarillo-solid: #f59e0b;
+
+  --sla-rojo-bg: #fee2e2;
+  --sla-rojo-text: #991b1b;
+  --sla-rojo-solid: #ef4444;
+
+  --sla-vencido-bg: #fecaca;
+  --sla-vencido-text: #7f1d1d;
+  --sla-vencido-solid: #7f1d1d;
+
+  --sla-null-bg: #f3f4f6;
+  --sla-null-text: #6b7280;
+  --sla-null-solid: #9ca3af;
+
+  // --- SLA: Criticidad (RUTINARIO / IMPORTANTE / CRITICO / EMERGENCIA) ---
+  --criticidad-rutinario-bg: #f3f4f6;
+  --criticidad-rutinario-text: #4b5563;
+
+  --criticidad-importante-bg: #dbeafe;
+  --criticidad-importante-text: #1e40af;
+
+  --criticidad-critico-bg: #fef3c7;
+  --criticidad-critico-text: #92400e;
+
+  --criticidad-emergencia-bg: #fee2e2;
+  --criticidad-emergencia-text: #991b1b;
 }

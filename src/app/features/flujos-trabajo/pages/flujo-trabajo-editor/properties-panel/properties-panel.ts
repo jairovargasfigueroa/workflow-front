@@ -18,6 +18,10 @@ import {
   leerCandidateGroupsDirecto,
   leerDepartamentoIdDeLane
 } from '../../../services/lane-departamento-bpmn.helper';
+import {
+  escribirSlaNodoHoras,
+  leerSlaNodoHoras
+} from '../../../services/sla-nodo-bpmn.helper';
 
 type UserTaskDepartamentoFuente = 'lane' | 'lane-sin-dpto' | 'legacy' | 'ninguno';
 
@@ -57,6 +61,7 @@ export class PropertiesPanelComponent implements OnDestroy {
   elementName = signal<string>('');
   formularioId = signal<string>('');
   laneDepartamentoId = signal<string>('');
+  slaNodoHoras = signal<number | null>(null);
 
   private eventBus: any;
 
@@ -179,8 +184,10 @@ export class PropertiesPanelComponent implements OnDestroy {
 
     if (bo.$type === 'bpmn:UserTask') {
       this.formularioId.set(bo.get('camunda:formKey') || '');
+      this.slaNodoHoras.set(leerSlaNodoHoras(element));
     } else {
       this.formularioId.set('');
+      this.slaNodoHoras.set(null);
     }
 
     if (bo.$type === 'bpmn:Lane') {
@@ -196,6 +203,7 @@ export class PropertiesPanelComponent implements OnDestroy {
     this.elementName.set('');
     this.formularioId.set('');
     this.laneDepartamentoId.set('');
+    this.slaNodoHoras.set(null);
   }
 
   onNameChange(event: Event): void {
@@ -207,6 +215,17 @@ export class PropertiesPanelComponent implements OnDestroy {
   onFormularioChange(value: string): void {
     this.formularioId.set(value);
     this.updateProperty('camunda:formKey', value || undefined);
+  }
+
+  onSlaNodoChange(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+    const horas = raw === '' ? null : Math.max(0, parseInt(raw, 10));
+    const validas = horas != null && Number.isFinite(horas) && horas > 0 ? horas : null;
+    this.slaNodoHoras.set(validas);
+    const modeler = this.modeler();
+    const element = this.selectedElement();
+    if (!modeler || !element) return;
+    escribirSlaNodoHoras(modeler, element, validas);
   }
 
   onLaneDepartamentoChange(value: string): void {
