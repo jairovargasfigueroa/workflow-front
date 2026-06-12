@@ -10,6 +10,7 @@
 @use 'styles/tokens';
 @use 'styles/list-page';
 @use 'styles/dialogs';
+@use 'styles/dynamic-fields';
 
 html {
   @include mat.theme((
@@ -20,29 +21,162 @@ html {
     typography: Roboto,
     density: 0,
   ));
+
+  // -------------------------------------------------------------------------
+  // Override de variables Material — para que las superficies (menús,
+  // dropdowns, snackbars, dialogs) sean blancas y limpias, no grises.
+  // -------------------------------------------------------------------------
+  --mat-sys-surface: #ffffff;
+  --mat-sys-surface-bright: #ffffff;
+  --mat-sys-surface-container-lowest: #ffffff;
+  --mat-sys-surface-container-low: var(--surface-page);
+  --mat-sys-surface-container: #ffffff;
+  --mat-sys-surface-container-high: var(--surface-subtle);
+  --mat-sys-surface-container-highest: var(--surface-subtle);
+  --mat-sys-background: var(--surface-page);
+  --mat-sys-on-surface: var(--color-text-primary);
+  --mat-sys-on-surface-variant: var(--color-text-secondary);
+  --mat-sys-outline: var(--color-border-strong);
+  --mat-sys-outline-variant: var(--color-border);
+}
+
+// ===========================================================================
+// Tipografía global — todo el texto usa tokens. Sin más font-size hardcoded.
+// ===========================================================================
+html, body {
+  height: 100%;
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
   margin: 0;
+  color-scheme: light;
+  background-color: var(--surface-page);
+  color: var(--color-text-primary);
+  font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+h1 { font-size: var(--font-size-3xl); font-weight: var(--font-weight-semibold); }
+h2 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold); }
+h3 { font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); }
+h4 { font-size: var(--font-size-lg); font-weight: var(--font-weight-medium); }
+h5, h6 { font-size: var(--font-size-base); font-weight: var(--font-weight-medium); }
+
+p { margin: 0; }
+
+// ===========================================================================
+// Menús, dropdowns, dialogs — fondo blanco limpio + sombra propia
+// ===========================================================================
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-menu) !important;
+}
+
+.mat-mdc-dialog-surface {
+  background: var(--surface-card) !important;
+  border-radius: var(--radius-card) !important;
+}
+
+.mat-mdc-menu-item {
+  color: var(--color-text-primary) !important;
+  font-size: var(--font-size-base) !important;
+  font-family: inherit !important;
+  min-height: 42px !important;
+
+  &:hover:not(.mat-mdc-menu-item-disabled) {
+    background: var(--hover-overlay) !important;
+  }
+}
 
 /* bpmn-js styles */
 @import 'bpmn-js/dist/assets/diagram-js.css';
 @import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
 @import 'bpmn-js/dist/assets/bpmn-js.css';
+
+/* =============================================================================
+   Iconos — Material Symbols Rounded (variable font) reemplaza a Material Icons.
+   Permite ajustar weight / fill / grade / optical-size dinámicamente.
+   ============================================================================= */
+.material-symbols-rounded,
+.mat-icon {
+  font-family: 'Material Symbols Rounded', 'Material Icons' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* Variante fill (iconos rellenos cuando hacen falta) */
+.mat-icon.icon-filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* =============================================================================
+   Feedback snackbar — variantes por tipo (success / error / warn / info)
+   Service: core/services/feedback.service.ts
+   ============================================================================= */
+.feedback-snackbar {
+  --mdc-snackbar-container-shape: 8px;
+
+  .mdc-snackbar__surface {
+    box-shadow: var(--shadow-elevated) !important;
+  }
+
+  .mdc-snackbar__label {
+    color: #fff !important;
+    font-weight: 500;
+  }
+
+  .mat-mdc-snack-bar-action {
+    --mat-snack-bar-button-color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.feedback-success .mdc-snackbar__surface {
+  background-color: var(--color-success) !important;
+}
+
+.feedback-error .mdc-snackbar__surface {
+  background-color: var(--color-error) !important;
+}
+
+.feedback-warn .mdc-snackbar__surface {
+  background-color: var(--color-warning) !important;
+}
+
+.feedback-info .mdc-snackbar__surface {
+  background-color: var(--color-primary) !important;
+}
+

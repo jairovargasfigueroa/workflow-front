@@ -16,7 +16,7 @@ import customRendererModule from '../flujo-trabajo-editor/custom-modules/custom-
 import { FlujosTrabajoService } from '../../services/flujos-trabajo.service';
 import { FlujoTrabajo, FlujoVersion } from '../../models/flujo-trabajo.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 
 @Component({
   selector: 'app-flujo-trabajo-viewer',
@@ -42,7 +42,7 @@ export class FlujoTrabajoViewerComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly flujosService = inject(FlujosTrabajoService);
   private readonly dialog = inject(MatDialog);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   private viewer!: BpmnNavigatedViewer;
 
@@ -126,20 +126,12 @@ export class FlujoTrabajoViewerComponent implements OnInit, OnDestroy {
       this.restaurando.set(true);
       this.flujosService.copiarVersionComoBorrador(this.flujoId, { numeroVersion: numero }).subscribe({
         next: () => {
-          this.notificationService.add({
-            title: 'Versión restaurada',
-            message: `La v${numero} fue cargada como borrador`,
-            type: 'success'
-          });
+          this.feedback.success(`La v${numero} fue cargada como borrador`);
           this.restaurando.set(false);
           this.router.navigate(['/flujos-trabajo', this.flujoId, 'editor']);
         },
         error: () => {
-          this.notificationService.add({
-            title: 'Error',
-            message: 'No se pudo restaurar la versión',
-            type: 'error'
-          });
+          this.feedback.error('No se pudo restaurar la versión');
           this.restaurando.set(false);
         }
       });

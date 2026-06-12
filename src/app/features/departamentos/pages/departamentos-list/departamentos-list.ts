@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -14,7 +13,8 @@ import { DepartamentoDialogComponent } from '../../components/departamento-dialo
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { ListSkeletonComponent } from '../../../../shared/components/ui/list-skeleton/list-skeleton';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 
 @Component({
   selector: 'app-departamentos-list',
@@ -24,11 +24,11 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     EmptyStateComponent,
-    PageHeaderComponent
+    PageHeaderComponent,
+    ListSkeletonComponent
   ],
   templateUrl: './departamentos-list.html',
   styleUrl: './departamentos-list.scss'
@@ -36,7 +36,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 export class DepartamentosListComponent implements OnInit {
   private readonly departamentosService = inject(DepartamentosService);
   private readonly dialog = inject(MatDialog);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   departamentos = signal<Departamento[]>([]);
   loading = signal(true);
@@ -79,7 +79,8 @@ export class DepartamentosListComponent implements OnInit {
         title: 'Eliminar departamento',
         message: `¿Está seguro que desea eliminar el departamento "${departamento.nombre}"?`,
         confirmText: 'Eliminar',
-        cancelText: 'Cancelar'
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
       }
     });
 
@@ -93,11 +94,7 @@ export class DepartamentosListComponent implements OnInit {
   private deleteDepartamento(id: string): void {
     this.departamentosService.delete(id).subscribe({
       next: () => {
-        this.notificationService.add({
-          title: 'Eliminado',
-          message: 'Departamento eliminado correctamente',
-          type: 'success'
-        });
+        this.feedback.success('Departamento eliminado correctamente');
         this.loadDepartamentos();
       },
       error: () => {

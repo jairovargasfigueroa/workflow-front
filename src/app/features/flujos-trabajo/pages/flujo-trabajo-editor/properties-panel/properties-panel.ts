@@ -6,12 +6,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 import { DepartamentosService } from '../../../../departamentos/services/departamentos.service';
 import { FormulariosService } from '../../../../formularios/services/formularios.service';
+import { FlujosTrabajoService } from '../../../services/flujos-trabajo.service';
 import { Departamento } from '../../../../departamentos/models/departamento.model';
 import { FormularioTemplate } from '../../../../formularios/models/formulario.model';
+import { AccionFlujo } from '../../../models/accion-flujo.model';
 import { NodoConfigDocumentalComponent } from '../../../components/nodo-config-documental/nodo-config-documental';
+import { NodoCamposFormularioComponent } from '../../../components/nodo-campos-formulario/nodo-campos-formulario';
 import {
   encontrarLaneDeFlowNode,
   escribirDepartamentoIdEnLane,
@@ -43,7 +47,9 @@ interface UserTaskDepartamentoInfo {
     MatSelectModule,
     MatIconModule,
     MatDividerModule,
-    NodoConfigDocumentalComponent
+    MatExpansionModule,
+    NodoConfigDocumentalComponent,
+    NodoCamposFormularioComponent
   ],
   templateUrl: './properties-panel.html',
   styleUrl: './properties-panel.scss'
@@ -53,15 +59,27 @@ export class PropertiesPanelComponent implements OnDestroy {
 
   private readonly departamentosService = inject(DepartamentosService);
   private readonly formulariosService = inject(FormulariosService);
+  private readonly flujosService = inject(FlujosTrabajoService);
 
   departamentos = signal<Departamento[]>([]);
   formularios = signal<FormularioTemplate[]>([]);
+  acciones = signal<AccionFlujo[]>([]);
   selectedElement = signal<any>(null);
   elementType = signal<string>('');
   elementName = signal<string>('');
   formularioId = signal<string>('');
   laneDepartamentoId = signal<string>('');
   slaNodoHoras = signal<number | null>(null);
+
+  // Solo las acciones finales (para el dropdown del EndEvent).
+  readonly accionesFinales = computed(() => this.acciones().filter(a => a.esFinal));
+
+  // ¿La flecha seleccionada sale de un gateway EXCLUSIVO? (define si lleva etiqueta).
+  readonly flechaEsDecision = computed<boolean>(() => {
+    if (this.elementType() !== 'bpmn:SequenceFlow') return false;
+    const el = this.selectedElement();
+    return el?.businessObject?.sourceRef?.$type === 'bpmn:ExclusiveGateway';
+  });
 
   private eventBus: any;
 
@@ -126,6 +144,11 @@ export class PropertiesPanelComponent implements OnDestroy {
     this.formulariosService.getAll().subscribe({
       next: (forms) => this.formularios.set(forms.filter(f => f.activo)),
       error: (err) => console.error('Error cargando formularios:', err)
+    });
+
+    this.flujosService.getAccionesFlujo().subscribe({
+      next: (acciones) => this.acciones.set(acciones),
+      error: (err) => console.error('Error cargando catálogo de acciones:', err)
     });
 
     effect(() => {
@@ -210,6 +233,12 @@ export class PropertiesPanelComponent implements OnDestroy {
     const value = (event.target as HTMLInputElement).value;
     this.elementName.set(value);
     this.updateProperty('name', value || undefined);
+  }
+
+  /** Setea la etiqueta de una flecha (gateway exclusivo) o el nombre de un EndEvent desde el catálogo. */
+  onAccionChange(etiqueta: string): void {
+    this.elementName.set(etiqueta);
+    this.updateProperty('name', etiqueta || undefined);
   }
 
   onFormularioChange(value: string): void {

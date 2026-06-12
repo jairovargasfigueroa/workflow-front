@@ -14,7 +14,8 @@ import { FormularioDialogComponent } from '../../components/formulario-dialog/fo
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { ListSkeletonComponent } from '../../../../shared/components/ui/list-skeleton/list-skeleton';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 
 @Component({
   selector: 'app-formularios-list',
@@ -28,7 +29,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatTooltipModule,
     MatChipsModule,
     EmptyStateComponent,
-    PageHeaderComponent
+    PageHeaderComponent,
+    ListSkeletonComponent
   ],
   templateUrl: './formularios-list.html',
   styleUrl: './formularios-list.scss'
@@ -36,7 +38,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 export class FormulariosListComponent implements OnInit {
   private readonly formulariosService = inject(FormulariosService);
   private readonly dialog = inject(MatDialog);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   formularios = signal<FormularioTemplate[]>([]);
   loading = signal(true);
@@ -80,7 +82,8 @@ export class FormulariosListComponent implements OnInit {
         title: 'Eliminar formulario',
         message: `¿Está seguro que desea eliminar el formulario "${formulario.titulo}"?`,
         confirmText: 'Eliminar',
-        cancelText: 'Cancelar'
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
       }
     });
 
@@ -94,11 +97,7 @@ export class FormulariosListComponent implements OnInit {
   private deleteFormulario(id: string): void {
     this.formulariosService.delete(id).subscribe({
       next: () => {
-        this.notificationService.add({
-          title: 'Eliminado',
-          message: 'Formulario eliminado correctamente',
-          type: 'success'
-        });
+        this.feedback.success('Formulario eliminado correctamente');
         this.loadFormularios();
       },
       error: () => {

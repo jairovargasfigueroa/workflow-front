@@ -1,77 +1,201 @@
+// =============================================================================
+// Anomalia card — full y compact. Icono coloreado por severidad.
+// =============================================================================
+
 .anomalia-card {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
+  gap: var(--space-4);
+  padding: var(--space-4);
   background: var(--surface-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-1px);
+  }
+
+  // Borde izquierdo de color según severidad
+  border-left: 3px solid var(--color-border);
+
+  &[data-tono="danger"] {
+    border-left-color: var(--sla-rojo-solid);
+  }
+  &[data-tono="warning"] {
+    border-left-color: var(--sla-amarillo-solid);
+  }
+  &[data-tono="neutral"] {
+    border-left-color: var(--sla-null-solid);
+  }
 }
 
-.card-header {
+// Icono cuadrado coloreado
+.card-icon {
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
 }
 
-.card-meta {
-  font-size: 12px;
+.anomalia-card[data-tono="danger"] .card-icon {
+  background: var(--sla-rojo-bg);
+  color: var(--sla-rojo-solid);
+}
+.anomalia-card[data-tono="warning"] .card-icon {
+  background: var(--sla-amarillo-bg);
+  color: var(--sla-amarillo-solid);
+}
+.anomalia-card[data-tono="neutral"] .card-icon {
+  background: var(--surface-subtle);
   color: var(--color-text-secondary);
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.card-tipo {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-hint);
 }
 
 .card-descripcion {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
-  line-height: 1.5;
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-medium);
 }
 
-.card-contexto {
+.card-meta {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.meta-item {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin: 0;
-  font-size: 12px;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
 
   mat-icon {
     font-size: 14px;
     width: 14px;
     height: 14px;
+    color: var(--color-text-hint);
   }
 }
 
 .card-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 4px;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
   flex-wrap: wrap;
 
   button {
-    gap: 4px;
+    height: 34px !important;
+    border-radius: 8px !important;
+    font-size: var(--font-size-sm) !important;
+    font-weight: var(--font-weight-medium) !important;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      margin-right: 4px;
+    }
   }
 }
 
-// ===== Modo compacto =====
+.btn-descartar {
+  color: var(--color-text-secondary) !important;
+
+  &:hover {
+    background: var(--hover-overlay) !important;
+    color: var(--color-text-primary) !important;
+  }
+}
+
+// =============================================================================
+// Modo compacto (dashboard)
+// =============================================================================
 
 .anomalia-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2);
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 
   &:hover {
-    background: var(--color-hover-row);
+    background: var(--surface-subtle);
+    border-color: var(--color-border);
   }
 
   .row-text {
     flex: 1;
-    font-size: 13px;
+    font-size: var(--font-size-sm);
     color: var(--color-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+.row-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.anomalia-row[data-tono="danger"] .row-icon {
+  background: var(--sla-rojo-bg);
+  color: var(--sla-rojo-solid);
+}
+.anomalia-row[data-tono="warning"] .row-icon {
+  background: var(--sla-amarillo-bg);
+  color: var(--sla-amarillo-solid);
+}
+.anomalia-row[data-tono="neutral"] .row-icon {
+  background: var(--surface-subtle);
+  color: var(--color-text-secondary);
 }

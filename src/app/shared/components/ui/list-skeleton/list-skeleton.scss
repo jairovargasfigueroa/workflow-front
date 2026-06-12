@@ -1,0 +1,104 @@
+// =============================================================================
+// Skeleton loader — placeholder animado para reemplazar spinners de carga
+// =============================================================================
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+// ----- Variante tabla -----
+.skeleton-tabla {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
+  gap: 16px;
+  align-items: center;
+  min-height: 40px;
+
+  &.skeleton-header {
+    margin-bottom: 4px;
+    .skeleton-cell {
+      height: 14px;
+    }
+  }
+}
+
+.skeleton-cell {
+  height: 20px;
+  border-radius: 4px;
+}
+
+// ----- Variante cards -----
+.skeleton-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px;
+}
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--surface-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.skeleton-card-title {
+  height: 18px;
+  width: 40%;
+  border-radius: 4px;
+}
+
+.skeleton-card-line {
+  height: 12px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.skeleton-card-line-short {
+  width: 60%;
+}
+
+// ----- Animación de shimmer -----
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-subtle);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.6) 50%,
+      transparent 100%
+    );
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// Respeto el prefers-reduced-motion: usuarios sensibles ven el placeholder estático
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}

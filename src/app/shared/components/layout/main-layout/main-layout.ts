@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs/operators';
 import { HeaderComponent } from '../header/header';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { AppUpdateService } from '../../../../core/services/app-update.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -17,11 +18,15 @@ import { SidebarComponent } from '../sidebar/sidebar';
 export class MainLayoutComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly router = inject(Router);
+  private readonly appUpdateService = inject(AppUpdateService);
 
   isMobile = signal(false);
   sidenavOpened = signal(true);
 
   constructor() {
+    // Activa el escucha de actualizaciones del Service Worker (solo en prod).
+    this.appUpdateService.iniciar();
+
     // Detectar si estamos en móvil y ajustar el sidenav
     this.breakpointObserver
       .observe([Breakpoints.Handset])

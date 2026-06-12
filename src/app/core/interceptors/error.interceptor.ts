@@ -2,10 +2,10 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
+import { FeedbackService } from '../services/feedback.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const notificationService = inject(NotificationService);
+  const feedback = inject(FeedbackService);
   const router = inject(Router);
 
   return next(req).pipe(
@@ -44,11 +44,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         }
       }
 
-      notificationService.add({
-        title: 'Error',
-        message: errorMessage,
-        type: 'error'
-      });
+      feedback.error(errorMessage);
 
       return throwError(() => error);
     })

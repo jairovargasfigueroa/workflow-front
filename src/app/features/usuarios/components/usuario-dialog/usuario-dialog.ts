@@ -11,7 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { UsuariosService } from '../../services/usuarios.service';
 import { Usuario } from '../../models/usuario.model';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { DepartamentosService } from '../../../departamentos/services/departamentos.service';
 import { Departamento } from '../../../departamentos/models/departamento.model';
 import { Rol, ROL_LABELS } from '../../../../core/models';
@@ -43,7 +43,7 @@ export class UsuarioDialogComponent implements OnInit {
   private readonly data = inject<UsuarioDialogData>(MAT_DIALOG_DATA);
   private readonly usuariosService = inject(UsuariosService);
   private readonly departamentosService = inject(DepartamentosService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   isEditMode = this.data.mode === 'edit';
   saving = false;
@@ -110,11 +110,7 @@ export class UsuarioDialogComponent implements OnInit {
 
     try {
       await firstValueFrom(request$);
-      this.notificationService.add({
-        title: this.isEditMode ? 'Actualizado' : 'Creado',
-        message: `Usuario ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
-        type: 'success'
-      });
+      this.feedback.success(`Usuario ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`);
       this.dialogRef.close(true);
     } catch {
       this.saving = false;

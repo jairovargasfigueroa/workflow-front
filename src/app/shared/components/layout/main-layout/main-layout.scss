@@ -4,14 +4,15 @@
 
 .sidenav {
   width: 250px;
-  background: #fafafa;
-  border-right: 1px solid #e0e0e0;
+  background: var(--surface-card);
+  border-right: 1px solid var(--color-border);
 }
 
 .main-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: var(--surface-page);
 }
 
 .page-content {

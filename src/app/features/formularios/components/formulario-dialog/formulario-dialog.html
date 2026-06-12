@@ -71,13 +71,69 @@
                 <div class="campo-row">
                   <mat-checkbox formControlName="requerido">Requerido</mat-checkbox>
 
-                  @if (isTipoSelect(i)) {
+                  <!-- Opciones: SELECT / RADIO / CHECKBOX -->
+                  @if (necesitaOpciones(i)) {
                     <mat-form-field appearance="outline" class="opciones-field">
-                      <mat-label>Opciones (separadas por coma)</mat-label>
-                      <input matInput formControlName="opciones" placeholder="Opción 1, Opción 2, Opción 3">
+                      <mat-label>Opciones</mat-label>
+                      <mat-chip-grid #chipOpciones aria-label="Opciones">
+                        @for (op of lista(i, 'opciones'); track op) {
+                          <mat-chip-row (removed)="quitarItem(i, 'opciones', op)">
+                            {{ op }}
+                            <button matChipRemove aria-label="Quitar opción">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
+                          </mat-chip-row>
+                        }
+                        <input placeholder="Escribí y Enter…"
+                               [matChipInputFor]="chipOpciones"
+                               (matChipInputTokenEnd)="agregarItem(i, 'opciones', $event)">
+                      </mat-chip-grid>
+                      <mat-hint>Una opción por chip · Enter para agregar</mat-hint>
                     </mat-form-field>
                   }
                 </div>
+
+                <!-- Columnas: TABLA / GRID  ·  Filas: GRID -->
+                @if (necesitaColumnas(i)) {
+                  <div class="campo-row">
+                    <mat-form-field appearance="outline" class="opciones-field">
+                      <mat-label>{{ labelColumnas(i) }}</mat-label>
+                      <mat-chip-grid #chipColumnas aria-label="Columnas">
+                        @for (col of lista(i, 'columnas'); track col) {
+                          <mat-chip-row (removed)="quitarItem(i, 'columnas', col)">
+                            {{ col }}
+                            <button matChipRemove aria-label="Quitar columna">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
+                          </mat-chip-row>
+                        }
+                        <input placeholder="Escribí y Enter…"
+                               [matChipInputFor]="chipColumnas"
+                               (matChipInputTokenEnd)="agregarItem(i, 'columnas', $event)">
+                      </mat-chip-grid>
+                    </mat-form-field>
+                  </div>
+                }
+                @if (necesitaFilas(i)) {
+                  <div class="campo-row">
+                    <mat-form-field appearance="outline" class="opciones-field">
+                      <mat-label>Filas del GRID</mat-label>
+                      <mat-chip-grid #chipFilas aria-label="Filas">
+                        @for (fila of lista(i, 'filas'); track fila) {
+                          <mat-chip-row (removed)="quitarItem(i, 'filas', fila)">
+                            {{ fila }}
+                            <button matChipRemove aria-label="Quitar fila">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
+                          </mat-chip-row>
+                        }
+                        <input placeholder="Escribí y Enter…"
+                               [matChipInputFor]="chipFilas"
+                               (matChipInputTokenEnd)="agregarItem(i, 'filas', $event)">
+                      </mat-chip-grid>
+                    </mat-form-field>
+                  </div>
+                }
               </div>
 
               <button mat-icon-button color="warn" type="button" (click)="removeCampo(i)">

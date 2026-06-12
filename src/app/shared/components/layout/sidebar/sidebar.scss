@@ -1,28 +1,90 @@
+// =============================================================================
+// Sidebar — header + nav. Usa la escala Material Blue unificada.
+// =============================================================================
+
+:host {
+  display: block;
+  height: 100%;
+  background: var(--surface-card);
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .logo {
   font-size: 32px;
   width: 32px;
   height: 32px;
-  color: #1976d2;
+  color: var(--color-primary);
 }
 
 .logo-text {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1976d2;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  letter-spacing: 0.02em;
 }
 
-a.active {
-  background: rgba(25, 118, 210, 0.1);
+// -----------------------------------------------------------------------------
+// Nav items — el item activo tiene border-left azul para identidad fuerte.
+// -----------------------------------------------------------------------------
+mat-nav-list {
+  padding: var(--space-2) !important;
+}
 
-  mat-icon, span {
-    color: #1976d2;
+::ng-deep a.mat-mdc-list-item {
+  border-radius: 8px !important;
+  margin-bottom: 2px !important;
+  height: 44px !important;
+  position: relative;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+
+  // Hover sutil en azul (familia primary) — 6% opacidad, apenas visible
+  // pero se siente del mismo sistema que el activo.
+  &:hover:not(.active) {
+    background-color: rgba(25, 118, 210, 0.06) !important;
+  }
+
+  .mat-mdc-list-item-icon {
+    color: var(--color-text-secondary) !important;
+    transition: color var(--transition-fast);
+  }
+
+  .mdc-list-item__primary-text {
+    color: var(--color-text-primary) !important;
+    font-size: var(--font-size-base) !important;
+    font-weight: var(--font-weight-medium) !important;
+    transition: color var(--transition-fast);
+  }
+}
+
+// Item ACTIVO — fondo azul claro + texto/icono azul primary + barra lateral
+::ng-deep a.mat-mdc-list-item.active {
+  background-color: var(--color-primary-50) !important;
+
+  // Barra lateral izquierda azul primary (3px) — identidad fuerte
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--color-primary);
+  }
+
+  .mat-mdc-list-item-icon {
+    color: var(--color-primary) !important;
+  }
+
+  .mdc-list-item__primary-text {
+    color: var(--color-primary-dark) !important;
+    font-weight: var(--font-weight-semibold) !important;
   }
 }

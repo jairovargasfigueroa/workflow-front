@@ -1,0 +1,100 @@
+<h2 mat-dialog-title>{{ titulo }}</h2>
+
+<mat-dialog-content class="campo-form-content">
+  <section class="form-section">
+    <div class="campo-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre (ID)</mat-label>
+        <input matInput [(ngModel)]="campo.nombre" placeholder="nombre_campo" required>
+        <mat-hint>Identificador interno, sin espacios.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Etiqueta</mat-label>
+        <input matInput [(ngModel)]="campo.etiqueta" placeholder="Nombre visible" required>
+      </mat-form-field>
+    </div>
+
+    <div class="campo-row-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo</mat-label>
+        <mat-select [(ngModel)]="campo.tipo">
+          @for (tipo of tiposCampo; track tipo.value) {
+            <mat-option [value]="tipo.value">{{ tipo.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-checkbox [(ngModel)]="campo.requerido" class="req-check">Requerido</mat-checkbox>
+    </div>
+  </section>
+
+  <!-- Config por tipo -->
+  @if (necesitaOpciones || necesitaColumnas || necesitaFilas) {
+    <mat-divider></mat-divider>
+
+    <section class="form-section">
+      <!-- Opciones: SELECT / RADIO / CHECKBOX -->
+      @if (necesitaOpciones) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Opciones</mat-label>
+          <mat-chip-grid #chipOpciones aria-label="Opciones">
+            @for (op of lista('opciones'); track op) {
+              <mat-chip-row (removed)="quitarItem('opciones', op)">
+                {{ op }}
+                <button matChipRemove aria-label="Quitar opción"><mat-icon>cancel</mat-icon></button>
+              </mat-chip-row>
+            }
+            <input placeholder="Escribí y Enter…"
+                   [matChipInputFor]="chipOpciones"
+                   (matChipInputTokenEnd)="agregarItem('opciones', $event)">
+          </mat-chip-grid>
+          <mat-hint>Una opción por chip · Enter para agregar</mat-hint>
+        </mat-form-field>
+      }
+
+      <!-- Columnas: TABLA / GRID -->
+      @if (necesitaColumnas) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ labelColumnas }}</mat-label>
+          <mat-chip-grid #chipColumnas aria-label="Columnas">
+            @for (col of lista('columnas'); track col) {
+              <mat-chip-row (removed)="quitarItem('columnas', col)">
+                {{ col }}
+                <button matChipRemove aria-label="Quitar columna"><mat-icon>cancel</mat-icon></button>
+              </mat-chip-row>
+            }
+            <input placeholder="Escribí y Enter…"
+                   [matChipInputFor]="chipColumnas"
+                   (matChipInputTokenEnd)="agregarItem('columnas', $event)">
+          </mat-chip-grid>
+        </mat-form-field>
+      }
+
+      <!-- Filas: GRID -->
+      @if (necesitaFilas) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Filas del GRID</mat-label>
+          <mat-chip-grid #chipFilas aria-label="Filas">
+            @for (fila of lista('filas'); track fila) {
+              <mat-chip-row (removed)="quitarItem('filas', fila)">
+                {{ fila }}
+                <button matChipRemove aria-label="Quitar fila"><mat-icon>cancel</mat-icon></button>
+              </mat-chip-row>
+            }
+            <input placeholder="Escribí y Enter…"
+                   [matChipInputFor]="chipFilas"
+                   (matChipInputTokenEnd)="agregarItem('filas', $event)">
+          </mat-chip-grid>
+        </mat-form-field>
+      }
+    </section>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!esValido" (click)="onSave()">
+    Guardar
+  </button>
+</mat-dialog-actions>

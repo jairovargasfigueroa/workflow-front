@@ -1,15 +1,8 @@
 .analytics-container {
-  padding: 24px;
+  padding: var(--space-6);
 }
 
 .flujo-nombre {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
-
-.clickable-row {
-  cursor: pointer;
-
-  &:hover .flujo-nombre {
-    color: var(--color-primary);
-  }
-}
+// Tabla, chips y hover de filas viven en src/styles/_list-page.scss (global)

@@ -1,23 +1,21 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 
 import { AnalyticsService } from '../../services/analytics.service';
 import { FlujoAnalytics } from '../../models/analytics.model';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
+import { ListSkeletonComponent } from '../../../../shared/components/ui/list-skeleton/list-skeleton';
 
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
   imports: [
     MatTableModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
     MatIconModule,
     EmptyStateComponent,
+    ListSkeletonComponent,
   ],
   templateUrl: './analytics-dashboard.component.html',
   styleUrl: './analytics-dashboard.component.scss',
@@ -46,9 +44,9 @@ export class AnalyticsDashboardComponent implements OnInit {
   }
 
   getSaludClass(puntaje: number): string {
-    if (puntaje <= 40) return 'prioridad-alta';
-    if (puntaje <= 70) return 'prioridad-media';
-    return 'prioridad-baja';
+    if (puntaje <= 40) return 'chip--riesgo-alto';
+    if (puntaje <= 70) return 'chip--riesgo-medio';
+    return 'chip--riesgo-bajo';
   }
 
   verDetalle(flujoId: string): void {

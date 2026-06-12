@@ -17,6 +17,7 @@ import {
   ChatMensaje,
   EventoSSE,
   HerramientaEjecutada,
+  SUGERENCIAS_RAPIDAS,
   inferirTipoArchivo
 } from '../../models/chat.model';
 import { ReportesChatService } from '../../services/reportes-chat.service';
@@ -45,6 +46,7 @@ export class ChatComponent implements AfterViewChecked, OnDestroy {
   readonly mensajes = signal<ChatMensaje[]>([]);
   readonly streamActivo = signal(false);
   readonly sesionId = signal<string>(this.nuevoSesionId());
+  readonly sugerencias = SUGERENCIAS_RAPIDAS;
 
   private streamSub: Subscription | null = null;
   private autoScrollPending = false;

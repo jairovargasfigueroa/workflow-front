@@ -1,0 +1,26 @@
+@if (variante() === 'tabla') {
+  <div class="skeleton-tabla" role="status" aria-label="Cargando contenido">
+    <div class="skeleton-row skeleton-header">
+      @for (_ of columnasArray; track $index) {
+        <div class="skeleton-cell skeleton-shimmer"></div>
+      }
+    </div>
+    @for (_ of filasArray; track $index) {
+      <div class="skeleton-row">
+        @for (_ of columnasArray; track $index) {
+          <div class="skeleton-cell skeleton-shimmer"></div>
+        }
+      </div>
+    }
+  </div>
+} @else {
+  <div class="skeleton-cards" role="status" aria-label="Cargando contenido">
+    @for (_ of filasArray; track $index) {
+      <div class="skeleton-card">
+        <div class="skeleton-card-title skeleton-shimmer"></div>
+        <div class="skeleton-card-line skeleton-shimmer"></div>
+        <div class="skeleton-card-line skeleton-card-line-short skeleton-shimmer"></div>
+      </div>
+    }
+  </div>
+}

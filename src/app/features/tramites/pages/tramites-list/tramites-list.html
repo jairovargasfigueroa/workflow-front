@@ -8,8 +8,8 @@
   </app-page-header>
 
   @if (loading()) {
-    <div class="loading-container">
-      <mat-spinner diameter="48"></mat-spinner>
+    <div class="table-container">
+      <app-list-skeleton variante="tabla" [filas]="6" [columnas]="7" />
     </div>
   } @else if (tramites().length === 0) {
     <app-empty-state
@@ -40,7 +40,7 @@
 <ng-container matColumnDef="requisitos">
           <th mat-header-cell *matHeaderCellDef>Requisitos</th>
           <td mat-cell *matCellDef="let tramite">
-            <mat-chip>{{ tramite.requisitos?.length || 0 }} requisitos</mat-chip>
+            <span class="chip chip--neutral">{{ tramite.requisitos?.length || 0 }} requisitos</span>
           </td>
         </ng-container>
 
@@ -79,19 +79,26 @@
 <ng-container matColumnDef="activo">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let tramite">
-            <mat-chip [class]="tramite.activo ? 'status-activo' : 'status-inactivo'">
-              {{ tramite.activo ? 'Activo' : 'Inactivo' }}
-            </mat-chip>
+            @if (tramite.activo) {
+              <span class="chip chip--active">
+                <span class="chip-dot"></span>
+                Activo
+              </span>
+            } @else {
+              <span class="chip chip--inactive">Inactivo</span>
+            }
           </td>
         </ng-container>
 
 <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef class="actions-column">Acciones</th>
           <td mat-cell *matCellDef="let tramite" class="actions-column">
-            <button mat-icon-button color="primary" matTooltip="Editar" (click)="openDialog(tramite)">
+            <button mat-icon-button class="action-btn action-btn--edit"
+                    matTooltip="Editar" (click)="openDialog(tramite)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDelete(tramite)">
+            <button mat-icon-button class="action-btn action-btn--delete"
+                    matTooltip="Eliminar" (click)="confirmDelete(tramite)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

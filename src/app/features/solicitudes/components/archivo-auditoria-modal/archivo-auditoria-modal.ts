@@ -15,7 +15,7 @@ import {
   TIPO_EVENTO_AUDITORIA_LABELS,
   TipoEventoAuditoria
 } from '../../models/archivo.model';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 
 export interface ArchivoAuditoriaModalData {
@@ -43,7 +43,7 @@ export class ArchivoAuditoriaModalComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<ArchivoAuditoriaModalComponent>);
   private readonly data = inject<ArchivoAuditoriaModalData>(MAT_DIALOG_DATA);
   private readonly auditoriaService = inject(AuditoriaArchivosService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   archivoId = this.data.archivoId;
   nombreArchivo = this.data.nombreArchivo;
@@ -108,7 +108,7 @@ export class ArchivoAuditoriaModalComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  private handleError(err: HttpErrorResponse, fallback: string): void {
-    this.notification.add({ title: fallback, message: mapHttpErrorToUserMessage(err), type: 'error' });
+  private handleError(err: HttpErrorResponse, _fallback: string): void {
+    this.feedback.error(mapHttpErrorToUserMessage(err));
   }
 }

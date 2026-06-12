@@ -19,7 +19,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
 
-import { SUGERENCIAS_RAPIDAS } from '../../models/chat.model';
 import { SpeechService } from '../../../../core/services/speech.service';
 
 const VOICE_TARGET = 'chat-reportes';
@@ -41,12 +40,10 @@ const VOICE_TARGET = 'chat-reportes';
 })
 export class ChatInputComponent implements OnChanges, OnDestroy {
   @Input() bloqueado = false;
-  @Input() mostrarSugerencias = false;
   @Output() enviar = new EventEmitter<string>();
 
   private readonly speechService = inject(SpeechService);
 
-  readonly sugerencias = SUGERENCIAS_RAPIDAS;
   readonly texto = signal('');
   readonly soportaVoz = this.speechService.soportado;
 
@@ -96,12 +93,6 @@ export class ChatInputComponent implements OnChanges, OnDestroy {
     if (!this.puedeEnviar) return;
     const msg = this.texto().trim();
     this.enviar.emit(msg);
-    this.texto.set('');
-  }
-
-  usarSugerencia(s: string): void {
-    if (this.bloqueado) return;
-    this.enviar.emit(s);
     this.texto.set('');
   }
 

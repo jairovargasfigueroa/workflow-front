@@ -13,13 +13,21 @@
     </div>
   } @else {
     <div class="element-header">
-      <mat-icon>{{ getElementIcon() }}</mat-icon>
-      <span class="element-type">{{ getElementTypeLabel() }}</span>
+      <div class="element-header-icon"><mat-icon>{{ getElementIcon() }}</mat-icon></div>
+      <div class="element-header-text">
+        <span class="element-type">{{ getElementTypeLabel() }}</span>
+        @if (elementName()) {
+          <span class="element-name">{{ elementName() }}</span>
+        }
+      </div>
     </div>
 
     <div class="properties-form">
-      <!-- Nombre (para todos excepto el proceso raíz) -->
-      @if (elementType() !== 'bpmn:Process') {
+      <!-- Nombre de texto libre: para todos MENOS proceso, flechas y endEvents
+           (esos usan dropdown del catálogo de acciones). -->
+      @if (elementType() !== 'bpmn:Process'
+        && elementType() !== 'bpmn:SequenceFlow'
+        && elementType() !== 'bpmn:EndEvent') {
         <mat-form-field appearance="outline">
           <mat-label>Nombre</mat-label>
           <input
@@ -27,9 +35,6 @@
             [value]="elementName()"
             (input)="onNameChange($event)"
             placeholder="Nombre del elemento">
-          @if (elementType() === 'bpmn:SequenceFlow') {
-            <mat-hint>El nombre se usará como etiqueta de la acción para el funcionario</mat-hint>
-          }
         </mat-form-field>
       }
 
@@ -69,78 +74,113 @@
         }
       }
 
-      <!-- User Task: Departamento heredado/legacy + Formulario + Configuración Documental -->
+      <!-- User Task: acordeón de sub-secciones (una abierta a la vez) -->
       @if (elementType() === 'bpmn:UserTask') {
+        <mat-accordion class="ut-accordion" [multi]="false">
 
-        <!-- Banner del departamento heredado -->
-        @switch (userTaskDepartamento().fuente) {
-          @case ('lane') {
-            <div class="info-box">
-              <mat-icon>view_stream</mat-icon>
-              <div>
-                <div>Departamento heredado del carril:</div>
-                <strong>{{ userTaskDepartamento().departamentoNombre }}</strong>
-                <div class="muted">Carril: {{ userTaskDepartamento().carrilNombre }}</div>
-              </div>
-            </div>
-          }
-          @case ('lane-sin-dpto') {
-            <div class="info-box warn">
-              <mat-icon>warning</mat-icon>
-              <div>
-                <div>Esta tarea está en el carril <strong>{{ userTaskDepartamento().carrilNombre }}</strong>,
-                  pero el carril no tiene departamento asignado.</div>
-                <div class="muted">Selecciona el carril en el canvas y asígnale un departamento.</div>
-              </div>
-            </div>
-          }
-          @case ('legacy') {
-            <div class="info-box warn">
-              <mat-icon>history</mat-icon>
-              <div>
-                <div>Departamento asignado directamente (formato antiguo):</div>
-                <strong>{{ userTaskDepartamento().departamentoNombre }}</strong>
-                <div class="muted">Considera mover esta tarea dentro de un carril.</div>
-              </div>
-            </div>
-          }
-          @case ('ninguno') {
-            <div class="info-box warn">
-              <mat-icon>error_outline</mat-icon>
-              <div>
-                <div><strong>Sin departamento</strong></div>
-                <div class="muted">Coloca esta tarea dentro de un carril con departamento, o usa el formato antiguo.</div>
-              </div>
-            </div>
-          }
-        }
-
-        <mat-form-field appearance="outline">
-          <mat-label>Formulario de la tarea</mat-label>
-          <mat-select
-            [value]="formularioId()"
-            (selectionChange)="onFormularioChange($event.value)">
-            <mat-option value="">— Sin formulario —</mat-option>
-            @for (form of formularios(); track form.id) {
-              <mat-option [value]="form.id">{{ form.titulo }}</mat-option>
+          <!-- Asignación (departamento heredado) -->
+          <mat-expansion-panel [expanded]="true">
+            <mat-expansion-panel-header>
+              <mat-panel-title><mat-icon class="sec-icon">business</mat-icon> Asignación</mat-panel-title>
+              <mat-panel-description>{{ userTaskDepartamento().departamentoNombre ?? 'Sin departamento' }}</mat-panel-description>
+            </mat-expansion-panel-header>
+            @switch (userTaskDepartamento().fuente) {
+              @case ('lane') {
+                <div class="info-box">
+                  <mat-icon>view_stream</mat-icon>
+                  <div>
+                    <div>Departamento heredado del carril:</div>
+                    <strong>{{ userTaskDepartamento().departamentoNombre }}</strong>
+                    <div class="muted">Carril: {{ userTaskDepartamento().carrilNombre }}</div>
+                  </div>
+                </div>
+              }
+              @case ('lane-sin-dpto') {
+                <div class="info-box warn">
+                  <mat-icon>warning</mat-icon>
+                  <div>
+                    <div>Esta tarea está en el carril <strong>{{ userTaskDepartamento().carrilNombre }}</strong>,
+                      pero el carril no tiene departamento asignado.</div>
+                    <div class="muted">Selecciona el carril en el canvas y asígnale un departamento.</div>
+                  </div>
+                </div>
+              }
+              @case ('legacy') {
+                <div class="info-box warn">
+                  <mat-icon>history</mat-icon>
+                  <div>
+                    <div>Departamento asignado directamente (formato antiguo):</div>
+                    <strong>{{ userTaskDepartamento().departamentoNombre }}</strong>
+                    <div class="muted">Considera mover esta tarea dentro de un carril.</div>
+                  </div>
+                </div>
+              }
+              @case ('ninguno') {
+                <div class="info-box warn">
+                  <mat-icon>error_outline</mat-icon>
+                  <div>
+                    <div><strong>Sin departamento</strong></div>
+                    <div class="muted">Coloca esta tarea dentro de un carril con departamento, o usa el formato antiguo.</div>
+                  </div>
+                </div>
+              }
             }
-          </mat-select>
-          <mat-hint>camunda:formKey</mat-hint>
-        </mat-form-field>
+          </mat-expansion-panel>
 
-        <mat-form-field appearance="outline">
-          <mat-label>SLA del nodo (horas)</mat-label>
-          <input matInput type="number" min="1" step="1"
-                 [value]="slaNodoHoras() ?? ''"
-                 (input)="onSlaNodoChange($event)"
-                 placeholder="Ej. 24">
-          <mat-hint>Cuánto debería tardar este paso. Vacío = sin SLA por nodo.</mat-hint>
-        </mat-form-field>
+          <!-- Formulario (plantilla + campos inline) -->
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title><mat-icon class="sec-icon">dynamic_form</mat-icon> Formulario</mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-form-field appearance="outline">
+              <mat-label>Formulario de la tarea</mat-label>
+              <mat-select
+                [value]="formularioId()"
+                (selectionChange)="onFormularioChange($event.value)">
+                <mat-option value="">— Sin formulario —</mat-option>
+                @for (form of formularios(); track form.id) {
+                  <mat-option [value]="form.id">{{ form.titulo }}</mat-option>
+                }
+              </mat-select>
+              <mat-hint>El funcionario completará este formulario al responder.</mat-hint>
+            </mat-form-field>
 
-        <app-nodo-config-documental
-          [modeler]="modeler()"
-          [element]="selectedElement()">
-        </app-nodo-config-documental>
+            <!-- Campos inline: reemplazan a la plantilla si se definen -->
+            <app-nodo-campos-formulario
+              [modeler]="modeler()"
+              [element]="selectedElement()"
+              [formularioId]="formularioId()">
+            </app-nodo-campos-formulario>
+          </mat-expansion-panel>
+
+          <!-- Tiempo (SLA) -->
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title><mat-icon class="sec-icon">timer</mat-icon> Tiempo (SLA)</mat-panel-title>
+              <mat-panel-description>{{ slaNodoHoras() ? slaNodoHoras() + ' h' : 'Sin SLA' }}</mat-panel-description>
+            </mat-expansion-panel-header>
+            <mat-form-field appearance="outline">
+              <mat-label>SLA del nodo (horas)</mat-label>
+              <input matInput type="number" min="1" step="1"
+                     [value]="slaNodoHoras() ?? ''"
+                     (input)="onSlaNodoChange($event)"
+                     placeholder="Ej. 24">
+              <mat-hint>Cuánto debería tardar este paso. Vacío = sin SLA por nodo.</mat-hint>
+            </mat-form-field>
+          </mat-expansion-panel>
+
+          <!-- Documentos producidos -->
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title><mat-icon class="sec-icon">description</mat-icon> Documentos</mat-panel-title>
+            </mat-expansion-panel-header>
+            <app-nodo-config-documental
+              [modeler]="modeler()"
+              [element]="selectedElement()"
+              [embebido]="true">
+            </app-nodo-config-documental>
+          </mat-expansion-panel>
+        </mat-accordion>
       }
 
       <!-- Start Event: Configuración del kit de documentos del solicitante -->
@@ -157,12 +197,51 @@
         </app-nodo-config-documental>
       }
 
+      <!-- End Event: dropdown con las acciones FINALES (define el estado final del trámite) -->
+      @if (elementType() === 'bpmn:EndEvent') {
+        <mat-form-field appearance="outline">
+          <mat-label>Resultado final</mat-label>
+          <mat-select
+            [value]="elementName()"
+            (selectionChange)="onAccionChange($event.value)">
+            <mat-option value="">— Sin definir —</mat-option>
+            @for (accion of accionesFinales(); track accion.valor) {
+              <mat-option [value]="accion.etiqueta">{{ accion.etiqueta }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>De este resultado sale el estado final del trámite.</mat-hint>
+        </mat-form-field>
+        @if (!elementName()) {
+          <div class="info-box warn">
+            <mat-icon>warning</mat-icon>
+            <span>Elegí un resultado final (Aprobado / Rechazado / Cancelado) para que el trámite cierre correctamente.</span>
+          </div>
+        }
+      }
+
       <!-- Sequence Flow -->
       @if (elementType() === 'bpmn:SequenceFlow') {
-        <div class="info-box neutral">
-          <mat-icon>arrow_forward</mat-icon>
-          <span>Asigna un nombre a este flujo para que el funcionario vea una acción con esa etiqueta al responder.</span>
-        </div>
+        @if (flechaEsDecision()) {
+          <!-- Flecha que sale de un gateway exclusivo → etiqueta del catálogo -->
+          <mat-form-field appearance="outline">
+            <mat-label>Acción</mat-label>
+            <mat-select
+              [value]="elementName()"
+              (selectionChange)="onAccionChange($event.value)">
+              <mat-option value="">— Sin definir —</mat-option>
+              @for (accion of acciones(); track accion.valor) {
+                <mat-option [value]="accion.etiqueta">{{ accion.etiqueta }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>El funcionario verá esta acción al responder en la decisión.</mat-hint>
+          </mat-form-field>
+        } @else {
+          <!-- Flecha secuencial (no sale de un gateway) → sin etiqueta -->
+          <div class="info-box neutral">
+            <mat-icon>arrow_forward</mat-icon>
+            <span>Flecha secuencial — el sistema la maneja como <strong>"Continuar"</strong> automáticamente. No requiere etiqueta.</span>
+          </div>
+        }
       }
 
       <!-- Proceso (root element) -->

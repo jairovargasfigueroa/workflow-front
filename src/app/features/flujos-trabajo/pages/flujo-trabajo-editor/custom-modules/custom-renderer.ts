@@ -4,13 +4,15 @@ import BaseRenderer from 'diagram-js/lib/draw/BaseRenderer';
 const HIGH_PRIORITY = 1500;
 
 class CustomBpmnRenderer extends (BaseRenderer as any) {
-  static $inject = ['eventBus', 'bpmnRenderer'];
+  static $inject = ['eventBus', 'bpmnRenderer', 'textRenderer'];
 
   private bpmnRenderer: any;
+  private textRenderer: any;
 
-  constructor(eventBus: any, bpmnRenderer: any) {
+  constructor(eventBus: any, bpmnRenderer: any, textRenderer: any) {
     super(eventBus, HIGH_PRIORITY);
     this.bpmnRenderer = bpmnRenderer;
+    this.textRenderer = textRenderer;
   }
 
   canRender(element: any): boolean {
@@ -131,15 +133,13 @@ class CustomBpmnRenderer extends (BaseRenderer as any) {
 
     const name = element.businessObject?.name;
     if (name) {
-      const text = this.svg('text', {
-        x: w / 2, y: h / 2,
-        'text-anchor': 'middle',
-        'dominant-baseline': 'middle',
-        'font-size': '12',
-        'font-family': 'Arial, sans-serif',
-        fill: '#000000'
+      // Usamos el textRenderer de la librería: parte el texto en varias líneas
+      // para que entre en la caja (mismo comportamiento que el renderer default).
+      const text = this.textRenderer.createText(name, {
+        box: { width: w, height: h },
+        align: 'center-middle',
+        padding: 5
       });
-      text.textContent = name;
       this.append(parent, text);
     }
 

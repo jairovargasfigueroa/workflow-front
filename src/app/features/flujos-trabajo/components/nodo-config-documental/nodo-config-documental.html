@@ -1,20 +1,28 @@
-<mat-expansion-panel class="config-panel">
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      <mat-icon class="title-icon">description</mat-icon>
-      Configuración Documental
-    </mat-panel-title>
-    <mat-panel-description>
-      {{ resumenHeader }}
-    </mat-panel-description>
-  </mat-expansion-panel-header>
+@if (embebido()) {
+  <!-- Sin panel propio: el cuerpo va directo (anidado en un acordeón externo) -->
+  <ng-container *ngTemplateOutlet="cuerpo"></ng-container>
+} @else {
+  <mat-expansion-panel class="config-panel">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <mat-icon class="title-icon">description</mat-icon>
+        Configuración Documental
+      </mat-panel-title>
+      <mat-panel-description>
+        {{ resumenHeader }}
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <ng-container *ngTemplateOutlet="cuerpo"></ng-container>
+  </mat-expansion-panel>
+}
 
+<ng-template #cuerpo>
   <!-- Documentos producidos / del kit -->
   <section class="config-section">
     <div class="config-section-header">
       <h4>{{ tituloSeccion }}</h4>
       <button mat-stroked-button color="primary"
-              (click)="agregarDocumento('documentosProducidos')">
+              (click)="agregarDocumento()">
         <mat-icon>add</mat-icon>
         Agregar
       </button>
@@ -44,11 +52,11 @@
             </div>
             <div class="doc-actions">
               <button mat-icon-button matTooltip="Editar"
-                      (click)="editarDocumento('documentosProducidos', $index)">
+                      (click)="editarDocumento($index)">
                 <mat-icon>edit</mat-icon>
               </button>
               <button mat-icon-button color="warn" matTooltip="Quitar"
-                      (click)="quitarDocumento('documentosProducidos', $index)">
+                      (click)="quitarDocumento($index)">
                 <mat-icon>delete</mat-icon>
               </button>
             </div>
@@ -70,7 +78,35 @@
 
     <div class="permiso-grupo">
       <div class="permiso-header">
-        <span class="permiso-titulo">Pueden ver</span>
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">cloud_upload</mat-icon>
+          Pueden subir
+        </span>
+        <button mat-stroked-button color="primary"
+                (click)="agregarSujetoAdHoc('subidores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (config.permisosDefaultAdHoc.subidores.length === 0) {
+          <span class="vacio">Vacío — nadie</span>
+        }
+        @for (s of config.permisosDefaultAdHoc.subidores; track $index) {
+          <mat-chip-row (removed)="quitarSujetoAdHoc('subidores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">visibility</mat-icon>
+          Pueden ver
+        </span>
         <button mat-stroked-button color="primary"
                 (click)="agregarSujetoAdHoc('lectores')">
           <mat-icon>add</mat-icon>
@@ -92,7 +128,10 @@
 
     <div class="permiso-grupo">
       <div class="permiso-header">
-        <span class="permiso-titulo">Pueden editar</span>
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">edit</mat-icon>
+          Pueden modificar (nueva versión)
+        </span>
         <button mat-stroked-button color="primary"
                 (click)="agregarSujetoAdHoc('editores')">
           <mat-icon>add</mat-icon>
@@ -114,7 +153,10 @@
 
     <div class="permiso-grupo">
       <div class="permiso-header">
-        <span class="permiso-titulo">Pueden eliminar</span>
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">delete</mat-icon>
+          Pueden eliminar
+        </span>
         <button mat-stroked-button color="primary"
                 (click)="agregarSujetoAdHoc('eliminadores')">
           <mat-icon>add</mat-icon>
@@ -134,4 +176,4 @@
       </div>
     </div>
   </section>
-</mat-expansion-panel>
+</ng-template>

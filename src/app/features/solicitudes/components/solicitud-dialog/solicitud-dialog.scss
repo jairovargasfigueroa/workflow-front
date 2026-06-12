@@ -1,57 +1,56 @@
-// Estilos base en src/styles/_dialogs.scss
-// Solo se definen estilos únicos del formulario dinámico:
+// Estilos base en src/styles/_dialogs.scss. Solo lo único del formulario dinámico:
 
 .dynamic-fields {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  background: var(--surface-subtle);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-border);
+  gap: var(--space-3);
 }
+
+// Los estilos de los tipos complejos (campo-grupo, tabla, grid, etc.)
+// viven en src/styles/_dynamic-fields.scss (global, compartido con respuesta-dialog).
 
 .cargando-tramite {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 16px;
+  gap: var(--space-2);
+  padding: var(--space-4);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 
+// Header del kit de documentos (título + progreso)
 .kit-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
   flex-wrap: wrap;
 
   h3 {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-2);
     margin: 0;
-    font-size: 15px;
-    font-weight: 500;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
 
     mat-icon {
       color: var(--color-primary);
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
   }
 }
 
 .kit-progreso {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: 999px;
   background: var(--chip-approved-bg);
   color: var(--chip-approved-text);
 
@@ -64,23 +63,24 @@
 .slots-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .kit-warn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 12px 0 0;
-  padding: 8px 12px;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
   background: var(--chip-pending-bg);
   color: var(--chip-pending-text);
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
 
   mat-icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
+    flex-shrink: 0;
   }
 }

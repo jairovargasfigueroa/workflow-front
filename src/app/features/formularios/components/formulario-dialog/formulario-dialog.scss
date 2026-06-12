@@ -1,12 +1,13 @@
 // Estilos base en src/styles/_dialogs.scss
-// Solo se definen estilos únicos del constructor de campos con drag & drop:
+// Solo el constructor de campos con drag & drop:
 
 .empty-campos {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px;
-  background: var(--surface-page);
+  padding: var(--space-8);
+  background: var(--surface-subtle);
+  border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-card);
   color: var(--color-text-secondary);
 
@@ -14,65 +15,105 @@
     font-size: 48px;
     width: 48px;
     height: 48px;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
+    color: var(--color-text-hint);
   }
 
   p {
     margin: 0;
     text-align: center;
+    font-size: var(--font-size-base);
   }
 }
 
 .campos-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
+// Cada campo es una "tarjeta" con: handle de arrastre + contenido + eliminar
 .campo-item {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 16px;
+  gap: var(--space-2);
+  padding: var(--space-4);
   background: var(--surface-subtle);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  cursor: move;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-border-strong);
+  }
 
   &.cdk-drag-preview {
     box-shadow: var(--shadow-card-hover);
+    background: var(--surface-card);
   }
 
   &.cdk-drag-placeholder {
     opacity: 0.3;
   }
+}
 
-  .drag-handle {
-    color: var(--color-text-hint);
-    cursor: grab;
-    padding-top: 8px;
+.drag-handle {
+  color: var(--color-text-hint);
+  cursor: grab;
+  padding-top: var(--space-2);
+  flex-shrink: 0;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// Contenido del campo — min-width: 0 es CLAVE para que no se desborde
+.campo-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+// Fila 1: Nombre (ID) | Etiqueta | Tipo
+// Grid responsive: en ancho normal 3 columnas, en angosto se apilan.
+.campo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 150px;
+  gap: var(--space-3);
+  align-items: start;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
   }
 
-  .campo-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-    .campo-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-
-      mat-form-field {
-        flex: 1;
-      }
-
-      .opciones-field {
-        flex: 2;
-      }
-    }
+  // min-width: 0 en cada campo → permite que se achiquen sin desbordar
+  mat-form-field {
+    min-width: 0;
+    width: 100%;
   }
+}
+
+// Fila 2: checkbox Requerido + (opcional) campo de Opciones
+.campo-row:last-child {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .opciones-field {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.campo-item > button[mat-icon-button] {
+  flex-shrink: 0;
 }
 
 .cdk-drag-animating {

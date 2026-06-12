@@ -19,7 +19,8 @@ import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
 import { SlaBadgeComponent } from '../../../../shared/components/ui/sla-badge/sla-badge';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { ListSkeletonComponent } from '../../../../shared/components/ui/list-skeleton/list-skeleton';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
 import { formatFechaAbsoluta, formatTiempoRestante } from '../../../../core/utils/sla.util';
@@ -41,7 +42,8 @@ type FiltroSla = 'todos' | 'critico' | 'a-vencer';
     MatChipsModule,
     EmptyStateComponent,
     PageHeaderComponent,
-    SlaBadgeComponent
+    SlaBadgeComponent,
+    ListSkeletonComponent
   ],
   templateUrl: './solicitudes-list.html',
   styleUrl: './solicitudes-list.scss'
@@ -51,7 +53,7 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   bandejaDepto = signal<SolicitudTramiteResumen[]>([]);
   misTareas = signal<SolicitudTramiteResumen[]>([]);
@@ -67,7 +69,7 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
 
   readonly filtroSla = signal<FiltroSla>('todos');
 
-  columnasBandeja = ['urgencia', 'tramite', 'solicitante', 'sla', 'vence', 'fecha', 'acciones'];
+  columnasBandeja = ['tramite', 'solicitante', 'sla', 'vence', 'fecha', 'acciones'];
   columnasMisTareas = ['tramite', 'solicitante', 'sla', 'vence', 'fecha', 'acciones'];
   columnasHistorial = ['tramite', 'solicitante', 'estado', 'sla', 'fecha', 'acciones'];
 
@@ -86,16 +88,17 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadBandeja();
     this.loadMisTareas();
-    this.pollInterval = setInterval(() => {
-      this.loadBandeja();
-      this.loadMisTareas();
-    }, 30000);
+    // Auto-refresh deshabilitado — el usuario refresca manualmente.
+    // this.pollInterval = setInterval(() => {
+    //   this.loadBandeja();
+    //   this.loadMisTareas();
+    // }, 30000);
     // Recalcular "Vence en X" en vivo (local — sin pegarle al endpoint).
     this.tickInterval = setInterval(() => this.tick.update(t => t + 1), 60000);
   }
 
   ngOnDestroy(): void {
-    clearInterval(this.pollInterval);
+    // clearInterval(this.pollInterval);
     clearInterval(this.tickInterval);
   }
 
@@ -171,7 +174,7 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
         this.solicitudesService.tomar(sol.id, { elementId: tarea.elementId }).subscribe({
           next: () => {
             this.loadMisTareas();
-            this.notificationService.add({ title: 'Tarea tomada', message: 'Aparece ahora en "Mis tareas"', type: 'success' });
+            this.feedback.success('Tarea tomada — aparece ahora en "Mis tareas"');
           },
           error: () => {
             this.bandejaDepto.update(list => [sol, ...list]);
@@ -206,7 +209,7 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
             next: () => {
               this.misTareas.update(list => list.filter(s => s.id !== sol.id));
               this.loadBandeja();
-              this.notificationService.add({ title: 'Tarea liberada', message: 'Volvió a la bandeja del departamento', type: 'success' });
+              this.feedback.success('Tarea liberada — volvió a la bandeja del departamento');
             }
           });
         }
@@ -247,21 +250,13 @@ export class SolicitudesListComponent implements OnInit, OnDestroy {
     return ESTADO_TRAMITE_LABELS[estado];
   }
 
-  getUrgencyColor(fechaEntrada: string | null | undefined): string {
-    if (!fechaEntrada) return 'urgency-gris';
-    const horas = (Date.now() - new Date(fechaEntrada).getTime()) / (1000 * 60 * 60);
-    if (horas < 24) return 'urgency-verde';
-    if (horas < 48) return 'urgency-amarillo';
-    return 'urgency-rojo';
-  }
-
   getEstadoClass(estado: EstadoTramite): string {
     const classes: Record<EstadoTramite, string> = {
-      PENDIENTE: 'estado-pendiente',
-      EN_PROCESO: 'estado-proceso',
-      CANCELADO: 'estado-cancelado',
-      APROBADO: 'estado-aprobado',
-      RECHAZADO: 'estado-rechazado'
+      PENDIENTE: 'chip--estado-pendiente',
+      EN_PROCESO: 'chip--estado-proceso',
+      CANCELADO: 'chip--estado-cancelado',
+      APROBADO: 'chip--estado-aprobado',
+      RECHAZADO: 'chip--estado-rechazado'
     };
     return classes[estado];
   }

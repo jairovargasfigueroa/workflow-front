@@ -33,6 +33,7 @@ export interface SujetoPermiso {
 }
 
 export interface PermisoSet {
+  subidores: SujetoPermiso[];
   lectores: SujetoPermiso[];
   editores: SujetoPermiso[];
   eliminadores: SujetoPermiso[];
@@ -40,7 +41,6 @@ export interface PermisoSet {
 
 export interface DocumentoConfig {
   nombre: string;
-  campoFormularioAsociado: string | null;
   formatosAceptados: string[];
   obligatorio: boolean;
   permisos: PermisoSet;
@@ -48,18 +48,16 @@ export interface DocumentoConfig {
 }
 
 export interface ConfiguracionDocumental {
-  documentosEsperados: DocumentoConfig[];
   documentosProducidos: DocumentoConfig[];
   permisosDefaultAdHoc: PermisoSet;
 }
 
 export function emptyPermisoSet(): PermisoSet {
-  return { lectores: [], editores: [], eliminadores: [] };
+  return { subidores: [], lectores: [], editores: [], eliminadores: [] };
 }
 
 export function emptyConfiguracionDocumental(): ConfiguracionDocumental {
   return {
-    documentosEsperados: [],
     documentosProducidos: [],
     permisosDefaultAdHoc: emptyPermisoSet()
   };
@@ -68,7 +66,6 @@ export function emptyConfiguracionDocumental(): ConfiguracionDocumental {
 export function emptyDocumentoConfig(): DocumentoConfig {
   return {
     nombre: '',
-    campoFormularioAsociado: null,
     formatosAceptados: [],
     obligatorio: false,
     permisos: emptyPermisoSet(),

@@ -7,7 +7,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatChipsModule } from '@angular/material/chips';
 
 import { FlujosTrabajoService } from '../../services/flujos-trabajo.service';
 import { FlujoTrabajo, EstadoFlujo } from '../../models/flujo-trabajo.model';
@@ -15,7 +14,8 @@ import { FlujoTrabajoDialogComponent } from '../../components/flujo-trabajo-dial
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { ListSkeletonComponent } from '../../../../shared/components/ui/list-skeleton/list-skeleton';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 
 @Component({
   selector: 'app-flujos-trabajo-list',
@@ -28,9 +28,9 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatDialogModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatChipsModule,
     EmptyStateComponent,
-    PageHeaderComponent
+    PageHeaderComponent,
+    ListSkeletonComponent
   ],
   templateUrl: './flujos-trabajo-list.html',
   styleUrl: './flujos-trabajo-list.scss'
@@ -39,7 +39,7 @@ export class FlujosTrabajoListComponent implements OnInit {
   private readonly flujosService = inject(FlujosTrabajoService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   flujos = signal<FlujoTrabajo[]>([]);
   loading = signal(true);
@@ -81,10 +81,10 @@ export class FlujosTrabajoListComponent implements OnInit {
 
   getEstadoChipClass(flujo: FlujoTrabajo): string {
     const map: Record<EstadoFlujo, string> = {
-      SIN_PUBLICAR: 'flujo-sin-publicar',
-      ACTIVO: 'flujo-activo',
-      DESACTIVADO: 'flujo-desactivado',
-      ARCHIVADO: 'flujo-archivado'
+      SIN_PUBLICAR: 'chip--flujo-sin-publicar',
+      ACTIVO: 'chip--flujo-activo',
+      DESACTIVADO: 'chip--flujo-desactivado',
+      ARCHIVADO: 'chip--flujo-archivado'
     };
     return map[flujo.estadoFlujo] ?? '';
   }
@@ -120,22 +120,16 @@ export class FlujosTrabajoListComponent implements OnInit {
   publicarDesdeList(flujo: FlujoTrabajo): void {
     this.flujosService.publicar(flujo.id).subscribe({
       next: () => {
-        this.notificationService.add({
-          title: 'Publicado',
-          message: `El flujo "${flujo.nombre}" se publicó correctamente`,
-          type: 'success'
-        });
+        this.feedback.success(`El flujo "${flujo.nombre}" se publicó correctamente`);
         this.loadFlujos();
       },
       error: (error) => {
         const errores: string[] = error?.error?.errores ?? [];
-        this.notificationService.add({
-          title: 'Error al publicar',
-          message: errores.length > 0
+        this.feedback.error(
+          errores.length > 0
             ? errores[0]
-            : 'El diagrama tiene errores. Ábrelo en el editor para verlos.',
-          type: 'error'
-        });
+            : 'El diagrama tiene errores. Ábrelo en el editor para verlos.'
+        );
       }
     });
   }
@@ -147,26 +141,19 @@ export class FlujosTrabajoListComponent implements OnInit {
         title: 'Descartar borrador',
         message: `¿Descartar los cambios sin publicar de "${flujo.nombre}"?`,
         confirmText: 'Descartar',
-        cancelText: 'Cancelar'
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
       }
     });
     dialogRef.afterClosed().subscribe(result => {
       if (!result) return;
       this.flujosService.descartarBorrador(flujo.id).subscribe({
         next: () => {
-          this.notificationService.add({
-            title: 'Borrador descartado',
-            message: `Los cambios de "${flujo.nombre}" fueron descartados`,
-            type: 'success'
-          });
+          this.feedback.success(`Los cambios de "${flujo.nombre}" fueron descartados`);
           this.loadFlujos();
         },
         error: () => {
-          this.notificationService.add({
-            title: 'Error',
-            message: 'No se pudo descartar el borrador',
-            type: 'error'
-          });
+          this.feedback.error('No se pudo descartar el borrador');
         }
       });
     });
@@ -199,7 +186,8 @@ export class FlujosTrabajoListComponent implements OnInit {
         title: 'Eliminar flujo',
         message: `¿Estás seguro de eliminar el flujo "${flujo.nombre}"?`,
         confirmText: 'Eliminar',
-        cancelText: 'Cancelar'
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
       }
     });
     dialogRef.afterClosed().subscribe(result => {

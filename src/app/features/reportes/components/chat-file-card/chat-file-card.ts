@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ArchivoAdjunto, TipoArchivoGenerado } from '../../models/chat.model';
 import { ReportesChatService } from '../../services/reportes-chat.service';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -20,7 +20,7 @@ export class ChatFileCardComponent {
   @Input({ required: true }) archivo!: ArchivoAdjunto;
 
   private readonly chatService = inject(ReportesChatService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   readonly descargando = signal(false);
 
@@ -48,11 +48,7 @@ export class ChatFileCardComponent {
       next: () => this.descargando.set(false),
       error: (err: HttpErrorResponse) => {
         this.descargando.set(false);
-        this.notification.add({
-          title: 'Error al descargar',
-          message: mapHttpErrorToUserMessage(err),
-          type: 'error'
-        });
+        this.feedback.error(mapHttpErrorToUserMessage(err));
       }
     });
   }

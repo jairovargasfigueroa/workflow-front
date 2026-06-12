@@ -1,6 +1,6 @@
 // =============================================================================
 // Dialogs — estilos base compartidos por todos los diálogos/formularios.
-// Cada diálogo solo define sus estilos únicos en su propio archivo SCSS.
+// Sistema de botones por intención (Cancelar gris, Eliminar rojo, Guardar azul).
 // =============================================================================
 
 // Responsive: en móvil los diálogos ocupan casi todo el ancho
@@ -16,31 +16,102 @@
   }
 }
 
-// Contenido del diálogo
-mat-dialog-content {
-  padding-top: 16px !important;
+// =============================================================================
+// Título y contenido del diálogo
+// =============================================================================
+
+h2.mat-mdc-dialog-title {
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-text-primary) !important;
+  padding: var(--space-6) var(--space-6) var(--space-2) !important;
+  margin: 0 !important;
+}
+
+mat-dialog-content,
+.mat-mdc-dialog-content {
+  padding: var(--space-4) var(--space-6) !important;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
   overflow-y: auto;
 
   form {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-2);
+  }
+
+  p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-base);
   }
 }
 
-// Barra de acciones del diálogo (botones cancelar / guardar)
-mat-dialog-actions {
-  padding: 16px 24px !important;
-  gap: 8px;
+// =============================================================================
+// Barra de acciones (botones) — sistema por intención
+// =============================================================================
+
+mat-dialog-actions,
+.mat-mdc-dialog-actions {
+  padding: var(--space-3) var(--space-6) var(--space-4) !important;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  background: var(--surface-subtle);
 
   button {
     min-width: 100px;
+    height: 40px;
+    border-radius: 8px !important;
+    font-size: var(--font-size-base) !important;
+    font-weight: var(--font-weight-medium) !important;
+    padding: 0 var(--space-4) !important;
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
 
     mat-spinner {
       display: inline-block;
     }
   }
+
+  // -- Cancelar / Volver (mat-button text — gris neutro) --
+  // Estos NO llevan color, así Material los renderiza como text-button.
+  // Override para que se vean como un "ghost button" gris suave.
+  .mat-mdc-button:not([color]),
+  .mat-mdc-button.mat-unthemed {
+    color: var(--color-text-secondary) !important;
+    background: transparent !important;
+
+    &:hover:not(:disabled) {
+      background: var(--hover-overlay) !important;
+      color: var(--color-text-primary) !important;
+    }
+  }
+
+  // -- Guardar / Confirmar (color="primary" — azul) --
+  .mat-mdc-unelevated-button.mat-primary {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 2px 6px rgba(25, 118, 210, 0.25);
+    }
+  }
+
+  // -- Eliminar / Descartar (color="warn" — ROJO destructivo) --
+  // Reforzamos el rojo para que se sienta el peso de "acción irreversible".
+  .mat-mdc-unelevated-button.mat-warn {
+    background-color: var(--color-error) !important;
+    color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(198, 40, 40, 0.15);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 2px 6px rgba(198, 40, 40, 0.30);
+    }
+  }
 }
+
+// =============================================================================
+// Layouts comunes dentro de dialogs
+// =============================================================================
 
 // Campo que ocupa el 100% del ancho
 .full-width {
@@ -48,11 +119,10 @@ mat-dialog-actions {
 }
 
 // Grid de 2 columnas para formularios con muchos campos
-// Se colapsa a 1 columna en móvil
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: var(--space-4);
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
@@ -61,33 +131,81 @@ mat-dialog-actions {
 
 // Sección interna de un diálogo con título y contenido
 .form-section {
-  padding: 16px 0;
+  padding: var(--space-4) 0;
 
   h3 {
-    margin: 0 0 12px;
-    font-size: 16px;
-    font-weight: 500;
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
   }
 
   .section-desc {
-    margin: 0 0 16px;
-    font-size: 14px;
+    margin: 0 0 var(--space-4);
+    font-size: var(--font-size-base);
     color: var(--color-text-secondary);
   }
 }
 
-// Fila con título de sección + botón "Agregar"
+// Fila con título de sección + botón / contador a la derecha
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
 
   h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     margin: 0;
-    font-size: 16px;
-    font-weight: 500;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
+  }
+}
+
+// Icono al lado del título de sección (azul primary)
+.section-icon {
+  color: var(--color-primary);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+// Texto de ayuda debajo del título de una sección
+.section-help {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+// Mensaje de advertencia inline (ej: "demasiadas etiquetas")
+.hint-warn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-warning);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+}
+
+// Contador a la derecha del header (ej: "3 / 20 recomendado")
+.contador {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+
+  &.contador-warn {
+    color: var(--color-warning);
+    font-weight: var(--font-weight-medium);
   }
 }

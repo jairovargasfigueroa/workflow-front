@@ -1,8 +1,4 @@
 .departamentos-container {
-  padding: 24px;
+  padding: var(--space-6);
 }
-
-// .actions-column width específica de esta tabla
-.departamentos-table .actions-column {
-  width: 120px;
-}
+// Tabla, chips y action-btn ahora viven en src/styles/_list-page.scss (global)

@@ -1,49 +1,173 @@
-.auth-container {
+// =============================================================================
+// Login — layout split (panel de marca + formulario). Profesional.
+// =============================================================================
+
+.auth-layout {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ===========================================================================
+// Panel de marca (izquierda)
+// ===========================================================================
+
+.auth-brand {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--space-12);
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-darker) 100%);
+  color: #ffffff;
+
+  @media (max-width: 900px) {
+    display: none;
+  }
+}
+
+.brand-content {
+  position: relative;
+  z-index: 2;
+  max-width: 420px;
+}
+
+.brand-logo {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  margin-bottom: var(--space-6);
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: #ffffff;
+  }
+}
+
+.auth-brand h1 {
+  margin: 0;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+}
+
+.brand-tagline {
+  margin: var(--space-4) 0 var(--space-8);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-base);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.brand-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--font-size-base);
+    color: rgba(255, 255, 255, 0.92);
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      padding: var(--space-2);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      box-sizing: content-box;
+    }
+  }
+}
+
+// Decoración: círculos sutiles de fondo
+.brand-decoration {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.4;
+  background-image:
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.12) 0%, transparent 35%),
+    radial-gradient(circle at 10% 90%, rgba(255, 255, 255, 0.10) 0%, transparent 30%);
+}
+
+// ===========================================================================
+// Panel de formulario (derecha)
+// ===========================================================================
+
+.auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
   background: var(--surface-page);
-  padding: 16px;
 }
 
 .auth-card {
-  background: var(--surface-card);
-  border-radius: var(--radius-card-lg);
-  padding: 40px;
   width: 100%;
-  max-width: 420px;
-  box-shadow: var(--shadow-elevated);
+  max-width: 400px;
 }
 
-.auth-header {
+.auth-card-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 
-  .auth-logo {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-    color: var(--color-primary);
-  }
-
-  h1 {
-    margin: 8px 0 4px;
-    font-size: 24px;
-    font-weight: 600;
+  h2 {
+    margin: var(--space-4) 0 var(--space-1);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
   }
 
   p {
-    color: var(--color-text-secondary);
     margin: 0;
-    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+  }
+}
+
+// Logo compacto (se ve sobre todo en mobile donde el brand panel está oculto)
+.auth-card-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--color-primary);
+  }
+
+  span {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    letter-spacing: 0.02em;
   }
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-2);
 
   mat-form-field {
     width: 100%;
@@ -51,42 +175,41 @@
 }
 
 .error-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   background: var(--color-error-light);
   color: var(--color-error);
-  border-radius: var(--radius-card);
-  padding: 10px 14px;
-  font-size: 14px;
-  margin-bottom: 4px;
+  border: 1px solid rgba(198, 40, 40, 0.2);
+  border-radius: 8px;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-2);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
 }
 
 .submit-btn {
   width: 100%;
-  height: 48px;
-  margin-top: 8px;
-  font-size: 16px;
+  height: 48px !important;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-lg) !important;
+  font-weight: var(--font-weight-medium) !important;
+  border-radius: 10px !important;
 
   mat-spinner {
     margin: 0 auto;
   }
 }
 
-.auth-footer {
+.auth-help {
   text-align: center;
-  margin-top: 24px;
-  color: var(--color-text-secondary);
-  font-size: 14px;
-
-  p {
-    margin: 0;
-  }
-
-  a {
-    color: var(--color-primary);
-    text-decoration: none;
-    font-weight: 500;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+  margin: var(--space-6) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
 }

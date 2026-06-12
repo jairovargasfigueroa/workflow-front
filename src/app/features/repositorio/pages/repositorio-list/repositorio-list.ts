@@ -31,7 +31,7 @@ import { Tramite } from '../../../tramites/models/tramite.model';
 import { UsuariosService } from '../../../usuarios/services/usuarios.service';
 import { Usuario } from '../../../usuarios/models/usuario.model';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 import {
   caminoVer,
@@ -95,7 +95,7 @@ export class RepositorioListComponent implements OnInit {
   private readonly archivosService = inject(ArchivosService);
   private readonly tramitesService = inject(TramitesService);
   private readonly usuariosService = inject(UsuariosService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
   private readonly matDialog = inject(MatDialog);
 
   readonly formatos = FORMATOS_REPOSITORIO;
@@ -181,11 +181,7 @@ export class RepositorioListComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.cargando.set(false);
-        this.notification.add({
-          title: 'No se pudo cargar el repositorio',
-          message: mapHttpErrorToUserMessage(err),
-          type: 'error'
-        });
+        this.feedback.error(mapHttpErrorToUserMessage(err));
       }
     });
   }
@@ -323,11 +319,7 @@ export class RepositorioListComponent implements OnInit {
         const res = await firstValueFrom(this.archivosService.descargar(a.id, false));
         window.open(res.urlDescarga, '_blank');
       } catch (err) {
-        this.notification.add({
-          title: 'No se pudo abrir',
-          message: mapHttpErrorToUserMessage(err as HttpErrorResponse),
-          type: 'error'
-        });
+        this.feedback.error(mapHttpErrorToUserMessage(err as HttpErrorResponse));
       }
       return;
     }
@@ -346,11 +338,7 @@ export class RepositorioListComponent implements OnInit {
       link.click();
       link.remove();
     } catch (err) {
-      this.notification.add({
-        title: 'No se pudo descargar',
-        message: mapHttpErrorToUserMessage(err as HttpErrorResponse),
-        type: 'error'
-      });
+      this.feedback.error(mapHttpErrorToUserMessage(err as HttpErrorResponse));
     }
   }
 

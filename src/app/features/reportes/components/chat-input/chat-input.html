@@ -1,17 +1,4 @@
 <div class="chat-input">
-  @if (mostrarSugerencias) {
-    <div class="sugerencias">
-      <span class="sugerencias-label">Sugerencias:</span>
-      @for (s of sugerencias; track s) {
-        <button mat-stroked-button class="sugerencia-chip"
-                [disabled]="bloqueado"
-                (click)="usarSugerencia(s)">
-          {{ s }}
-        </button>
-      }
-    </div>
-  }
-
   <div class="input-row">
     <mat-form-field appearance="outline" class="textarea-field">
       <mat-label>Escribí tu pregunta para el asistente</mat-label>

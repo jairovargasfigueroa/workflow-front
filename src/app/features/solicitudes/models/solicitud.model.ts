@@ -30,6 +30,8 @@ export interface RespuestaDepartamento {
   funcionarioId: string | null;
   funcionarioNombre: string | null;
   accion: string | null;
+  /** Etiqueta legible de la acción ("Aprobado", "Continuar") — para mostrar en el historial. */
+  accionEtiqueta?: string | null;
   comentario: string | null;
   fechaEntrada: string;
   fechaRespuesta: string | null;
@@ -39,13 +41,6 @@ export interface RespuestaDepartamento {
   fechaAsignacion: string | null;
   fechaLimiteNodo?: string | null;
   estadoSlaNodo?: EstadoSla | null;
-}
-
-export interface Adjunto {
-  nombre: string;
-  url: string;
-  tipo: string;
-  fechaSubida?: string;
 }
 
 export interface SolicitudTramite {
@@ -61,7 +56,6 @@ export interface SolicitudTramite {
   fechaFinalizacion: string | null;
   respuestasSolicitante: RespuestaCampo[];
   respuestasPorDepartamento: RespuestaDepartamento[];
-  adjuntos: Adjunto[];
   fechaLimite?: string | null;
   estadoSla?: EstadoSla | null;
 }
@@ -69,7 +63,6 @@ export interface SolicitudTramite {
 export interface SolicitudTramiteRequest {
   tramiteId: string;
   respuestas: RespuestaCampo[];
-  adjuntos?: Adjunto[];
 }
 
 export interface AccionDisponible {

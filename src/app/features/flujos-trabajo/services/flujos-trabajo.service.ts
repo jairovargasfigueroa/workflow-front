@@ -11,6 +11,7 @@ import {
   FlujoVersion,
   FlujoVersionDetalle
 } from '../models/flujo-trabajo.model';
+import { AccionFlujo } from '../models/accion-flujo.model';
 
 @Injectable({
   providedIn: 'root'
@@ -67,6 +68,11 @@ export class FlujosTrabajoService {
     return this.http.get<{ xml: string }>(`${this.endpoint}/${id}/xml`).pipe(
       map(response => response.xml)
     );
+  }
+
+  /** Catálogo de acciones para las etiquetas de las flechas (gateway exclusivo / endEvent). */
+  getAccionesFlujo(): Observable<AccionFlujo[]> {
+    return this.http.get<AccionFlujo[]>('/catalogo/acciones-flujo');
   }
 
   descartarBorrador(id: string): Observable<FlujoTrabajo> {

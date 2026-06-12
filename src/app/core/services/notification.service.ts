@@ -13,33 +13,7 @@ export interface Notification {
   providedIn: 'root'
 })
 export class NotificationService {
-  private notifications = signal<Notification[]>([
-    // Mock data - remover cuando conectes el backend
-    {
-      id: '1',
-      title: 'Trámite aprobado',
-      message: 'Tu trámite #1234 ha sido aprobado',
-      type: 'success',
-      read: false,
-      createdAt: new Date(Date.now() - 5 * 60000)
-    },
-    {
-      id: '2',
-      title: 'Nuevo comentario',
-      message: 'Juan comentó en tu trámite #1230',
-      type: 'info',
-      read: false,
-      createdAt: new Date(Date.now() - 30 * 60000)
-    },
-    {
-      id: '3',
-      title: 'Acción requerida',
-      message: 'El trámite #1228 necesita documentación adicional',
-      type: 'warning',
-      read: true,
-      createdAt: new Date(Date.now() - 2 * 3600000)
-    }
-  ]);
+  private notifications = signal<Notification[]>([]);
 
   readonly allNotifications = this.notifications.asReadonly();
 

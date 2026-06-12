@@ -1,17 +1,17 @@
 <div class="chat-page">
   <header class="chat-header">
     <div class="header-title">
-      <mat-icon class="header-icon">auto_awesome</mat-icon>
-      <div>
-        <h1>Reportes IA</h1>
-        <p>Asistente para consultar datos y generar reportes en lenguaje natural.</p>
+      <div class="header-icon"><mat-icon>smart_toy</mat-icon></div>
+      <div class="header-text">
+        <h1>Asistente de Reportes</h1>
+        <p>Consultá datos y generá reportes en lenguaje natural</p>
       </div>
     </div>
-    <button mat-stroked-button
+    <button mat-stroked-button class="btn-nueva"
             [disabled]="streamActivo()"
             matTooltip="Comenzar una nueva conversación (se borra el historial visible)"
             (click)="nuevaConversacion()">
-      <mat-icon>refresh</mat-icon>
+      <mat-icon>add</mat-icon>
       Nueva conversación
     </button>
   </header>
@@ -19,23 +19,32 @@
   <div #scrollContainer class="chat-scroll">
     @if (mensajes().length === 0) {
       <div class="welcome">
-        <mat-icon class="welcome-icon">auto_awesome</mat-icon>
+        <div class="welcome-icon"><mat-icon>smart_toy</mat-icon></div>
         <h2>¿En qué te puedo ayudar?</h2>
-        <p>
-          Hacé preguntas sobre tus trámites, solicitudes, flujos o productividad.
-          Pedile reportes en Excel, PDF o Word.
-        </p>
+        <p>Consultá datos o pedí un reporte en Excel, PDF o Word.</p>
+
+        <div class="welcome-sugerencias">
+          @for (s of sugerencias; track s) {
+            <button class="sugerencia-card"
+                    [disabled]="streamActivo()"
+                    (click)="onEnviar(s)">
+              <mat-icon>bolt</mat-icon>
+              <span>{{ s }}</span>
+            </button>
+          }
+        </div>
       </div>
     } @else {
-      @for (m of mensajes(); track m.id) {
-        <app-chat-message [mensaje]="m"></app-chat-message>
-      }
+      <div class="chat-thread">
+        @for (m of mensajes(); track m.id) {
+          <app-chat-message [mensaje]="m"></app-chat-message>
+        }
+      </div>
     }
   </div>
 
   <app-chat-input
     [bloqueado]="streamActivo()"
-    [mostrarSugerencias]="mensajes().length === 0"
     (enviar)="onEnviar($event)">
   </app-chat-input>
 </div>

@@ -5,7 +5,12 @@ export interface CampoFormulario {
   etiqueta: string;
   tipo: TipoCampo;
   requerido: boolean;
+  /** SELECT / RADIO / CHECKBOX → las opciones a elegir. */
   opciones?: string[];
+  /** TABLA → columnas de la tabla · GRID → opciones que elige cada fila. */
+  columnas?: string[];
+  /** GRID → las filas de la matriz. */
+  filas?: string[];
 }
 
 export interface FormularioTemplate {

@@ -8,21 +8,22 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 24px;
-  gap: 16px;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
 
   .header-content {
     h1 {
       margin: 0;
-      font-size: 28px;
-      font-weight: 500;
+      font-size: var(--font-size-3xl);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--line-height-tight);
       color: var(--color-text-primary);
     }
 
     .subtitle {
-      margin: 4px 0 0;
+      margin: var(--space-1) 0 0;
       color: var(--color-text-secondary);
-      font-size: 14px;
+      font-size: var(--font-size-base);
     }
   }
 
@@ -48,38 +49,340 @@
   box-shadow: var(--shadow-card);
   overflow-x: auto; // scroll horizontal en pantallas pequeñas
   -webkit-overflow-scrolling: touch;
+  transition: box-shadow var(--transition-base);
+  animation: list-fade-in var(--transition-slow);
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
 }
 
-// Estilos base de todas las tablas Material
+// Animación de entrada para listas — sube ligeramente desde abajo y aparece
+@keyframes list-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Respeto el prefers-reduced-motion
+@media (prefers-reduced-motion: reduce) {
+  .table-container {
+    animation: none;
+  }
+}
+
+// =============================================================================
+// Estilos base de todas las tablas Material (MDC) — versión pro
+// Usamos selectores con .mat-mdc-* para tener prioridad sobre los defaults
+// de Material 3.
+// =============================================================================
+
 .mat-mdc-table {
   width: 100%;
+  background: transparent !important;
 
+  // -- Header: ESTILO STRIPE/NOTION — fondo gris muy claro, texto secundario --
+  // El primary destaca en los BOTONES, no en el header. Los headers son neutros
+  // y no compiten visualmente con las acciones.
+  .mat-mdc-header-row {
+    background: var(--color-table-header-bg) !important;
+    border-bottom: 1px solid var(--color-table-header-border) !important;
+  }
+
+  .mat-mdc-header-cell,
+  th.mat-mdc-header-cell,
   th.mat-header-cell {
-    font-weight: 600;
-    color: var(--color-text-primary);
-    font-size: 14px;
-    white-space: nowrap;
+    background: var(--color-table-header-bg) !important;
+    color: var(--color-table-header-text) !important;
+    font-size: var(--font-size-xs) !important;
+    font-weight: var(--font-weight-bold) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    padding: var(--space-4) !important;
+    border-bottom: none !important;
+    white-space: nowrap !important;
   }
 
+  // Esquinas redondeadas en la primera y última celda del header (encaja con la card)
+  .mat-mdc-header-row .mat-mdc-header-cell:first-child {
+    border-top-left-radius: var(--radius-card) !important;
+  }
+  .mat-mdc-header-row .mat-mdc-header-cell:last-child {
+    border-top-right-radius: var(--radius-card) !important;
+  }
+
+  // -- Celdas --
+  .mat-mdc-cell,
+  td.mat-mdc-cell,
   td.mat-cell {
-    font-size: 14px;
+    color: var(--color-text-primary) !important;
+    font-size: var(--font-size-base) !important;
+    padding: var(--space-4) !important;
+    border-bottom: 1px solid var(--color-border) !important;
   }
 
-  tr.mat-mdc-row:hover {
-    background-color: var(--color-hover-row);
-    transition: background-color 0.15s ease;
+  // Última fila sin borde inferior — más limpio
+  .mat-mdc-row:last-child .mat-mdc-cell,
+  tr.mat-mdc-row:last-child td {
+    border-bottom: none !important;
+  }
+
+  // -- Filas con hover azul claro --
+  .mat-mdc-row,
+  tr.mat-mdc-row {
+    transition: background-color var(--transition-fast);
+    cursor: default;
+
+    &:hover {
+      background-color: var(--bg-primary-light) !important;
+    }
+
+    &[role="button"],
+    &.row-clickable {
+      cursor: pointer;
+    }
   }
 
   .actions-column {
-    text-align: center;
+    width: 120px;
+    text-align: right;
     white-space: nowrap;
   }
 }
 
-// Chip global: tamaño base
+// =============================================================================
+// Chips planos custom — NO parecen botones, son badges/labels
+// Para chips simples (estado activo/inactivo). Los chips Material avanzados
+// (rol, criticidad, SLA, estado de flujo) siguen como <mat-chip>.
+// =============================================================================
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  user-select: none;
+  white-space: nowrap;
+
+  &--active {
+    background: var(--chip-active-bg);
+    color: var(--chip-active-text);
+  }
+
+  &--inactive {
+    background: var(--chip-inactive-bg);
+    color: var(--chip-inactive-text);
+  }
+
+  &--info {
+    background: var(--chip-process-bg);
+    color: var(--chip-process-text);
+  }
+
+  &--neutral {
+    background: var(--surface-subtle);
+    color: var(--color-text-secondary);
+  }
+}
+
+.chip-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+// =============================================================================
+// Niveles de riesgo — chips específicos para "ALTO" / "MEDIO" / "BAJO"
+// (usados por el motor IA en cuellos predichos)
+// =============================================================================
+
+.chip--riesgo-alto {
+  background: var(--sla-rojo-bg);
+  color: var(--sla-rojo-text);
+}
+
+.chip--riesgo-medio {
+  background: var(--sla-amarillo-bg);
+  color: var(--sla-amarillo-text);
+}
+
+.chip--riesgo-bajo {
+  background: var(--chip-active-bg);
+  color: var(--chip-active-text);
+}
+
+// --- Roles ---
+.chip--rol-admin {
+  background: var(--chip-admin-bg);
+  color: var(--chip-admin-text);
+}
+.chip--rol-funcionario {
+  background: var(--chip-funcionario-bg);
+  color: var(--chip-funcionario-text);
+}
+.chip--rol-solicitante {
+  background: var(--chip-solicitante-bg);
+  color: var(--chip-solicitante-text);
+}
+
+// --- Estado de flujo ---
+.chip--flujo-sin-publicar {
+  background: var(--chip-flujo-sin-publicar-bg);
+  color: var(--chip-flujo-sin-publicar-text);
+}
+.chip--flujo-activo {
+  background: var(--chip-flujo-activo-bg);
+  color: var(--chip-flujo-activo-text);
+}
+.chip--flujo-desactivado {
+  background: var(--chip-flujo-desactivado-bg);
+  color: var(--chip-flujo-desactivado-text);
+}
+.chip--flujo-archivado {
+  background: var(--chip-flujo-archivado-bg);
+  color: var(--chip-flujo-archivado-text);
+}
+
+// --- Estado de trámite ---
+.chip--estado-pendiente {
+  background: var(--chip-pending-bg);
+  color: var(--chip-pending-text);
+}
+.chip--estado-proceso {
+  background: var(--chip-process-bg);
+  color: var(--chip-process-text);
+}
+.chip--estado-cancelado {
+  background: var(--chip-cancelado-bg);
+  color: var(--chip-cancelado-text);
+}
+.chip--estado-aprobado {
+  background: var(--chip-approved-bg);
+  color: var(--chip-approved-text);
+}
+.chip--estado-rechazado {
+  background: var(--chip-rejected-bg);
+  color: var(--chip-rejected-text);
+}
+
+// =============================================================================
+// Callout — caja destacada con icono para mostrar info del motor IA / tips
+// Usado para mostrar el campo `resumen` que devuelve el motor.
+// =============================================================================
+
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+
+  // Variante por defecto: tip de IA (azul claro)
+  background: var(--color-primary-50);
+  border-color: rgba(25, 118, 210, 0.15);
+  color: var(--color-text-primary);
+
+  .callout-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    font-size: 22px !important;
+    color: var(--color-primary);
+  }
+
+  p {
+    margin: 0;
+    flex: 1;
+  }
+
+  // Variante warning (amarillo)
+  &--warn {
+    background: var(--sla-amarillo-bg);
+    border-color: rgba(245, 158, 11, 0.18);
+
+    .callout-icon {
+      color: var(--sla-amarillo-solid);
+    }
+  }
+
+  // Variante danger (rojo) — para riesgos altos
+  &--danger {
+    background: var(--sla-rojo-bg);
+    border-color: rgba(239, 68, 68, 0.18);
+
+    .callout-icon {
+      color: var(--sla-rojo-solid);
+    }
+  }
+}
+
+// Chip global Material: tamaño base (para los chips que siguen siendo <mat-chip>)
 mat-chip {
-  font-size: 12px !important;
+  font-size: var(--font-size-xs) !important;
   min-height: 24px !important;
+}
+
+// =============================================================================
+// Botones de acción de tabla (editar / eliminar / etc.) — hover contextual
+// =============================================================================
+
+.action-btn {
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  color: var(--color-text-secondary) !important;
+  border-radius: 8px !important;
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &--edit:hover,
+  &--info:hover,
+  &--primary:hover {
+    background: var(--bg-primary-light) !important;
+    color: var(--color-primary) !important;
+  }
+
+  &--delete:hover,
+  &--danger:hover {
+    background: var(--color-error-light) !important;
+    color: var(--color-error) !important;
+  }
+
+  &--success:hover {
+    background: var(--chip-active-bg) !important;
+    color: var(--chip-active-text) !important;
+  }
+
+  &--warn:hover {
+    background: var(--chip-pending-bg) !important;
+    color: var(--chip-pending-text) !important;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
 }
 
 // =============================================================================

@@ -19,9 +19,9 @@
           <div class="flujo-meta">
             <span class="proceso-key">{{ flujo()?.procesoKey }}</span>
             @if (flujo()?.estadoFlujo) {
-              <mat-chip [class]="getEstadoClass(flujo()!.estadoFlujo)" class="estado-chip">
+              <span class="chip" [class]="'chip ' + getEstadoClass(flujo()!.estadoFlujo)">
                 {{ estadoLabels[flujo()!.estadoFlujo] }}
-              </mat-chip>
+              </span>
             }
             @if (flujo()?.versionActualNumero) {
               <span class="version-badge">v{{ flujo()?.versionActualNumero }}</span>
@@ -78,8 +78,9 @@
       }
 
       <button
-        mat-raised-button
+        mat-flat-button
         color="primary"
+        class="btn-publicar"
         (click)="onPublicar()"
         [disabled]="publishing() || loading() || !canPublicar()">
         @if (publishing()) {
@@ -96,8 +97,9 @@
   <div class="editor-content">
     <div class="canvas-container" #canvas></div>
 
-    <!-- Panel de propiedades flotante -->
-    <div class="floating-panel properties-panel-wrapper" [class.visible]="hasElementSelected()">
+    <!-- Panel de propiedades flotante (se oculta si Versiones está abierto) -->
+    <div class="floating-panel properties-panel-wrapper"
+         [class.visible]="hasElementSelected() && !showVersiones()">
       <app-properties-panel [modeler]="modelerReady()" />
     </div>
 

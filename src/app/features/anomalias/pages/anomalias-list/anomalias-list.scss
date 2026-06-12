@@ -1,38 +1,35 @@
 .anomalias-page {
-  padding: 24px;
+  padding: var(--space-6);
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .filtros {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-bottom: 16px;
-  padding: 10px 12px;
-  background: var(--surface-subtle);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
 
   .filtros-label {
-    font-size: 12px;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-secondary);
   }
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
 }
 
 .anomalias-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
 mat-paginator {
   background: transparent;
+  border-radius: var(--radius-card);
 }

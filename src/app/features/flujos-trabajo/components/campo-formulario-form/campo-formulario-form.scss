@@ -1,0 +1,39 @@
+// Estilos base de diálogos en src/styles/_dialogs.scss. Solo lo único de este form.
+
+.campo-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 460px;
+  max-width: 560px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.campo-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.req-check {
+  align-self: center;
+}
+
+.full-width {
+  width: 100%;
+}
+
+@media (max-width: 560px) {
+  .campo-form-content {
+    min-width: 0;
+  }
+  .campo-row-2 {
+    grid-template-columns: 1fr;
+  }
+}

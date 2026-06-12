@@ -1,10 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
-import { NotificationService } from './notification.service';
+import { FeedbackService } from './feedback.service';
 
 @Injectable({ providedIn: 'root' })
 export class SpeechService {
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   /** Identificador del input que está escuchando, o null si nadie escucha. */
   readonly escuchando = signal<string | null>(null);
@@ -25,11 +25,7 @@ export class SpeechService {
   listen(target: string): Observable<string> {
     return new Observable(observer => {
       if (!this.soportado) {
-        this.notificationService.add({
-          title: 'No disponible',
-          message: 'Tu navegador no soporta reconocimiento de voz',
-          type: 'error'
-        });
+        this.feedback.error('Tu navegador no soporta reconocimiento de voz');
         observer.complete();
         return;
       }
@@ -98,29 +94,17 @@ export class SpeechService {
     switch (error) {
       case 'not-allowed':
       case 'service-not-allowed':
-        this.notificationService.add({
-          title: 'Permiso denegado',
-          message: 'Habilitá el micrófono desde la configuración del navegador.',
-          type: 'error'
-        });
+        this.feedback.error('Habilitá el micrófono desde la configuración del navegador.');
         break;
       case 'audio-capture':
-        this.notificationService.add({
-          title: 'Sin micrófono',
-          message: 'No se detectó ningún micrófono disponible.',
-          type: 'error'
-        });
+        this.feedback.error('No se detectó ningún micrófono disponible.');
         break;
       case 'no-speech':
       case 'aborted':
         // silencioso — no es un error de mostrar al usuario
         break;
       default:
-        this.notificationService.add({
-          title: 'Error de dictado',
-          message: 'No se pudo procesar el audio. Reintentá.',
-          type: 'error'
-        });
+        this.feedback.error('No se pudo procesar el audio. Reintentá.');
     }
   }
 }

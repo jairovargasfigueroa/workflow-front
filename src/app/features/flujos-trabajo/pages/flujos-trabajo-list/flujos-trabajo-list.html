@@ -8,8 +8,8 @@
   </app-page-header>
 
   @if (loading()) {
-    <div class="loading-container">
-      <mat-spinner diameter="48"></mat-spinner>
+    <div class="table-container">
+      <app-list-skeleton variante="tabla" [filas]="6" [columnas]="4" />
     </div>
   } @else if (flujos().length === 0) {
     <app-empty-state
@@ -54,11 +54,11 @@
           <th mat-header-cell *matHeaderCellDef>Estado</th>
           <td mat-cell *matCellDef="let flujo">
             <div class="estado-cell">
-              <mat-chip [class]="getEstadoChipClass(flujo)">
+              <span class="chip" [class]="'chip ' + getEstadoChipClass(flujo)">
                 {{ getEstadoChipLabel(flujo) }}
-              </mat-chip>
+              </span>
               @if (tieneBorrador(flujo) && flujo.estadoFlujo === 'ACTIVO') {
-                <mat-chip class="flujo-sin-publicar chip-sm">borrador</mat-chip>
+                <span class="chip chip--flujo-sin-publicar">borrador</span>
               }
             </div>
           </td>
@@ -72,10 +72,12 @@
             <!-- SIN_PUBLICAR sin XML: "Sin diseñar" -->
             @if (flujo.estadoFlujo === 'SIN_PUBLICAR' && !tieneBorrador(flujo)) {
               <button mat-stroked-button (click)="abrirEditor(flujo)">Diseñar</button>
-              <button mat-icon-button matTooltip="Editar información" (click)="openEditDialog(flujo)">
+              <button mat-icon-button class="action-btn action-btn--edit"
+                      matTooltip="Editar información" (click)="openEditDialog(flujo)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="confirmDelete(flujo)">
+              <button mat-icon-button class="action-btn action-btn--delete"
+                      matTooltip="Eliminar" (click)="confirmDelete(flujo)">
                 <mat-icon>delete</mat-icon>
               </button>
             }
@@ -84,33 +86,39 @@
             @if (flujo.estadoFlujo === 'SIN_PUBLICAR' && tieneBorrador(flujo)) {
               <button mat-stroked-button color="primary" (click)="abrirEditor(flujo)">Continuar</button>
               <button mat-stroked-button (click)="publicarDesdeList(flujo)">Publicar</button>
-              <button mat-icon-button color="warn" matTooltip="Descartar borrador" (click)="descartarDesdeList(flujo)">
+              <button mat-icon-button class="action-btn action-btn--warn"
+                      matTooltip="Descartar borrador" (click)="descartarDesdeList(flujo)">
                 <mat-icon>undo</mat-icon>
               </button>
             }
 
             <!-- ACTIVO sin borrador: "Publicado" -->
             @if (flujo.estadoFlujo === 'ACTIVO' && !tieneBorrador(flujo)) {
-              <button mat-icon-button matTooltip="Ver diagrama" (click)="verFlujo(flujo)">
+              <button mat-icon-button class="action-btn action-btn--primary"
+                      matTooltip="Ver diagrama" (click)="verFlujo(flujo)">
                 <mat-icon>visibility</mat-icon>
               </button>
               <button mat-stroked-button (click)="abrirEditor(flujo)">Crear borrador</button>
-              <button mat-icon-button matTooltip="Desactivar" (click)="cambiarEstado(flujo, 'DESACTIVADO')">
+              <button mat-icon-button class="action-btn action-btn--warn"
+                      matTooltip="Desactivar" (click)="cambiarEstado(flujo, 'DESACTIVADO')">
                 <mat-icon>pause_circle</mat-icon>
               </button>
             }
 
             <!-- ACTIVO con borrador: "Publicado + borrador" -->
             @if (flujo.estadoFlujo === 'ACTIVO' && tieneBorrador(flujo)) {
-              <button mat-icon-button matTooltip="Ver diagrama publicado" (click)="verFlujo(flujo)">
+              <button mat-icon-button class="action-btn action-btn--primary"
+                      matTooltip="Ver diagrama publicado" (click)="verFlujo(flujo)">
                 <mat-icon>visibility</mat-icon>
               </button>
               <button mat-stroked-button color="primary" (click)="abrirEditor(flujo)">Continuar</button>
               <button mat-stroked-button (click)="publicarDesdeList(flujo)">Publicar</button>
-              <button mat-icon-button color="warn" matTooltip="Descartar borrador" (click)="descartarDesdeList(flujo)">
+              <button mat-icon-button class="action-btn action-btn--warn"
+                      matTooltip="Descartar borrador" (click)="descartarDesdeList(flujo)">
                 <mat-icon>undo</mat-icon>
               </button>
-              <button mat-icon-button matTooltip="Desactivar" (click)="cambiarEstado(flujo, 'DESACTIVADO')">
+              <button mat-icon-button class="action-btn action-btn--warn"
+                      matTooltip="Desactivar" (click)="cambiarEstado(flujo, 'DESACTIVADO')">
                 <mat-icon>pause_circle</mat-icon>
               </button>
             }
@@ -123,7 +131,8 @@
 
             <!-- ARCHIVADO -->
             @if (flujo.estadoFlujo === 'ARCHIVADO') {
-              <button mat-icon-button matTooltip="Ver diagrama" (click)="verFlujo(flujo)">
+              <button mat-icon-button class="action-btn action-btn--primary"
+                      matTooltip="Ver diagrama" (click)="verFlujo(flujo)">
                 <mat-icon>visibility</mat-icon>
               </button>
             }

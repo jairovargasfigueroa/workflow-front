@@ -1,8 +1,10 @@
+// Estilos base + section-header/help/hint en src/styles/_dialogs.scss (global).
+
 .field-row,
 .accion-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 
   mat-form-field,
   mat-button-toggle-group {
@@ -15,10 +17,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: var(--space-4);
   min-height: 200px;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 .empty-state {
@@ -26,7 +28,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-3);
   min-height: 180px;
   color: var(--color-text-secondary);
 
@@ -38,16 +40,18 @@
   }
 }
 
+// Info del departamento/nodo activo
 .dept-info {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px 8px;
-  margin: 0 0 16px;
-  font-size: 14px;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
-  padding: 12px;
-  background: var(--surface-page);
+  background: var(--surface-subtle);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
 
   mat-icon {
@@ -56,65 +60,69 @@
 
   .dept-carril {
     color: var(--color-text-hint);
-    font-size: 13px;
+    font-size: var(--font-size-sm);
   }
 }
 
 app-archivos-panel {
   display: block;
-  margin: 16px 0;
+  margin: var(--space-4) 0;
 }
 
 .dynamic-fields {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-3);
 }
 
+// Los estilos de los tipos complejos (campo-grupo, tabla, grid, etc.)
+// viven en src/styles/_dynamic-fields.scss (global, compartido con solicitud-dialog).
+
 .accion-label {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
 }
 
 .accion-hint {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--color-error);
-  margin: 8px 0 0;
+  margin: var(--space-2) 0 0;
 }
 
+// Header de los documentos producidos (slots)
 .slots-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
   flex-wrap: wrap;
 
   h3 {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-2);
     margin: 0;
-    font-size: 15px;
-    font-weight: 500;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-primary);
 
     mat-icon {
       color: var(--color-primary);
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
   }
 }
 
 .slots-progreso {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: 999px;
   background: var(--chip-approved-bg);
   color: var(--chip-approved-text);
 
@@ -127,23 +135,24 @@ app-archivos-panel {
 .slots-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .slots-warn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 12px 0 0;
-  padding: 8px 12px;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
   background: var(--chip-pending-bg);
   color: var(--chip-pending-text);
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
 
   mat-icon {
     font-size: 16px;
     width: 16px;
     height: 16px;
+    flex-shrink: 0;
   }
 }

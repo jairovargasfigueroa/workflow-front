@@ -6,24 +6,6 @@
       <mat-label>Nombre del documento</mat-label>
       <input matInput [(ngModel)]="documento.nombre" placeholder="Ej. Acta del comité" required>
     </mat-form-field>
-
-    @if (camposFormularioDisponibles.length > 0) {
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Campo del formulario asociado</mat-label>
-        <mat-select [(ngModel)]="documento.campoFormularioAsociado">
-          <mat-option [value]="null">— Ninguno (documento ad-hoc) —</mat-option>
-          @for (campo of camposFormularioDisponibles; track campo) {
-            <mat-option [value]="campo">{{ campo }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    } @else {
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Campo del formulario asociado (opcional)</mat-label>
-        <input matInput [(ngModel)]="documento.campoFormularioAsociado"
-               placeholder="Ej. actaComite">
-      </mat-form-field>
-    }
   </section>
 
   <mat-divider></mat-divider>
@@ -64,7 +46,37 @@
 
     <div class="permiso-grupo">
       <div class="permiso-header">
-        <span class="permiso-titulo">Pueden ver</span>
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">cloud_upload</mat-icon>
+          Pueden subir
+        </span>
+        <button mat-stroked-button type="button" color="primary"
+                (click)="agregarSujeto('subidores')">
+          <mat-icon>add</mat-icon>
+          Agregar
+        </button>
+      </div>
+      <div class="sujetos-list">
+        @if (permisos.subidores.length === 0) {
+          <span class="vacio">Vacío — nadie puede subir</span>
+        }
+        @for (s of permisos.subidores; track $index) {
+          <mat-chip-row (removed)="quitarSujeto('subidores', $index)">
+            {{ describirSujeto(s) }}
+            <button matChipRemove>
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        }
+      </div>
+    </div>
+
+    <div class="permiso-grupo">
+      <div class="permiso-header">
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">visibility</mat-icon>
+          Pueden ver
+        </span>
         <button mat-stroked-button type="button" color="primary"
                 (click)="agregarSujeto('lectores')">
           <mat-icon>add</mat-icon>
@@ -88,7 +100,10 @@
 
     <div class="permiso-grupo">
       <div class="permiso-header">
-        <span class="permiso-titulo">Pueden editar / subir versión</span>
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">edit</mat-icon>
+          Pueden modificar (nueva versión)
+        </span>
         <button mat-stroked-button type="button" color="primary"
                 (click)="agregarSujeto('editores')">
           <mat-icon>add</mat-icon>
@@ -97,7 +112,7 @@
       </div>
       <div class="sujetos-list">
         @if (permisos.editores.length === 0) {
-          <span class="vacio">Vacío — nadie puede editar</span>
+          <span class="vacio">Vacío — nadie puede modificar</span>
         }
         @for (s of permisos.editores; track $index) {
           <mat-chip-row (removed)="quitarSujeto('editores', $index)">
@@ -112,7 +127,10 @@
 
     <div class="permiso-grupo">
       <div class="permiso-header">
-        <span class="permiso-titulo">Pueden eliminar</span>
+        <span class="permiso-titulo">
+          <mat-icon class="permiso-icon">delete</mat-icon>
+          Pueden eliminar
+        </span>
         <button mat-stroked-button type="button" color="primary"
                 (click)="agregarSujeto('eliminadores')">
           <mat-icon>add</mat-icon>

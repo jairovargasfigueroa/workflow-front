@@ -116,6 +116,14 @@
       } @else if ((mejorRuta()?.rutas?.length ?? 0) === 0) {
         <p class="motor-vacio">No hay rutas predichas para este flujo todavía.</p>
       } @else {
+        <!-- Resumen del motor (texto legible) -->
+        @if (mejorRuta()?.resumen; as resumen) {
+          <div class="callout">
+            <mat-icon class="callout-icon">auto_awesome</mat-icon>
+            <p>{{ resumen }}</p>
+          </div>
+        }
+
         <div class="rutas-grid">
           @for (ruta of mejorRuta()!.rutas; track ruta.nombre) {
             <mat-card class="ruta-card" [class.ruta-recomendada]="ruta.recomendada">
@@ -164,6 +172,14 @@
       } @else if (riesgo() && !riesgo()!.disponible) {
         <app-motor-no-disponible (reintentar)="cargarRiesgo()"></app-motor-no-disponible>
       } @else if (riesgo()) {
+        <!-- Resumen general del riesgo -->
+        @if (riesgo()?.resumen; as resumen) {
+          <div class="callout callout--warn">
+            <mat-icon class="callout-icon">insights</mat-icon>
+            <p>{{ resumen }}</p>
+          </div>
+        }
+
         <div class="riesgo-grid">
           <mat-card class="riesgo-block">
             <mat-card-header>
@@ -174,13 +190,30 @@
               @if (riesgo()!.cuellosPredichos.length === 0) {
                 <p class="motor-vacio">Sin cuellos previstos.</p>
               } @else {
-                <ul class="riesgo-list">
+                <ul class="cuellos-list">
                   @for (c of riesgo()!.cuellosPredichos; track c.nodoNombre) {
-                    <li>
-                      <mat-icon>place</mat-icon>
-                      <span class="riesgo-nombre">{{ c.nodoNombre }}</span>
-                      <span class="riesgo-prob">{{ formatProb(c.probabilidad) }} prob.</span>
-                      <span class="riesgo-cuando">· {{ c.cuando }}</span>
+                    <li class="cuello">
+                      <div class="cuello-head">
+                        <div class="cuello-title">
+                          <mat-icon class="cuello-icon">place</mat-icon>
+                          <span class="cuello-nombre">{{ c.nodoNombre }}</span>
+                        </div>
+                        @if (c.nivelRiesgo) {
+                          <span class="chip"
+                                [class.chip--riesgo-alto]="c.nivelRiesgo === 'ALTO'"
+                                [class.chip--riesgo-medio]="c.nivelRiesgo === 'MEDIO'">
+                            <span class="chip-dot"></span>
+                            {{ c.nivelRiesgo }}
+                          </span>
+                        }
+                      </div>
+                      @if (c.razon) {
+                        <p class="cuello-razon">{{ c.razon }}</p>
+                      }
+                      <div class="cuello-meta">
+                        <span class="cuello-prob">{{ formatProb(c.probabilidad) }} probabilidad</span>
+                        <span class="cuello-cuando">· {{ c.cuando }}</span>
+                      </div>
                     </li>
                   }
                 </ul>

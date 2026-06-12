@@ -88,9 +88,9 @@ export function escribirConfiguracionDocumental(
 function normalizar(parsed: any): ConfiguracionDocumental {
   const base = emptyConfiguracionDocumental();
   return {
-    documentosEsperados: Array.isArray(parsed?.documentosEsperados) ? parsed.documentosEsperados : base.documentosEsperados,
     documentosProducidos: Array.isArray(parsed?.documentosProducidos) ? parsed.documentosProducidos : base.documentosProducidos,
     permisosDefaultAdHoc: {
+      subidores: Array.isArray(parsed?.permisosDefaultAdHoc?.subidores) ? parsed.permisosDefaultAdHoc.subidores : [],
       lectores: Array.isArray(parsed?.permisosDefaultAdHoc?.lectores) ? parsed.permisosDefaultAdHoc.lectores : [],
       editores: Array.isArray(parsed?.permisosDefaultAdHoc?.editores) ? parsed.permisosDefaultAdHoc.editores : [],
       eliminadores: Array.isArray(parsed?.permisosDefaultAdHoc?.eliminadores) ? parsed.permisosDefaultAdHoc.eliminadores : []

@@ -1,168 +1,362 @@
+// =============================================================================
+// Dashboard — Motor Inteligente. Todo con tokens.
+// =============================================================================
+
 .dashboard {
-  padding: 24px;
+  padding: var(--space-6);
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-// ============ Header ============
+// ===========================================================================
+// Header: saludo + fecha + actualizar
+// ===========================================================================
 
 .dashboard-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--color-border);
 
-  h1 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--color-text-primary);
-  }
-
-  .fecha {
-    margin: 4px 0 0;
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    text-transform: capitalize;
-  }
-
-  button {
-    gap: 4px;
-    flex-shrink: 0;
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
-// ============ Vista no-ADMIN ============
+.greeting {
+  h1 {
+    margin: 0;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    line-height: var(--line-height-tight);
+  }
+
+  .fecha {
+    margin: var(--space-1) 0 0;
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+  }
+}
+
+.btn-refresh {
+  height: 40px !important;
+  padding: 0 var(--space-4) !important;
+  border-radius: 8px !important;
+  font-weight: var(--font-weight-medium) !important;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: var(--space-1);
+  }
+}
+
+.icon-spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ===========================================================================
+// Welcome card (no-admin)
+// ===========================================================================
 
 .welcome-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 60px 24px;
+  gap: var(--space-3);
+  padding: var(--space-12);
   text-align: center;
-  color: var(--color-text-secondary);
-  background: var(--surface-subtle);
+  background: var(--surface-card);
   border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
 
   .welcome-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-primary-50);
     color: var(--color-primary);
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
   }
 
   p {
     margin: 0;
-    font-size: 15px;
-    max-width: 380px;
-    line-height: 1.5;
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    max-width: 420px;
+    line-height: var(--line-height-base);
   }
 }
 
-// ============ Sección Motor ============
+// ===========================================================================
+// Section title (Motor Inteligente)
+// ===========================================================================
 
 .motor-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-6);
+  animation: fade-up var(--transition-slow);
 }
 
-.motor-title {
+.section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
+  gap: var(--space-3);
 
-.motor-icon {
-  color: var(--color-primary);
-  font-size: 22px;
-  width: 22px;
-  height: 22px;
-}
+  h2 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    line-height: 1.2;
+  }
 
-.motor-subtitle {
-  margin: 0 0 12px;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.motor-kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.kpi-card {
-  mat-card-content {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px !important;
+  p {
+    margin: 2px 0 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
   }
 }
 
-.kpi-icon {
-  font-size: 32px;
-  width: 32px;
-  height: 32px;
+.section-title-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--color-primary-50);
+  color: var(--color-primary);
   flex-shrink: 0;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
 }
 
-.kpi-rojo .kpi-icon { color: var(--sla-rojo-solid); }
-.kpi-amarillo .kpi-icon { color: var(--sla-amarillo-solid); }
-.kpi-gris .kpi-icon { color: var(--sla-null-solid); }
+// ===========================================================================
+// KPIs Grid
+// ===========================================================================
 
-.kpi-info {
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.kpi {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+  animation: fade-up var(--transition-slow);
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+
+  // Stagger animation
+  &:nth-child(1) { animation-delay: 0ms; }
+  &:nth-child(2) { animation-delay: 80ms; }
+  &:nth-child(3) { animation-delay: 160ms; }
+  &:nth-child(4) { animation-delay: 240ms; }
+}
+
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.kpi[data-tone="danger"] .kpi-icon {
+  background: var(--sla-rojo-bg);
+  color: var(--sla-rojo-solid);
+}
+
+.kpi[data-tone="warning"] .kpi-icon {
+  background: var(--sla-amarillo-bg);
+  color: var(--sla-amarillo-solid);
+}
+
+.kpi[data-tone="neutral"] .kpi-icon {
+  background: var(--surface-subtle);
+  color: var(--color-text-secondary);
+}
+
+.kpi-body {
   min-width: 0;
+  flex: 1;
 }
 
 .kpi-value {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  line-height: 1.1;
+  line-height: 1;
+}
+
+.kpi-loading {
+  color: var(--color-text-hint);
+  font-weight: var(--font-weight-regular);
 }
 
 .kpi-label {
-  font-size: 12px;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
 }
+
+// ===========================================================================
+// Motor grid (Top urgentes + Anomalías)
+// ===========================================================================
 
 .motor-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: var(--space-4);
 
-  @media (max-width: 900px) {
+  @media (max-width: 1100px) {
     grid-template-columns: 1fr;
   }
 }
 
-.motor-block {
-  mat-card-header {
-    margin-bottom: 8px;
+// Panels
+.panel {
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  animation: fade-up var(--transition-slow);
+  animation-delay: 320ms;
+  animation-fill-mode: backwards;
+}
+
+.panel-header {
+  padding: var(--space-5) var(--space-5) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 2px 0 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 }
 
-.motor-loading,
-.motor-vacio {
-  padding: 24px;
-  text-align: center;
-  color: var(--color-text-hint);
-  margin: 0;
-  font-size: 13px;
+.panel-icon {
+  width: 36px;
+  height: 36px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  border-radius: 10px;
+  background: var(--color-primary-50);
+  color: var(--color-primary);
+  font-size: 20px !important;
+  flex-shrink: 0;
+
+  &--warn {
+    background: var(--sla-amarillo-bg);
+    color: var(--sla-amarillo-solid);
+  }
 }
+
+.panel-body {
+  padding: var(--space-3) var(--space-5) var(--space-5);
+}
+
+.panel-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  color: var(--color-text-secondary);
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: var(--chip-active-text);
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--font-size-base);
+  }
+}
+
+// ===========================================================================
+// Lista de urgentes
+// ===========================================================================
 
 .urgentes-list {
   list-style: none;
@@ -170,74 +364,186 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-3);
 }
 
-.urgente-row {
-  display: grid;
-  grid-template-columns: 60px minmax(0, 1.2fr) auto minmax(0, 1.5fr) 60px;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 10px;
-  border-radius: 6px;
+.urgente {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: var(--surface-card);
 
   &:hover {
-    background: var(--color-hover-row);
+    border-color: var(--color-primary);
+    background: var(--color-primary-50);
+    transform: translateX(2px);
   }
+}
+
+.urgente-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.urgente-id {
+  font-family: monospace;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  background: var(--surface-subtle);
+  padding: 2px 8px;
+  border-radius: 6px;
 }
 
 .urgente-badges {
   display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.urgente-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.urgente-id {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  font-family: monospace;
+  gap: var(--space-1);
+  flex-wrap: wrap;
 }
 
 .urgente-tramite {
-  font-size: 13px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
+}
+
+.urgente-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .urgente-razon {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   font-style: italic;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .urgente-vence {
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
   color: var(--color-text-hint);
-  margin-top: 2px;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
 }
 
-.anomalias-compact {
+// ===========================================================================
+// Lista de anomalías
+// ===========================================================================
+
+.anomalias-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
-.ver-todas {
-  margin-top: 12px;
+.btn-ver-todas {
   width: 100%;
   justify-content: center;
-  gap: 4px;
+  gap: var(--space-1);
+  color: var(--color-primary) !important;
+  font-weight: var(--font-weight-medium) !important;
+  height: 40px !important;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ===========================================================================
+// Skeletons internos del panel
+// ===========================================================================
+
+.urgente-skeleton,
+.anomalia-skeleton {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.anomalia-skeleton {
+  align-items: center;
+}
+
+.urgente-skeleton {
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skel {
+  background: var(--surface-subtle);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+.skel-id    { height: 14px; width: 80px; }
+.skel-title { height: 16px; width: 80%; }
+.skel-meta  { height: 12px; width: 60%; }
+.skel-icon  { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+
+.skel-rows {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+// ===========================================================================
+// Animaciones de entrada
+// ===========================================================================
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpi, .panel, .motor-section {
+    animation: none !important;
+  }
+  .icon-spinning { animation: none !important; }
+  .skel::after { animation: none !important; }
 }

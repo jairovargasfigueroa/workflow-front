@@ -12,7 +12,7 @@ import { ArchivosService } from '../../services/archivos.service';
 import { ArchivoResponse } from '../../models/archivo.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { ArchivoAuditoriaModalComponent } from '../archivo-auditoria-modal/archivo-auditoria-modal';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 import { caminoVer, puedeVerse } from '../../../../core/utils/formato-archivo.util';
@@ -41,7 +41,7 @@ export class ArchivoHistorialModalComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<ArchivoHistorialModalComponent>);
   private readonly data = inject<ArchivoHistorialModalData>(MAT_DIALOG_DATA);
   private readonly archivosService = inject(ArchivosService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
   private readonly authService = inject(AuthService);
   private readonly matDialog = inject(MatDialog);
 
@@ -136,11 +136,7 @@ export class ArchivoHistorialModalComponent implements OnInit {
     this.reverting = v.version;
     this.archivosService.revertir(this.archivo.id, v.version, this.archivo.solicitudId).subscribe({
       next: () => {
-        this.notification.add({
-          title: 'Versión revertida',
-          message: `Se revirtió a v${v.version}`,
-          type: 'success'
-        });
+        this.feedback.success(`Se revirtió a v${v.version}`);
         this.reverting = null;
         this.cargar();
       },
@@ -174,7 +170,7 @@ export class ArchivoHistorialModalComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  private handleError(err: HttpErrorResponse, fallback: string): void {
-    this.notification.add({ title: fallback, message: mapHttpErrorToUserMessage(err), type: 'error' });
+  private handleError(err: HttpErrorResponse, _fallback: string): void {
+    this.feedback.error(mapHttpErrorToUserMessage(err));
   }
 }

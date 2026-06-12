@@ -11,6 +11,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -21,7 +23,8 @@ import { TramitesService } from '../../../tramites/services/tramites.service';
 import { FormulariosService } from '../../../formularios/services/formularios.service';
 import { Tramite } from '../../../tramites/models/tramite.model';
 import { FormularioTemplate, CampoFormulario } from '../../../formularios/models/formulario.model';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { TipoCampo } from '../../../../core/models';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 import { DocKitSlotComponent } from '../doc-kit-slot/doc-kit-slot';
 
@@ -46,6 +49,8 @@ interface SlotEstado {
     MatProgressSpinnerModule,
     MatDividerModule,
     MatDatepickerModule,
+    MatRadioModule,
+    MatCheckboxModule,
     DocKitSlotComponent
   ],
   providers: [provideNativeDateAdapter()],
@@ -59,7 +64,7 @@ export class SolicitudDialogComponent implements OnInit {
   private readonly archivosService = inject(ArchivosService);
   private readonly tramitesService = inject(TramitesService);
   private readonly formulariosService = inject(FormulariosService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   saving = false;
   cargandoTramite = false;
@@ -127,9 +132,82 @@ export class SolicitudDialogComponent implements OnInit {
   private buildDynamicForm(campos: CampoFormulario[]): void {
     const group: Record<string, any> = {};
     for (const campo of campos) {
-      group[campo.nombre] = campo.requerido ? ['', Validators.required] : [''];
+      // Valor inicial según el tipo (los complejos guardan array/objeto).
+      // BOOLEAN = radio Sí/No sin preselección (null) → obliga a elegir si es requerido.
+      let inicial: any = '';
+      if (campo.tipo === 'BOOLEAN') inicial = null;
+      else if (campo.tipo === 'CHECKBOX' || campo.tipo === 'TABLA') inicial = [];
+      else if (campo.tipo === 'GRID') inicial = {};
+
+      // El "required" de Material no aplica bien a CHECKBOX/TABLA/GRID (su valor es []/{}).
+      const sinRequerido = ['CHECKBOX', 'TABLA', 'GRID'];
+      const validators = (campo.requerido && !sinRequerido.includes(campo.tipo)) ? [Validators.required] : [];
+
+      group[campo.nombre] = [inicial, validators];
     }
     this.dynamicForm = this.fb.group(group);
+  }
+
+  // ---- Helpers para tipos complejos (leen/escriben el control del dynamicForm) ----
+
+  // CHECKBOX: el control guarda string[]
+  checkboxMarcado(nombre: string, opcion: string): boolean {
+    const arr = (this.dynamicForm.get(nombre)?.value ?? []) as string[];
+    return arr.includes(opcion);
+  }
+  toggleCheckbox(nombre: string, opcion: string): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const arr = [...((ctrl?.value ?? []) as string[])];
+    const i = arr.indexOf(opcion);
+    if (i >= 0) arr.splice(i, 1); else arr.push(opcion);
+    ctrl?.setValue(arr);
+  }
+
+  // GRID: el control guarda { fila: opcionElegida }
+  gridValor(nombre: string, fila: string): string {
+    return ((this.dynamicForm.get(nombre)?.value ?? {}) as Record<string, string>)[fila] ?? '';
+  }
+  setGridValor(nombre: string, fila: string, opcion: string): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const obj = { ...((ctrl?.value ?? {}) as Record<string, string>) };
+    obj[fila] = opcion;
+    ctrl?.setValue(obj);
+  }
+
+  // TABLA: el control guarda Array<{ [columna]: valor }>
+  tablaFilas(nombre: string): Record<string, string>[] {
+    return (this.dynamicForm.get(nombre)?.value ?? []) as Record<string, string>[];
+  }
+  agregarFilaTabla(nombre: string, columnas: string[]): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const filas = [...this.tablaFilas(nombre)];
+    const nueva: Record<string, string> = {};
+    columnas.forEach(col => (nueva[col] = ''));
+    filas.push(nueva);
+    ctrl?.setValue(filas);
+  }
+  quitarFilaTabla(nombre: string, index: number): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const filas = [...this.tablaFilas(nombre)];
+    filas.splice(index, 1);
+    ctrl?.setValue(filas);
+  }
+  celdaTabla(nombre: string, index: number, columna: string): string {
+    return this.tablaFilas(nombre)[index]?.[columna] ?? '';
+  }
+  setCeldaTabla(nombre: string, index: number, columna: string, valor: string): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const filas = this.tablaFilas(nombre).map(f => ({ ...f }));
+    if (filas[index]) filas[index][columna] = valor;
+    ctrl?.setValue(filas);
+  }
+
+  /** ¿El valor serializado tiene contenido? (para no mandar campos vacíos). */
+  private tieneValor(valorSerializado: string, tipo?: TipoCampo): boolean {
+    if (tipo === 'CHECKBOX' || tipo === 'TABLA') return valorSerializado !== '[]';
+    if (tipo === 'GRID') return valorSerializado !== '{}';
+    // BOOLEAN: "true"/"false" se mandan; sin responder queda '' → se filtra.
+    return valorSerializado !== '' && valorSerializado !== 'null';
   }
 
   // ---- Slots del kit ----
@@ -176,34 +254,35 @@ export class SolicitudDialogComponent implements OnInit {
     const formValue = this.form.getRawValue();
     const dynamicValues = this.dynamicForm.getRawValue();
 
+    // Tipo por nombre de campo, para serializar cada valor en el formato correcto.
+    const tipoPorCampo = new Map(this.campos.map(c => [c.nombre, c.tipo]));
+
     const respuestas: RespuestaCampo[] = Object.entries(dynamicValues)
-      .filter(([, valor]) => valor != null && valor !== '')
-      .map(([nombreCampo, valor]) => ({ nombreCampo, valor: String(valor) }));
+      .map(([nombreCampo, valor]) => {
+        const tipo = tipoPorCampo.get(nombreCampo);
+        // Complejos → JSON string · BOOLEAN → "true"/"false" · resto → string
+        if (tipo === 'CHECKBOX' || tipo === 'TABLA' || tipo === 'GRID') {
+          return { nombreCampo, valor: JSON.stringify(valor ?? (tipo === 'GRID' ? {} : [])) };
+        }
+        return { nombreCampo, valor: String(valor ?? '') };
+      })
+      .filter(r => this.tieneValor(r.valor, tipoPorCampo.get(r.nombreCampo)));
 
     // 1) Crear la solicitud
     let solicitud: SolicitudTramite;
     try {
       solicitud = await firstValueFrom(this.solicitudesService.create({
         tramiteId: formValue.tramiteId,
-        respuestas,
-        adjuntos: []
+        respuestas
       }));
     } catch (err) {
       this.saving = false;
       const httpErr = err as HttpErrorResponse;
       const msg = httpErr.error?.message ?? '';
       if (httpErr.status === 400 && msg.toLowerCase().includes('activo')) {
-        this.notificationService.add({
-          title: 'Trámite no disponible',
-          message: 'El flujo de trabajo de este trámite no está activo. Contacta al administrador.',
-          type: 'error'
-        });
+        this.feedback.error('El flujo de trabajo de este trámite no está activo. Contacta al administrador.');
       } else {
-        this.notificationService.add({
-          title: 'No se pudo crear la solicitud',
-          message: mapHttpErrorToUserMessage(httpErr),
-          type: 'error'
-        });
+        this.feedback.error(mapHttpErrorToUserMessage(httpErr));
       }
       return;
     }
@@ -211,11 +290,7 @@ export class SolicitudDialogComponent implements OnInit {
     // 2) Subir los archivos del kit en paralelo
     const slotsConArchivo = this.slots.filter(s => this.archivosKit.has(s.nombre));
     if (slotsConArchivo.length === 0) {
-      this.notificationService.add({
-        title: 'Solicitud creada',
-        message: 'La solicitud se creó correctamente.',
-        type: 'success'
-      });
+      this.feedback.success('Solicitud creada correctamente');
       this.dialogRef.close(true);
       return;
     }
@@ -249,19 +324,11 @@ export class SolicitudDialogComponent implements OnInit {
     if (hayError) {
       // Mantener el dialog abierto para que el usuario reintente solo los fallidos.
       this.saving = false;
-      this.notificationService.add({
-        title: 'Algunos archivos no se subieron',
-        message: 'La solicitud se creó, pero algunos documentos del kit fallaron. Reintenta los marcados en rojo.',
-        type: 'warning'
-      });
+      this.feedback.warn('La solicitud se creó, pero algunos documentos del kit fallaron. Reintenta los marcados en rojo.');
       return;
     }
 
-    this.notificationService.add({
-      title: 'Solicitud creada',
-      message: 'La solicitud y sus documentos se enviaron correctamente.',
-      type: 'success'
-    });
+    this.feedback.success('Solicitud y documentos enviados correctamente');
     this.dialogRef.close(true);
   }
 }

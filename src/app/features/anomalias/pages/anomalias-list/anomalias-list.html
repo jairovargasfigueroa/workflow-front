@@ -18,9 +18,7 @@
   </div>
 
   @if (cargando()) {
-    <div class="loading">
-      <mat-spinner diameter="40"></mat-spinner>
-    </div>
+    <app-list-skeleton variante="cards" [filas]="4" />
   } @else if (!disponible()) {
     <app-motor-no-disponible (reintentar)="cargar()"></app-motor-no-disponible>
   } @else if (anomalias().length === 0) {

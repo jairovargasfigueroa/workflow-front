@@ -5,7 +5,6 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,12 +26,11 @@ import {
 import { DepartamentosService } from '../../../departamentos/services/departamentos.service';
 import { Departamento } from '../../../departamentos/models/departamento.model';
 
-export type ListaPermiso = 'lectores' | 'editores' | 'eliminadores';
+export type ListaPermiso = 'subidores' | 'lectores' | 'editores' | 'eliminadores';
 
 export interface DocumentoConfigFormData {
   documento: DocumentoConfig;
   titulo: string;
-  camposFormularioDisponibles?: string[];
 }
 
 const FORMATOS_DISPONIBLES = ['pdf', 'docx', 'xlsx', 'pptx', 'jpg', 'png', 'txt', 'csv', 'zip'];
@@ -47,7 +45,6 @@ const FORMATOS_DISPONIBLES = ['pdf', 'docx', 'xlsx', 'pptx', 'jpg', 'png', 'txt'
     MatFormFieldModule,
     MatInputModule,
     MatCheckboxModule,
-    MatSelectModule,
     MatChipsModule,
     MatButtonModule,
     MatIconModule,
@@ -68,7 +65,6 @@ export class DocumentoConfigFormComponent {
   readonly rolLabels = ROL_LABELS;
 
   titulo = this.data.titulo;
-  camposFormularioDisponibles = this.data.camposFormularioDisponibles ?? [];
 
   // Trabajamos sobre una copia para no mutar el original hasta confirmar
   documento: DocumentoConfig = this.clonar(this.data.documento);
@@ -85,11 +81,11 @@ export class DocumentoConfigFormComponent {
   private clonar(d: DocumentoConfig): DocumentoConfig {
     return {
       nombre: d.nombre,
-      campoFormularioAsociado: d.campoFormularioAsociado,
       formatosAceptados: [...d.formatosAceptados],
       obligatorio: d.obligatorio,
       inmutablePostCierre: d.inmutablePostCierre,
       permisos: {
+        subidores: [...(d.permisos?.subidores ?? [])],
         lectores: [...(d.permisos?.lectores ?? [])],
         editores: [...(d.permisos?.editores ?? [])],
         eliminadores: [...(d.permisos?.eliminadores ?? [])]
@@ -158,9 +154,6 @@ export class DocumentoConfigFormComponent {
   onSave(): void {
     if (!this.esValido) return;
     this.documento.nombre = this.documento.nombre.trim();
-    if (this.documento.campoFormularioAsociado) {
-      this.documento.campoFormularioAsociado = this.documento.campoFormularioAsociado.trim() || null;
-    }
     this.dialogRef.close(this.documento);
   }
 }

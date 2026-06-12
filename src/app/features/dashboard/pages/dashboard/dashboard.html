@@ -1,163 +1,226 @@
 <div class="dashboard">
 
-  <!-- Header: saludo + fecha + refrescar -->
+  <!-- ============ Header: saludo + fecha + acción ============ -->
   <header class="dashboard-header">
-    <div class="header-info">
+    <div class="greeting">
       <h1>
         @if (nombreUsuario()) {
-          Hola, {{ nombreUsuario() }}
+          Hola, {{ nombreUsuario() }} 👋
         } @else {
-          Bienvenido
+          Bienvenido 👋
         }
       </h1>
       <p class="fecha">{{ fechaHoy }}</p>
     </div>
 
     @if (esAdmin()) {
-      <button mat-stroked-button
+      <button mat-stroked-button class="btn-refresh"
               [disabled]="cargandoPrioridad() || cargandoAnomalias()"
               (click)="cargarMotor()">
-        <mat-icon>refresh</mat-icon>
+        <mat-icon [class.icon-spinning]="cargandoPrioridad() || cargandoAnomalias()">refresh</mat-icon>
         Actualizar
       </button>
     }
   </header>
 
-  <!-- Sección Motor (solo ADMIN) -->
+  <!-- ============ Sección Motor (solo ADMIN) ============ -->
   @if (esAdmin()) {
     <section class="motor-section">
-      <h2 class="motor-title">
-        <mat-icon class="motor-icon">smart_toy</mat-icon>
-        Motor Inteligente
-      </h2>
-      <p class="motor-subtitle">Lo que requiere tu atención hoy.</p>
-
-      <!-- KPIs -->
-      <div class="motor-kpis">
-        <mat-card class="kpi-card kpi-rojo">
-          <mat-card-content>
-            <mat-icon class="kpi-icon">crisis_alert</mat-icon>
-            <div class="kpi-info">
-              <span class="kpi-value">
-                @if (cargandoAnomalias()) { … } @else { {{ anomaliasRecientes().length }} }
-              </span>
-              <span class="kpi-label">Anomalías recientes</span>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="kpi-card kpi-rojo">
-          <mat-card-content>
-            <mat-icon class="kpi-icon">priority_high</mat-icon>
-            <div class="kpi-info">
-              <span class="kpi-value">
-                @if (cargandoPrioridad()) { … } @else { {{ prioridad()?.totalConPrioridadAlta ?? 0 }} }
-              </span>
-              <span class="kpi-label">Prioridad alta</span>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="kpi-card kpi-amarillo">
-          <mat-card-content>
-            <mat-icon class="kpi-icon">flag</mat-icon>
-            <div class="kpi-info">
-              <span class="kpi-value">
-                @if (cargandoPrioridad()) { … } @else { {{ prioridad()?.totalConPrioridadMedia ?? 0 }} }
-              </span>
-              <span class="kpi-label">Prioridad media</span>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="kpi-card kpi-gris">
-          <mat-card-content>
-            <mat-icon class="kpi-icon">circle</mat-icon>
-            <div class="kpi-info">
-              <span class="kpi-value">
-                @if (cargandoPrioridad()) { … } @else { {{ prioridad()?.totalConPrioridadBaja ?? 0 }} }
-              </span>
-              <span class="kpi-label">Prioridad baja</span>
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <div class="section-title">
+        <div class="section-title-icon"><mat-icon>smart_toy</mat-icon></div>
+        <div>
+          <h2>Motor Inteligente</h2>
+          <p>Lo que requiere tu atención hoy</p>
+        </div>
       </div>
 
-      <!-- Top urgentes + Anomalías recientes -->
+      <!-- ===== Resumen del motor (texto legible que viene del back) ===== -->
+      @if (prioridad()?.resumen; as resumen) {
+        <div class="callout">
+          <mat-icon class="callout-icon">auto_awesome</mat-icon>
+          <p>{{ resumen }}</p>
+        </div>
+      }
+
+      <!-- ===== KPIs ===== -->
+      <div class="kpis-grid">
+        <article class="kpi" data-tone="danger">
+          <div class="kpi-icon"><mat-icon>crisis_alert</mat-icon></div>
+          <div class="kpi-body">
+            <div class="kpi-value">
+              @if (cargandoAnomalias()) {
+                <span class="kpi-loading">…</span>
+              } @else {
+                {{ anomaliasRecientes().length }}
+              }
+            </div>
+            <div class="kpi-label">Anomalías recientes</div>
+          </div>
+        </article>
+
+        <article class="kpi" data-tone="danger">
+          <div class="kpi-icon"><mat-icon>priority_high</mat-icon></div>
+          <div class="kpi-body">
+            <div class="kpi-value">
+              @if (cargandoPrioridad()) {
+                <span class="kpi-loading">…</span>
+              } @else {
+                {{ prioridad()?.totalConPrioridadAlta ?? 0 }}
+              }
+            </div>
+            <div class="kpi-label">Prioridad alta</div>
+          </div>
+        </article>
+
+        <article class="kpi" data-tone="warning">
+          <div class="kpi-icon"><mat-icon>flag</mat-icon></div>
+          <div class="kpi-body">
+            <div class="kpi-value">
+              @if (cargandoPrioridad()) {
+                <span class="kpi-loading">…</span>
+              } @else {
+                {{ prioridad()?.totalConPrioridadMedia ?? 0 }}
+              }
+            </div>
+            <div class="kpi-label">Prioridad media</div>
+          </div>
+        </article>
+
+        <article class="kpi" data-tone="neutral">
+          <div class="kpi-icon"><mat-icon>radio_button_unchecked</mat-icon></div>
+          <div class="kpi-body">
+            <div class="kpi-value">
+              @if (cargandoPrioridad()) {
+                <span class="kpi-loading">…</span>
+              } @else {
+                {{ prioridad()?.totalConPrioridadBaja ?? 0 }}
+              }
+            </div>
+            <div class="kpi-label">Prioridad baja</div>
+          </div>
+        </article>
+      </div>
+
+      <!-- ===== Top urgentes + Anomalías recientes ===== -->
       <div class="motor-grid">
-        <mat-card class="motor-block">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>star</mat-icon>
-            <mat-card-title>Top urgentes</mat-card-title>
-            <mat-card-subtitle>Predicción del motor</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
+
+        <!-- Top urgentes -->
+        <section class="panel">
+          <header class="panel-header">
+            <div class="panel-title">
+              <mat-icon class="panel-icon">star</mat-icon>
+              <div>
+                <h3>Top urgentes</h3>
+                <p>Predicción del motor</p>
+              </div>
+            </div>
+          </header>
+
+          <div class="panel-body">
             @if (cargandoPrioridad()) {
-              <div class="motor-loading"><mat-spinner diameter="28"></mat-spinner></div>
+              <div class="panel-loading">
+                @for (_ of [1,2,3]; track $index) {
+                  <div class="urgente-skeleton">
+                    <div class="skel skel-id"></div>
+                    <div class="skel skel-title"></div>
+                    <div class="skel skel-meta"></div>
+                  </div>
+                }
+              </div>
             } @else if (prioridad() && !prioridad()!.disponible) {
               <app-motor-no-disponible [compact]="true" (reintentar)="cargarPrioridad()"></app-motor-no-disponible>
             } @else if ((prioridad()?.topUrgentes?.length ?? 0) === 0) {
-              <p class="motor-vacio">No hay solicitudes urgentes detectadas.</p>
+              <div class="panel-empty">
+                <mat-icon>task_alt</mat-icon>
+                <p>No hay solicitudes urgentes</p>
+              </div>
             } @else {
               <ul class="urgentes-list">
                 @for (t of prioridad()!.topUrgentes; track t.solicitudId) {
-                  <li class="urgente-row">
-                    <span class="urgente-id">#{{ t.solicitudId | slice:0:6 }}</span>
-                    <span class="urgente-tramite">{{ t.tramiteNombre }}</span>
-                    <div class="urgente-badges">
-                      <app-severidad-badge [prioridad]="t.prioridad"></app-severidad-badge>
-                      @if (t.estadoSla) {
-                        <app-sla-badge [estado]="t.estadoSla"></app-sla-badge>
-                      }
+                  <li class="urgente" (click)="irASolicitud(t)">
+                    <div class="urgente-head">
+                      <span class="urgente-id">#{{ t.solicitudId | slice:0:6 }}</span>
+                      <div class="urgente-badges">
+                        <app-severidad-badge [prioridad]="t.prioridad"></app-severidad-badge>
+                        @if (t.estadoSla) {
+                          <app-sla-badge [estado]="t.estadoSla"></app-sla-badge>
+                        }
+                      </div>
                     </div>
-                    <div class="urgente-info">
+                    <div class="urgente-tramite">{{ t.tramiteNombre }}</div>
+                    <div class="urgente-foot">
                       <span class="urgente-razon">{{ t.razon }}</span>
                       @if (t.horasHastaLimite != null) {
-                        <span class="urgente-vence">{{ formatHorasHastaLimite(t.horasHastaLimite) }}</span>
+                        <span class="urgente-vence">
+                          <mat-icon>schedule</mat-icon>
+                          {{ formatHorasHastaLimite(t.horasHastaLimite) }}
+                        </span>
                       }
                     </div>
-                    <button mat-button color="primary" (click)="irASolicitud(t)">Ver</button>
                   </li>
                 }
               </ul>
             }
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </section>
 
-        <mat-card class="motor-block">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>warning</mat-icon>
-            <mat-card-title>Anomalías recientes</mat-card-title>
-            <mat-card-subtitle>Últimas 3 detectadas</mat-card-subtitle>
-          </mat-card-header>
-          <mat-card-content>
+        <!-- Anomalías recientes -->
+        <section class="panel">
+          <header class="panel-header">
+            <div class="panel-title">
+              <mat-icon class="panel-icon panel-icon--warn">warning</mat-icon>
+              <div>
+                <h3>Anomalías recientes</h3>
+                <p>Últimas 3 detectadas</p>
+              </div>
+            </div>
+          </header>
+
+          <div class="panel-body">
             @if (cargandoAnomalias()) {
-              <div class="motor-loading"><mat-spinner diameter="28"></mat-spinner></div>
+              <div class="panel-loading">
+                @for (_ of [1,2,3]; track $index) {
+                  <div class="anomalia-skeleton">
+                    <div class="skel skel-icon"></div>
+                    <div class="skel-rows">
+                      <div class="skel skel-title"></div>
+                      <div class="skel skel-meta"></div>
+                    </div>
+                  </div>
+                }
+              </div>
             } @else if (!anomaliasDisponible()) {
               <app-motor-no-disponible [compact]="true" (reintentar)="cargarAnomaliasRecientes()"></app-motor-no-disponible>
             } @else if (anomaliasRecientes().length === 0) {
-              <p class="motor-vacio">Sin anomalías recientes.</p>
+              <div class="panel-empty">
+                <mat-icon>check_circle</mat-icon>
+                <p>Sin anomalías recientes</p>
+              </div>
             } @else {
-              <div class="anomalias-compact">
+              <div class="anomalias-list">
                 @for (a of anomaliasRecientes(); track a.id) {
                   <app-anomalia-card [anomalia]="a" [compact]="true"></app-anomalia-card>
                 }
               </div>
-              <button mat-button color="primary" (click)="irAAnomalias()" class="ver-todas">
+              <button mat-button class="btn-ver-todas" (click)="irAAnomalias()">
                 Ver todas las anomalías
                 <mat-icon iconPositionEnd>arrow_forward</mat-icon>
               </button>
             }
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </section>
+
       </div>
     </section>
   }
 
-  <!-- Vista para no-ADMIN -->
+  <!-- ============ Vista para no-ADMIN ============ -->
   @if (!esAdmin()) {
     <div class="welcome-card">
-      <mat-icon class="welcome-icon">waving_hand</mat-icon>
+      <div class="welcome-icon">
+        <mat-icon>waving_hand</mat-icon>
+      </div>
+      <h2>Bienvenido a Workflow Trámites</h2>
       <p>Usá el menú lateral para acceder a tus tareas y solicitudes.</p>
     </div>
   }

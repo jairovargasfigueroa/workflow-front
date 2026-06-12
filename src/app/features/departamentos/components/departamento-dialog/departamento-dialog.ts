@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { DepartamentosService } from '../../services/departamentos.service';
 import { Departamento } from '../../models/departamento.model';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 
 export interface DepartamentoDialogData {
   mode: 'create' | 'edit';
@@ -37,7 +37,7 @@ export class DepartamentoDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<DepartamentoDialogComponent>);
   private readonly data = inject<DepartamentoDialogData>(MAT_DIALOG_DATA);
   private readonly departamentosService = inject(DepartamentosService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   isEditMode = this.data.mode === 'edit';
   saving = false;
@@ -64,11 +64,7 @@ export class DepartamentoDialogComponent {
 
     try {
       await firstValueFrom(request$);
-      this.notificationService.add({
-        title: this.isEditMode ? 'Actualizado' : 'Creado',
-        message: `Departamento ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
-        type: 'success'
-      });
+      this.feedback.success(`Departamento ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`);
       this.dialogRef.close(true);
     } catch {
       this.saving = false;

@@ -1,13 +1,10 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatListModule } from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 
 import { SolicitudesService } from '../../services/solicitudes.service';
@@ -15,7 +12,7 @@ import { SolicitudTramite, RespuestaDepartamento } from '../../models/solicitud.
 import { ESTADO_TRAMITE_LABELS, EstadoTramite } from '../../../../core/models';
 import { RespuestaDialogComponent } from '../../components/respuesta-dialog/respuesta-dialog';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ArchivosPanelComponent } from '../../components/archivos-panel/archivos-panel';
 import { SlaBadgeComponent } from '../../../../shared/components/ui/sla-badge/sla-badge';
@@ -32,14 +29,11 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
+    MatTooltipModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
-    MatDividerModule,
-    MatListModule,
     ArchivosPanelComponent,
     SlaBadgeComponent
   ],
@@ -52,7 +46,7 @@ export class SolicitudDetailComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly solicitudesService = inject(SolicitudesService);
   private readonly authService = inject(AuthService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   solicitud = signal<SolicitudTramite | null>(null);
   loading = signal(true);
@@ -72,6 +66,39 @@ export class SolicitudDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     clearInterval(this.tickInterval);
+  }
+
+  /**
+   * Formatea el valor de una respuesta para mostrarlo legible.
+   * Los tipos complejos llegan como JSON string:
+   *   CHECKBOX → ["a","b"]            → "a, b"
+   *   GRID     → {"fila":"opción"}    → "fila: opción"
+   *   TABLA    → [{"col":"v"}, ...]   → "v1 · v2  |  v3 · v4"
+   *   BOOLEAN  → "true"/"false"       → "Sí"/"No"
+   *   resto    → tal cual
+   */
+  formatRespuestaValor(valor: string | null | undefined): string {
+    if (valor == null || valor === '') return '—';
+    if (valor === 'true') return 'Sí';
+    if (valor === 'false') return 'No';
+
+    const t = valor.trim();
+    if (t.startsWith('[') || t.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(t);
+        if (Array.isArray(parsed)) {
+          if (parsed.length === 0) return '—';
+          if (typeof parsed[0] === 'string') return parsed.join(', ');           // CHECKBOX
+          return parsed.map((row: any) => Object.values(row).join(' · ')).join('  |  '); // TABLA
+        }
+        if (parsed && typeof parsed === 'object') {
+          return Object.entries(parsed).map(([k, v]) => `${k}: ${v}`).join(' · '); // GRID
+        }
+      } catch {
+        // no era JSON → mostrar tal cual
+      }
+    }
+    return valor;
   }
 
   // ---- SLA ----
@@ -167,7 +194,7 @@ export class SolicitudDetailComponent implements OnInit, OnDestroy {
       this.solicitudesService.liberar(sol.id, { elementId: resp.elementId }).subscribe({
         next: () => {
           this.loadSolicitud(sol.id);
-          this.notificationService.add({ title: 'Tarea liberada', message: 'Volvió a la bandeja del departamento', type: 'success' });
+          this.feedback.success('Tarea liberada — volvió a la bandeja del departamento');
         }
       });
     });

@@ -35,6 +35,8 @@ export interface MejorRutaResponse {
   rutas: RutaPredicha[];
   rutaRecomendadaNombre: string | null;
   disponible: boolean;
+  /** Texto legible del motor (opcional, aditivo). Ej: "La ruta por Tesorería es 30% más rápida". */
+  resumen?: string | null;
 }
 
 // ============ Riesgo ============
@@ -44,6 +46,10 @@ export interface CuelloPredicho {
   departamentoId: string;
   probabilidad: number;                  // 0-1
   cuando: string;
+  /** Nivel cualitativo del riesgo del cuello (opcional, aditivo). */
+  nivelRiesgo?: 'ALTO' | 'MEDIO' | null;
+  /** Texto legible: por qué este nodo es cuello (opcional, aditivo). */
+  razon?: string | null;
 }
 
 export interface DemoraPredicha {
@@ -58,6 +64,8 @@ export interface RiesgoResponse {
   demorasPredichas: DemoraPredicha[];
   cumplimientoSlaEsperado: number | null; // 0-100
   disponible: boolean;
+  /** Resumen general del riesgo del flujo (opcional, aditivo). */
+  resumen?: string | null;
 }
 
 // ============ Anomalías ============
@@ -107,4 +115,6 @@ export interface DashboardPrioridadResponse {
   totalConPrioridadBaja: number;
   topUrgentes: TopUrgente[];
   disponible: boolean;
+  /** Texto del dashboard de prioridad (opcional, aditivo). */
+  resumen?: string | null;
 }

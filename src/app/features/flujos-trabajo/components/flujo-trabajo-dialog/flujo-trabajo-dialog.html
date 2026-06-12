@@ -5,7 +5,7 @@
 
 <mat-dialog-content>
   <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Nombre del Flujo</mat-label>
       <input matInput formControlName="nombre" placeholder="Ej: Licencia de Conducir" maxlength="100" required>
       @if (form.controls.nombre.hasError('required')) {
@@ -16,7 +16,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="full-width">
       <mat-label>Descripción</mat-label>
       <textarea
         matInput
@@ -27,8 +27,6 @@
       </textarea>
       <mat-hint>Opcional</mat-hint>
     </mat-form-field>
-
-
   </form>
 </mat-dialog-content>
 
@@ -37,7 +35,7 @@
     Cancelar
   </button>
   <button
-    mat-raised-button
+    mat-flat-button
     color="primary"
     (click)="onSubmit()"
     [disabled]="form.invalid || saving">

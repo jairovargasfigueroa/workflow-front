@@ -5,8 +5,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -31,6 +29,7 @@ import {
 } from '../../models/flujo-trabajo.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { PublishErrorsDialogComponent } from '../../components/publish-errors-dialog/publish-errors-dialog';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 
 @Component({
   selector: 'app-flujo-trabajo-editor',
@@ -41,8 +40,6 @@ import { PublishErrorsDialogComponent } from '../../components/publish-errors-di
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatSnackBarModule,
-    MatChipsModule,
     MatDialogModule,
     MatDividerModule,
     PropertiesPanelComponent
@@ -56,7 +53,7 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly flujosService = inject(FlujosTrabajoService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly feedback = inject(FeedbackService);
   private readonly dialog = inject(MatDialog);
 
   private modeler!: BpmnModeler;
@@ -121,7 +118,13 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
     });
 
     this.modeler.on('selection.changed', (e: any) => {
-      this.hasElementSelected.set(e.newSelection?.length > 0);
+      const seleccionado = e.newSelection?.length > 0;
+      this.hasElementSelected.set(seleccionado);
+      // Exclusión mutua: al seleccionar un elemento, cerramos el panel de versiones
+      // para que ambos paneles nunca se superpongan.
+      if (seleccionado && this.showVersiones()) {
+        this.showVersiones.set(false);
+      }
     });
   }
 
@@ -152,7 +155,7 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
         }
       },
       error: () => {
-        this.snackBar.open('Error al cargar el flujo de trabajo', 'Cerrar', { duration: 3000 });
+        this.feedback.error('Error al cargar el flujo de trabajo');
         this.loading.set(false);
       }
     });
@@ -328,10 +331,7 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
       next: (flujo) => {
         this.flujo.set(flujo);
         this.loadVersiones();
-        this.snackBar.open('Flujo publicado exitosamente', 'Cerrar', {
-          duration: 4000,
-          panelClass: ['success-snackbar']
-        });
+        this.feedback.success('Flujo publicado exitosamente');
         this.publishing.set(false);
       },
       error: (error) => {
@@ -341,7 +341,7 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
             data: { errores: error.error.errores }
           });
         } else {
-          this.snackBar.open('Error al publicar el flujo', 'Cerrar', { duration: 3000 });
+          this.feedback.error('Error al publicar el flujo');
         }
         this.publishing.set(false);
       }
@@ -369,10 +369,10 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
             next: (xml) => this.importXml(xml, flujo.procesoKey),
             error: () => {}
           });
-          this.snackBar.open(`Versión ${version.numero} cargada como borrador`, 'Cerrar', { duration: 3000 });
+          this.feedback.success(`Versión ${version.numero} cargada como borrador`);
         },
         error: () => {
-          this.snackBar.open('Error al restaurar la versión', 'Cerrar', { duration: 3000 });
+          this.feedback.error('Error al restaurar la versión');
         }
       });
     });
@@ -389,7 +389,8 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
         title: 'Descartar borrador',
         message: '¿Descartar todos los cambios sin publicar? Esta acción no se puede deshacer.',
         confirmText: 'Descartar',
-        cancelText: 'Cancelar'
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
       }
     });
 
@@ -412,11 +413,11 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
             this.createNewDiagram(flujo.procesoKey);
           }
           this.descartando.set(false);
-          this.snackBar.open('Borrador descartado', 'Cerrar', { duration: 3000 });
+          this.feedback.success('Borrador descartado');
         },
         error: () => {
           this.descartando.set(false);
-          this.snackBar.open('Error al descartar el borrador', 'Cerrar', { duration: 3000 });
+          this.feedback.error('Error al descartar el borrador');
         }
       });
     });
@@ -429,10 +430,10 @@ export class FlujoTrabajoEditorComponent implements OnInit, AfterViewInit, OnDes
 
   getEstadoClass(estado: EstadoFlujo): string {
     const map: Record<EstadoFlujo, string> = {
-      SIN_PUBLICAR: 'flujo-sin-publicar',
-      ACTIVO: 'flujo-activo',
-      DESACTIVADO: 'flujo-desactivado',
-      ARCHIVADO: 'flujo-archivado'
+      SIN_PUBLICAR: 'chip--flujo-sin-publicar',
+      ACTIVO: 'chip--flujo-activo',
+      DESACTIVADO: 'chip--flujo-desactivado',
+      ARCHIVADO: 'chip--flujo-archivado'
     };
     return map[estado] ?? '';
   }

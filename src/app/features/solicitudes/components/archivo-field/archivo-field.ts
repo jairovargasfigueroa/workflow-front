@@ -10,7 +10,7 @@ import { Subject, firstValueFrom } from 'rxjs';
 
 import { ArchivosService } from '../../services/archivos.service';
 import { ArchivoResponse } from '../../models/archivo.model';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 
 export type ArchivoFieldStatus = 'idle' | 'uploading' | 'uploaded' | 'error';
@@ -44,7 +44,7 @@ export class ArchivoFieldComponent implements ControlValueAccessor, OnDestroy {
   @Input() accept = '';
 
   private readonly archivosService = inject(ArchivosService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
   private readonly destroy$ = new Subject<void>();
 
   status: ArchivoFieldStatus = 'idle';
@@ -108,11 +108,7 @@ export class ArchivoFieldComponent implements ControlValueAccessor, OnDestroy {
         this.errorMessage = msg;
         this.archivo = null;
         this.onChange(null);
-        this.notification.add({
-          title: 'Error al subir archivo',
-          message: msg,
-          type: 'error'
-        });
+        this.feedback.error(msg);
       }
     });
   }
@@ -145,7 +141,7 @@ export class ArchivoFieldComponent implements ControlValueAccessor, OnDestroy {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  private handleError(err: HttpErrorResponse, fallback: string): void {
-    this.notification.add({ title: fallback, message: mapHttpErrorToUserMessage(err), type: 'error' });
+  private handleError(err: HttpErrorResponse, _fallback: string): void {
+    this.feedback.error(mapHttpErrorToUserMessage(err));
   }
 }

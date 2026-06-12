@@ -53,6 +53,33 @@ export class AnomaliaCardComponent {
     return formatFechaAbsoluta(this.anomalia.detectada);
   }
 
+  /** Icono Material según severidad. */
+  get icono(): string {
+    switch (this.anomalia.severidad) {
+      case 'CRITICA': return 'crisis_alert';
+      case 'MEDIA': return 'warning';
+      case 'BAJA': return 'info';
+      default: return 'help';
+    }
+  }
+
+  /** Tono visual (data-attribute) para colorear el icono. */
+  get tono(): string {
+    switch (this.anomalia.severidad) {
+      case 'CRITICA': return 'danger';
+      case 'MEDIA': return 'warning';
+      default: return 'neutral';
+    }
+  }
+
+  /** Tipo de anomalía en formato legible (ej: "solicitud_estancada" → "Solicitud estancada"). */
+  get tipoLabel(): string {
+    const t = this.anomalia.tipo ?? '';
+    if (!t) return 'Anomalía';
+    const limpio = t.replace(/_/g, ' ');
+    return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+  }
+
   /** Sólo mostramos "Ver" si linkea a una solicitud (usuarios/:id no existe en el front). */
   get muestraVer(): boolean {
     return !!this.anomalia.solicitudIdAfectada;

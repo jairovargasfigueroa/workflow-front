@@ -16,7 +16,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { TramitesService } from '../../services/tramites.service';
 import { Tramite } from '../../models/tramite.model';
 import { Criticidad, CRITICIDAD_LABELS } from '../../../../core/models/sla';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { FormulariosService } from '../../../formularios/services/formularios.service';
 import { FormularioTemplate } from '../../../formularios/models/formulario.model';
 import { FlujosTrabajoService } from '../../../flujos-trabajo/services/flujos-trabajo.service';
@@ -68,7 +68,7 @@ export class TramiteDialogComponent implements OnInit {
   private readonly tramitesService = inject(TramitesService);
   private readonly formulariosService = inject(FormulariosService);
   private readonly flujosTrabajoService = inject(FlujosTrabajoService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   readonly separatorKeysCodes = [ENTER, COMMA] as const;
   readonly maxRecomendado = ETIQUETAS_ADVERTENCIA_MAX;
@@ -177,11 +177,7 @@ export class TramiteDialogComponent implements OnInit {
 
     try {
       await firstValueFrom(request$);
-      this.notificationService.add({
-        title: this.isEditMode ? 'Actualizado' : 'Creado',
-        message: `Trámite ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`,
-        type: 'success'
-      });
+      this.feedback.success(`Trámite ${this.isEditMode ? 'actualizado' : 'creado'} correctamente`);
       this.dialogRef.close(true);
     } catch {
       this.saving = false;

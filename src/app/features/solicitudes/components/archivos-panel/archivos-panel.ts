@@ -25,7 +25,7 @@ import {
   puedeVerse
 } from '../../../../core/utils/formato-archivo.util';
 import { AuthService } from '../../../../core/services/auth.service';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { ArchivoHistorialModalComponent } from '../archivo-historial-modal/archivo-historial-modal';
 import { ArchivoAuditoriaModalComponent } from '../archivo-auditoria-modal/archivo-auditoria-modal';
@@ -58,7 +58,7 @@ export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
 
   private readonly archivosService = inject(ArchivosService);
   private readonly authService = inject(AuthService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
   private readonly matDialog = inject(MatDialog);
 
   archivos: ArchivoResponse[] = [];
@@ -171,11 +171,7 @@ export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
 
     this.archivosService.nuevaVersion(archivo.id, file, this.solicitudId).subscribe({
       next: () => {
-        this.notification.add({
-          title: 'Nueva versión subida',
-          message: `Se actualizó "${archivo.nombre}"`,
-          type: 'success'
-        });
+        this.feedback.success(`Nueva versión subida — "${archivo.nombre}"`);
       },
       error: err => this.handleError(err, 'No se pudo subir la nueva versión')
     });
@@ -197,11 +193,7 @@ export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
 
     this.archivosService.eliminar(archivo.id, this.solicitudId).subscribe({
       next: () => {
-        this.notification.add({
-          title: 'Archivo eliminado',
-          message: `"${archivo.nombre}" fue eliminado del expediente`,
-          type: 'success'
-        });
+        this.feedback.success(`"${archivo.nombre}" fue eliminado del expediente`);
       },
       error: err => this.handleError(err, 'No se pudo eliminar el archivo')
     });
@@ -241,11 +233,7 @@ export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
     }).subscribe({
       next: () => {
         this.uploadingExtra = false;
-        this.notification.add({
-          title: 'Archivo subido',
-          message: `Se agregó "${file.name}" al expediente`,
-          type: 'success'
-        });
+        this.feedback.success(`Se agregó "${file.name}" al expediente`);
       },
       error: err => {
         this.uploadingExtra = false;
@@ -260,7 +248,7 @@ export class ArchivosPanelComponent implements OnInit, OnChanges, OnDestroy {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  private handleError(err: HttpErrorResponse, fallback: string): void {
-    this.notification.add({ title: fallback, message: mapHttpErrorToUserMessage(err), type: 'error' });
+  private handleError(err: HttpErrorResponse, _fallback: string): void {
+    this.feedback.error(mapHttpErrorToUserMessage(err));
   }
 }

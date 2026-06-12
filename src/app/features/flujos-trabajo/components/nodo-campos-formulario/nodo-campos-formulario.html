@@ -1,0 +1,68 @@
+<div class="campos-inline">
+  <!-- Semántica: inline reemplaza a la plantilla -->
+  @if (campos().length > 0) {
+    <div class="nota nota--warn">
+      <mat-icon>info</mat-icon>
+      <span>Estos campos <strong>reemplazan</strong> al formulario de plantilla (el funcionario verá estos).</span>
+    </div>
+  } @else if (formularioId()) {
+    <div class="nota">
+      <mat-icon>info</mat-icon>
+      <span>Esta tarea usa el <strong>formulario de plantilla</strong>. Podés agregar campos propios o cargar la plantilla como base para editarla.</span>
+    </div>
+  } @else {
+    <div class="nota">
+      <mat-icon>info</mat-icon>
+      <span>Sin formulario asignado. Agregá campos propios acá (no hace falta una plantilla).</span>
+    </div>
+  }
+
+  <!-- Lista de campos -->
+  @if (campos().length === 0) {
+    <p class="empty-list">Este nodo no tiene campos inline.</p>
+  } @else {
+    <ul class="campos-list">
+      @for (campo of campos(); track $index) {
+        <li class="campo-card">
+          <div class="campo-info">
+            <div class="campo-nombre">
+              {{ campo.etiqueta }}
+              <span class="campo-id">{{ campo.nombre }}</span>
+            </div>
+            <div class="campo-meta">{{ describirCampo(campo) }}</div>
+          </div>
+          <div class="campo-actions">
+            <button mat-icon-button matTooltip="Editar" (click)="editarCampo($index)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" matTooltip="Quitar" (click)="quitarCampo($index)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <!-- Acciones -->
+  <div class="campos-acciones">
+    <button mat-stroked-button color="primary" (click)="agregarCampo()">
+      <mat-icon>add</mat-icon>
+      Agregar campo
+    </button>
+
+    @if (formularioId()) {
+      <button mat-button
+              [disabled]="cargandoPlantilla()"
+              matTooltip="Copia los campos de la plantilla seleccionada para editarlos acá"
+              (click)="cargarDesdePlantilla()">
+        @if (cargandoPlantilla()) {
+          <mat-spinner diameter="18"></mat-spinner>
+        } @else {
+          <mat-icon>download</mat-icon>
+        }
+        Usar plantilla como base
+      </button>
+    }
+  </div>
+</div>

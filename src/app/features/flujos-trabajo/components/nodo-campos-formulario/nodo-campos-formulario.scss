@@ -1,0 +1,108 @@
+.campos-inline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+// Nota / semántica
+.nota {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+
+  mat-icon {
+    color: var(--color-primary);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  &.nota--warn {
+    background: var(--chip-pending-bg);
+    border-color: transparent;
+    color: var(--chip-pending-text);
+
+    mat-icon {
+      color: var(--chip-pending-text);
+    }
+  }
+}
+
+.empty-list {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-hint);
+  font-style: italic;
+}
+
+// Lista de campos
+.campos-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.campo-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.campo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.campo-nombre {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.campo-id {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono, monospace);
+  color: var(--color-text-hint);
+  background: var(--surface-subtle);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.campo-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.campo-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+// Acciones
+.campos-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}

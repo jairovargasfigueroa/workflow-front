@@ -7,7 +7,7 @@
   </div>
 
   @if (buttonLabel()) {
-    <button mat-fab extended color="primary" (click)="buttonClick.emit()">
+    <button mat-flat-button color="primary" class="page-header-action" (click)="buttonClick.emit()">
       <mat-icon>{{ buttonIcon() }}</mat-icon>
       {{ buttonLabel() }}
     </button>

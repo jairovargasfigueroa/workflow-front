@@ -1,0 +1,24 @@
+@if (items().length > 0) {
+  <nav class="breadcrumb" aria-label="Ruta de navegación">
+    @for (item of items(); track $index) {
+      @if ($index > 0) {
+        <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+      }
+      @if (item.link && !$last) {
+        <a [routerLink]="item.link" class="breadcrumb-item breadcrumb-item--link">
+          @if (item.icon) {
+            <mat-icon class="breadcrumb-icon">{{ item.icon }}</mat-icon>
+          }
+          <span>{{ item.label }}</span>
+        </a>
+      } @else {
+        <span class="breadcrumb-item breadcrumb-item--current">
+          @if (item.icon) {
+            <mat-icon class="breadcrumb-icon">{{ item.icon }}</mat-icon>
+          }
+          <span>{{ item.label }}</span>
+        </span>
+      }
+    }
+  </nav>
+}

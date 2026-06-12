@@ -13,6 +13,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { Subject, firstValueFrom, takeUntil } from 'rxjs';
 
@@ -26,8 +28,9 @@ import {
 } from '../../models/solicitud.model';
 import { ArchivoResponse } from '../../models/archivo.model';
 import { CampoFormulario } from '../../../formularios/models/formulario.model';
+import { TipoCampo } from '../../../../core/models';
 import { AuthService } from '../../../../core/services/auth.service';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { SpeechService } from '../../../../core/services/speech.service';
 import { ArchivosPanelComponent } from '../archivos-panel/archivos-panel';
 import { DocProducidoSlotComponent } from '../doc-producido-slot/doc-producido-slot';
@@ -54,6 +57,8 @@ export interface RespuestaDialogData {
     MatDividerModule,
     MatDatepickerModule,
     MatTooltipModule,
+    MatRadioModule,
+    MatCheckboxModule,
     ArchivosPanelComponent,
     DocProducidoSlotComponent
   ],
@@ -68,7 +73,7 @@ export class RespuestaDialogComponent implements OnInit, OnDestroy {
   private readonly solicitudesService = inject(SolicitudesService);
   private readonly archivosService = inject(ArchivosService);
   private readonly authService = inject(AuthService);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
   private readonly speechService = inject(SpeechService);
 
   get escuchando() { return this.speechService.escuchando; }
@@ -166,10 +171,82 @@ export class RespuestaDialogComponent implements OnInit, OnDestroy {
   private buildDynamicForm(campos: CampoFormulario[]): void {
     const group: Record<string, any> = {};
     for (const campo of campos) {
-      const validators = campo.requerido ? [Validators.required] : [];
-      group[campo.nombre] = ['', validators];
+      // Valor inicial según el tipo (los complejos guardan array/objeto).
+      // BOOLEAN = radio Sí/No sin preselección (null) → obliga a elegir si es requerido.
+      let inicial: any = '';
+      if (campo.tipo === 'BOOLEAN') inicial = null;
+      else if (campo.tipo === 'CHECKBOX' || campo.tipo === 'TABLA') inicial = [];
+      else if (campo.tipo === 'GRID') inicial = {};
+
+      // El "required" de Material no aplica bien a CHECKBOX/TABLA/GRID (su valor es []/{}).
+      const sinRequerido = ['CHECKBOX', 'TABLA', 'GRID'];
+      const validators = (campo.requerido && !sinRequerido.includes(campo.tipo)) ? [Validators.required] : [];
+
+      group[campo.nombre] = [inicial, validators];
     }
     this.dynamicForm = this.fb.group(group);
+  }
+
+  // ---- Helpers para tipos complejos (leen/escriben el control del dynamicForm) ----
+
+  // CHECKBOX: el control guarda string[]
+  checkboxMarcado(nombre: string, opcion: string): boolean {
+    const arr = (this.dynamicForm.get(nombre)?.value ?? []) as string[];
+    return arr.includes(opcion);
+  }
+  toggleCheckbox(nombre: string, opcion: string): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const arr = [...((ctrl?.value ?? []) as string[])];
+    const i = arr.indexOf(opcion);
+    if (i >= 0) arr.splice(i, 1); else arr.push(opcion);
+    ctrl?.setValue(arr);
+  }
+
+  // GRID: el control guarda { fila: opcionElegida }
+  gridValor(nombre: string, fila: string): string {
+    return ((this.dynamicForm.get(nombre)?.value ?? {}) as Record<string, string>)[fila] ?? '';
+  }
+  setGridValor(nombre: string, fila: string, opcion: string): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const obj = { ...((ctrl?.value ?? {}) as Record<string, string>) };
+    obj[fila] = opcion;
+    ctrl?.setValue(obj);
+  }
+
+  // TABLA: el control guarda Array<{ [columna]: valor }>
+  tablaFilas(nombre: string): Record<string, string>[] {
+    return (this.dynamicForm.get(nombre)?.value ?? []) as Record<string, string>[];
+  }
+  agregarFilaTabla(nombre: string, columnas: string[]): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const filas = [...this.tablaFilas(nombre)];
+    const nueva: Record<string, string> = {};
+    columnas.forEach(col => (nueva[col] = ''));
+    filas.push(nueva);
+    ctrl?.setValue(filas);
+  }
+  quitarFilaTabla(nombre: string, index: number): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const filas = [...this.tablaFilas(nombre)];
+    filas.splice(index, 1);
+    ctrl?.setValue(filas);
+  }
+  celdaTabla(nombre: string, index: number, columna: string): string {
+    return this.tablaFilas(nombre)[index]?.[columna] ?? '';
+  }
+  setCeldaTabla(nombre: string, index: number, columna: string, valor: string): void {
+    const ctrl = this.dynamicForm.get(nombre);
+    const filas = this.tablaFilas(nombre).map(f => ({ ...f }));
+    if (filas[index]) filas[index][columna] = valor;
+    ctrl?.setValue(filas);
+  }
+
+  /** ¿El valor serializado tiene contenido? (para no mandar campos vacíos). */
+  private tieneValor(valorSerializado: string, tipo?: TipoCampo): boolean {
+    if (tipo === 'CHECKBOX' || tipo === 'TABLA') return valorSerializado !== '[]';
+    if (tipo === 'GRID') return valorSerializado !== '{}';
+    // BOOLEAN: "true"/"false" se mandan; sin responder queda '' → se filtra.
+    return valorSerializado !== '' && valorSerializado !== 'null';
   }
 
   get puedeEnviar(): boolean {
@@ -216,9 +293,19 @@ export class RespuestaDialogComponent implements OnInit, OnDestroy {
     const formValue = this.form.getRawValue();
     const dynamicValues = this.dynamicForm.getRawValue();
 
+    // Tipo por nombre de campo, para serializar cada valor en el formato correcto.
+    const tipoPorCampo = new Map(this.campos.map(c => [c.nombre, c.tipo]));
+
     const respuestas: RespuestaCampo[] = Object.entries(dynamicValues)
-      .filter(([, valor]) => valor != null && valor !== '')
-      .map(([nombreCampo, valor]) => ({ nombreCampo, valor: String(valor) }));
+      .map(([nombreCampo, valor]) => {
+        const tipo = tipoPorCampo.get(nombreCampo);
+        // Complejos → JSON string · BOOLEAN → "true"/"false" · resto → string
+        if (tipo === 'CHECKBOX' || tipo === 'TABLA' || tipo === 'GRID') {
+          return { nombreCampo, valor: JSON.stringify(valor ?? (tipo === 'GRID' ? {} : [])) };
+        }
+        return { nombreCampo, valor: String(valor ?? '') };
+      })
+      .filter(r => this.tieneValor(r.valor, tipoPorCampo.get(r.nombreCampo)));
 
     const accion = this.tarea.acciones.length > 0
       ? (this.accionSeleccionada ?? '')
@@ -232,18 +319,10 @@ export class RespuestaDialogComponent implements OnInit, OnDestroy {
         comentario: formValue.comentario || undefined,
         respuestas
       }));
-      this.notificationService.add({
-        title: 'Respuesta enviada',
-        message: 'La respuesta del departamento se registró correctamente',
-        type: 'success'
-      });
+      this.feedback.success('Respuesta del departamento registrada correctamente');
       this.dialogRef.close(true);
     } catch (err) {
-      this.notificationService.add({
-        title: 'Error al enviar respuesta',
-        message: mapHttpErrorToUserMessage(err as HttpErrorResponse),
-        type: 'error'
-      });
+      this.feedback.error(mapHttpErrorToUserMessage(err as HttpErrorResponse));
       this.saving = false;
     }
   }

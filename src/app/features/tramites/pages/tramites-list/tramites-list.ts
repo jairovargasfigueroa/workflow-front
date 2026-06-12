@@ -15,7 +15,8 @@ import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
 import { CriticidadBadgeComponent } from '../../../../shared/components/ui/criticidad-badge/criticidad-badge';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { ListSkeletonComponent } from '../../../../shared/components/ui/list-skeleton/list-skeleton';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { formatPlazoHoras } from '../../../../core/utils/sla.util';
 
 @Component({
@@ -31,7 +32,8 @@ import { formatPlazoHoras } from '../../../../core/utils/sla.util';
     MatChipsModule,
     EmptyStateComponent,
     PageHeaderComponent,
-    CriticidadBadgeComponent
+    CriticidadBadgeComponent,
+    ListSkeletonComponent
   ],
   templateUrl: './tramites-list.html',
   styleUrl: './tramites-list.scss'
@@ -39,7 +41,7 @@ import { formatPlazoHoras } from '../../../../core/utils/sla.util';
 export class TramitesListComponent implements OnInit {
   private readonly tramitesService = inject(TramitesService);
   private readonly dialog = inject(MatDialog);
-  private readonly notificationService = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   tramites = signal<Tramite[]>([]);
   loading = signal(true);
@@ -102,7 +104,8 @@ export class TramitesListComponent implements OnInit {
         title: 'Eliminar trámite',
         message: `¿Está seguro que desea eliminar el trámite "${tramite.nombre}"?`,
         confirmText: 'Eliminar',
-        cancelText: 'Cancelar'
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
       }
     });
 
@@ -116,11 +119,7 @@ export class TramitesListComponent implements OnInit {
   private deleteTramite(id: string): void {
     this.tramitesService.delete(id).subscribe({
       next: () => {
-        this.notificationService.add({
-          title: 'Eliminado',
-          message: 'Trámite eliminado correctamente',
-          type: 'success'
-        });
+        this.feedback.success('Trámite eliminado correctamente');
         this.loadTramites();
       },
       error: () => {

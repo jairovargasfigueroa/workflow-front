@@ -152,6 +152,79 @@
   }
 }
 
+// =============================================================================
+// Cuellos predichos — lista con nivelRiesgo (chip) + razón visible inline
+// =============================================================================
+
+.cuellos-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cuello {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--surface-card);
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.cuello-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.cuello-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.cuello-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.cuello-nombre {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.cuello-razon {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+.cuello-meta {
+  display: flex;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-hint);
+}
+
+.cuello-prob {
+  font-weight: var(--font-weight-medium);
+}
+
 .riesgo-nombre {
   font-weight: 500;
   color: var(--color-text-primary);

@@ -56,6 +56,9 @@ export class NodoConfigDocumentalComponent implements OnChanges {
   element = input<any>(null);
   /** 'tarea' (UserTask del funcionario) o 'inicio' (StartEvent del solicitante). */
   contexto = input<'tarea' | 'inicio'>('tarea');
+  /** Si true, renderiza el contenido sin su propio mat-expansion-panel
+   *  (para anidar dentro de un acordeón externo, p. ej. el panel de propiedades). */
+  embebido = input<boolean>(false);
 
   private readonly matDialog = inject(MatDialog);
   private readonly departamentosService = inject(DepartamentosService);
@@ -116,61 +119,47 @@ export class NodoConfigDocumentalComponent implements OnChanges {
     escribirConfiguracionDocumental(this.modeler(), this.element(), this.config);
   }
 
-  get camposFormularioDisponibles(): string[] {
-    // Por ahora no leemos los campos del formulario asociado al nodo.
-    // Si en el futuro se quiere autocompletar, leer formularioId del bo y pedir al backend.
-    return [];
-  }
+  // -------- Documentos producidos --------
 
-  // -------- Documentos (esperados / producidos) --------
-
-  async agregarDocumento(lista: 'documentosEsperados' | 'documentosProducidos'): Promise<void> {
-    const titulo = lista === 'documentosEsperados'
-      ? 'Nuevo documento esperado'
+  async agregarDocumento(): Promise<void> {
+    const titulo = this.contexto() === 'inicio'
+      ? 'Nuevo documento del kit'
       : 'Nuevo documento producido';
     const ref = this.matDialog.open(DocumentoConfigFormComponent, {
       data: {
         documento: emptyDocumentoConfig(),
-        titulo,
-        camposFormularioDisponibles: this.camposFormularioDisponibles
+        titulo
       },
       width: '660px',
       maxHeight: '88vh'
     });
     const result = (await firstValueFrom(ref.afterClosed())) as DocumentoConfig | null;
     if (!result) return;
-    this.config[lista] = [...this.config[lista], result];
+    this.config.documentosProducidos = [...this.config.documentosProducidos, result];
     this.persistir();
   }
 
-  async editarDocumento(
-    lista: 'documentosEsperados' | 'documentosProducidos',
-    index: number
-  ): Promise<void> {
-    const original = this.config[lista][index];
+  async editarDocumento(index: number): Promise<void> {
+    const original = this.config.documentosProducidos[index];
     const titulo = `Editar documento — ${original.nombre}`;
     const ref = this.matDialog.open(DocumentoConfigFormComponent, {
       data: {
         documento: original,
-        titulo,
-        camposFormularioDisponibles: this.camposFormularioDisponibles
+        titulo
       },
       width: '660px',
       maxHeight: '88vh'
     });
     const result = (await firstValueFrom(ref.afterClosed())) as DocumentoConfig | null;
     if (!result) return;
-    const nueva = [...this.config[lista]];
+    const nueva = [...this.config.documentosProducidos];
     nueva[index] = result;
-    this.config[lista] = nueva;
+    this.config.documentosProducidos = nueva;
     this.persistir();
   }
 
-  async quitarDocumento(
-    lista: 'documentosEsperados' | 'documentosProducidos',
-    index: number
-  ): Promise<void> {
-    const doc = this.config[lista][index];
+  async quitarDocumento(index: number): Promise<void> {
+    const doc = this.config.documentosProducidos[index];
     const confirmado = await firstValueFrom(
       this.matDialog.open(ConfirmDialogComponent, {
         data: {
@@ -183,9 +172,9 @@ export class NodoConfigDocumentalComponent implements OnChanges {
       }).afterClosed()
     );
     if (!confirmado) return;
-    const nueva = [...this.config[lista]];
+    const nueva = [...this.config.documentosProducidos];
     nueva.splice(index, 1);
-    this.config[lista] = nueva;
+    this.config.documentosProducidos = nueva;
     this.persistir();
   }
 
@@ -227,7 +216,6 @@ export class NodoConfigDocumentalComponent implements OnChanges {
 
   describirDocumento(d: DocumentoConfig): string {
     const partes: string[] = [];
-    if (d.campoFormularioAsociado) partes.push(`campo: ${d.campoFormularioAsociado}`);
     if (d.formatosAceptados.length > 0) partes.push(d.formatosAceptados.join('/').toUpperCase());
     if (d.obligatorio) partes.push('obligatorio');
     if (d.inmutablePostCierre) partes.push('inmutable post-cierre');

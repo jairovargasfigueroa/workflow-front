@@ -10,12 +10,13 @@ import { firstValueFrom } from 'rxjs';
 
 import { MotorService } from '../../../../core/services/motor.service';
 import { Anomalia, AnomaliasFiltros, Severidad } from '../../../../core/models/motor';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { ConfirmDialogComponent } from '../../../../shared/components/ui/confirm-dialog/confirm-dialog';
 import { AnomaliaCardComponent } from '../../../../shared/components/ui/anomalia-card/anomalia-card';
 import { MotorNoDisponibleComponent } from '../../../../shared/components/ui/motor-no-disponible/motor-no-disponible';
 import { PageHeaderComponent } from '../../../../shared/components/ui/page-header/page-header';
 import { EmptyStateComponent } from '../../../../shared/components/ui/empty-state/empty-state';
+import { ListSkeletonComponent } from '../../../../shared/components/ui/list-skeleton/list-skeleton';
 
 type FiltroChip = 'TODAS' | Severidad;
 
@@ -32,14 +33,15 @@ type FiltroChip = 'TODAS' | Severidad;
     AnomaliaCardComponent,
     MotorNoDisponibleComponent,
     PageHeaderComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    ListSkeletonComponent
   ],
   templateUrl: './anomalias-list.html',
   styleUrl: './anomalias-list.scss'
 })
 export class AnomaliasListComponent implements OnInit {
   private readonly motorService = inject(MotorService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
   private readonly matDialog = inject(MatDialog);
 
   readonly anomalias = signal<Anomalia[]>([]);
@@ -100,19 +102,11 @@ export class AnomaliasListComponent implements OnInit {
       next: () => {
         // Sacamos localmente y recargamos en segundo plano para refrescar total/paginación.
         this.anomalias.update(list => list.filter(a => a.id !== anomalia.id));
-        this.notification.add({
-          title: 'Anomalía descartada',
-          message: 'El motor lo registró como feedback.',
-          type: 'success'
-        });
+        this.feedback.success('Anomalía descartada — el motor lo registró como feedback');
         this.cargar();
       },
       error: () => {
-        this.notification.add({
-          title: 'No se pudo descartar',
-          message: 'Reintentá en unos segundos.',
-          type: 'error'
-        });
+        this.feedback.error('No se pudo descartar — reintentá en unos segundos');
       }
     });
   }

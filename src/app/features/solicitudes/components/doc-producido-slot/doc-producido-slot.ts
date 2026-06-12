@@ -10,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { ArchivosService } from '../../services/archivos.service';
 import { ArchivoResponse } from '../../models/archivo.model';
-import { NotificationService } from '../../../../core/services/notification.service';
+import { FeedbackService } from '../../../../core/services/feedback.service';
 import { mapHttpErrorToUserMessage } from '../../../../core/utils/http-error.util';
 
 export type SlotStatus = 'idle' | 'uploading' | 'uploaded' | 'error';
@@ -46,7 +46,7 @@ export class DocProducidoSlotComponent {
   @Output() reemplazado = new EventEmitter<ArchivoResponse>();
 
   private readonly archivosService = inject(ArchivosService);
-  private readonly notification = inject(NotificationService);
+  private readonly feedback = inject(FeedbackService);
 
   readonly status = signal<SlotStatus>('idle');
   readonly errorMessage = signal<string | null>(null);
@@ -99,7 +99,7 @@ export class DocProducidoSlotComponent {
         const msg = mapHttpErrorToUserMessage(err);
         this.status.set('error');
         this.errorMessage.set(msg);
-        this.notification.add({ title: 'Error al subir', message: msg, type: 'error' });
+        this.feedback.error(msg);
       }
     });
   }
@@ -110,7 +110,7 @@ export class DocProducidoSlotComponent {
         await firstValueFrom(this.archivosService.eliminar(this._archivo.id, this.solicitudId));
       } catch (err) {
         const msg = mapHttpErrorToUserMessage(err as HttpErrorResponse);
-        this.notification.add({ title: 'No se pudo reemplazar', message: msg, type: 'error' });
+        this.feedback.error(msg);
         return;
       }
       this._archivo = null;
